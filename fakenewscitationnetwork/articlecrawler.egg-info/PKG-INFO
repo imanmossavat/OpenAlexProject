@@ -1,0 +1,32 @@
+Metadata-Version: 2.4
+Name: articlecrawler
+Version: 0.1.0
+Summary: Scientific Literature Discovery Tool
+Author-email: Your Name <your.email@example.com>
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: networkx
+Requires-Dist: pandas
+Requires-Dist: numpy
+Requires-Dist: scikit-learn
+Requires-Dist: sentence-transformers
+Requires-Dist: python-dotenv
+Requires-Dist: requests
+Requires-Dist: langdetect
+Requires-Dist: nltk
+Requires-Dist: wordcloud
+Requires-Dist: matplotlib
+Requires-Dist: openpyxl
+Requires-Dist: xlsxwriter
+Requires-Dist: tabulate
+Provides-Extra: cli
+Requires-Dist: typer[all]>=0.9.0; extra == "cli"
+Requires-Dist: rich>=13.0.0; extra == "cli"
+Requires-Dist: questionary>=2.0.0; extra == "cli"
+Requires-Dist: pyyaml>=6.0; extra == "cli"
+Requires-Dist: pydantic>=2.0.0; extra == "cli"
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.0.0; extra == "dev"
+Requires-Dist: black>=23.0.0; extra == "dev"
+Requires-Dist: flake8>=6.0.0; extra == "dev"
