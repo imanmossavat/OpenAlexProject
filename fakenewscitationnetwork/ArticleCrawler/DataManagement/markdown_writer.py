@@ -2,6 +2,7 @@
 from pathlib import Path
 import os
 import pandas as pd
+from ArticleCrawler.utils.url_builder import PaperURLBuilder
 class MarkdownFileGenerator:
     """
     Class responsible for generating markdown files based on provided dataframes.
@@ -14,15 +15,7 @@ class MarkdownFileGenerator:
     
     def __init__(self, 
                  storage_and_logging_options,
-                 ):
-
-        """
-        Initializes the MarkdownFileGenerator class with the specified paths.
-        
-        Args:
-        - object of StorageAndLoggingOptions under initialization package
-        """
-
+                 api_provider_type: str = 'semantic_scholar'):
         self.experiment_file_name = storage_and_logging_options.experiment_file_name
         self.vault_folder = storage_and_logging_options.vault_folder
         self.figure_folder = storage_and_logging_options.figure_folder
@@ -30,6 +23,9 @@ class MarkdownFileGenerator:
         self.metadata_folder = storage_and_logging_options.metadata_folder
         self.summary_folder = storage_and_logging_options.summary_folder
         self.open_vault_folder = storage_and_logging_options.open_vault_folder
+        self.api_provider_type = api_provider_type.lower()
+        self.url_builder = PaperURLBuilder()
+
 
 
     def create_folders(self):
@@ -80,7 +76,9 @@ class MarkdownFileGenerator:
         paper_metadata['authors'] = ', '.join(author_names) if author_names else "Unknown Author(s)"
         
         return paper_metadata
-
+    
+    def _get_paper_url(self, paper_id: str) -> str:
+        return self.url_builder.build_url(paper_id, self.api_provider_type)
 
     def _get_author_names(self, paper_id, df_paper_author, df_author):
         """
@@ -173,7 +171,10 @@ class MarkdownFileGenerator:
         Returns:
         - str: Constructed markdown content for the paper.
         """
-        markdown_content = f"# Title: {paper_metadata['title'].values[0]}\n"
+        paper_url = self._get_paper_url(paper_metadata['paperId'].values[0])
+        title = paper_metadata['title'].values[0]
+        
+        markdown_content = f"# [{title}]({paper_url})\n\n"
         markdown_content += f"## Abstract\n\n{abstract}\n\n"
                 
         return markdown_content

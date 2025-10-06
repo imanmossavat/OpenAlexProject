@@ -1,7 +1,3 @@
-"""
-Global test fixtures available to all test modules.
-"""
-
 import pytest
 import pandas as pd
 from pathlib import Path
@@ -10,11 +6,8 @@ import tempfile
 import shutil
 
 
-# Directory and Path Fixtures
-
 @pytest.fixture
 def temp_dir():
-    """Create a temporary directory for test files."""
     temp_path = tempfile.mkdtemp()
     yield Path(temp_path)
     shutil.rmtree(temp_path, ignore_errors=True)
@@ -22,15 +15,11 @@ def temp_dir():
 
 @pytest.fixture
 def test_data_dir():
-    """Path to test data directory."""
     return Path(__file__).parent / "fixtures" / "data"
 
 
-# Mock Logger Fixture
-
 @pytest.fixture
 def mock_logger():
-    """Create a mock logger for testing."""
     logger = Mock()
     logger.info = Mock()
     logger.warning = Mock()
@@ -39,11 +28,8 @@ def mock_logger():
     return logger
 
 
-# Sample Paper Objects
-
 @pytest.fixture
 def sample_paper_object():
-    """Create a sample paper object with all attributes."""
     paper = Mock()
     paper.paperId = "W2134567890"
     paper.title = "Sample Research Paper"
@@ -51,28 +37,20 @@ def sample_paper_object():
     paper.venue = "Test Conference"
     paper.year = 2024
     paper.doi = "10.1234/test.2024.001"
-    
-    # Authors
     author1 = Mock()
     author1.authorId = "A1234567890"
     author1.name = "John Doe"
-    
     author2 = Mock()
     author2.authorId = "A0987654321"
     author2.name = "Jane Smith"
-    
     paper.authors = [author1, author2]
-    
-    # Citations and references (empty for basic fixture)
     paper.citations = []
     paper.references = []
-    
     return paper
 
 
 @pytest.fixture
 def sample_paper_without_abstract():
-    """Create a sample paper object without abstract (common in OpenAlex)."""
     paper = Mock()
     paper.paperId = "W9876543210"
     paper.title = "Paper Without Abstract"
@@ -80,29 +58,22 @@ def sample_paper_without_abstract():
     paper.venue = "Test Journal"
     paper.year = 2023
     paper.doi = "10.1234/test.2023.002"
-    
     author = Mock()
     author.authorId = "A5555555555"
     author.name = "Test Author"
-    
     paper.authors = [author]
     paper.citations = []
     paper.references = []
-    
     return paper
 
 
 @pytest.fixture
 def sample_papers_list(sample_paper_object, sample_paper_without_abstract):
-    """List of sample papers for batch testing."""
     return [sample_paper_object, sample_paper_without_abstract]
 
 
-# Sample DataFrames
-
 @pytest.fixture
 def sample_paper_metadata_df():
-    """Sample paper metadata DataFrame."""
     return pd.DataFrame({
         'paperId': ['W2134567890', 'W9876543210', 'W1111111111'],
         'doi': ['10.1234/test.001', '10.1234/test.002', '10.1234/test.003'],
@@ -119,7 +90,6 @@ def sample_paper_metadata_df():
 
 @pytest.fixture
 def sample_abstracts_df():
-    """Sample abstracts DataFrame."""
     return pd.DataFrame({
         'paperId': ['W2134567890', 'W9876543210'],
         'abstract': [
@@ -131,18 +101,14 @@ def sample_abstracts_df():
 
 @pytest.fixture
 def sample_citations_df():
-    """Sample citations DataFrame."""
     return pd.DataFrame({
         'paperId': ['W2134567890', 'W9876543210', 'W1111111111'],
         'citedPaperId': ['W9876543210', 'W1111111111', 'W2134567890']
     })
 
 
-# Configuration Objects
-
 @pytest.fixture
 def sample_api_config():
-    """Sample API configuration."""
     from ArticleCrawler.config import APIConfig
     return APIConfig(
         provider_type='openalex',
@@ -152,7 +118,6 @@ def sample_api_config():
 
 @pytest.fixture
 def sample_sampling_config():
-    """Sample sampling configuration."""
     from ArticleCrawler.config import SamplingConfig
     return SamplingConfig(
         num_papers=5,
@@ -164,7 +129,6 @@ def sample_sampling_config():
 
 @pytest.fixture
 def sample_text_config():
-    """Sample text processing configuration."""
     from ArticleCrawler.config import TextProcessingConfig
     return TextProcessingConfig(
         abstract_min_length=120,
@@ -177,7 +141,6 @@ def sample_text_config():
 
 @pytest.fixture
 def sample_storage_config(temp_dir):
-    """Sample storage configuration."""
     from ArticleCrawler.config import StorageAndLoggingConfig
     return StorageAndLoggingConfig(
         experiment_file_name='test_experiment',
@@ -188,7 +151,6 @@ def sample_storage_config(temp_dir):
 
 @pytest.fixture
 def sample_graph_config():
-    """Sample graph configuration."""
     from ArticleCrawler.config import GraphConfig
     return GraphConfig(
         ignored_venues=['WWW'],
@@ -199,7 +161,6 @@ def sample_graph_config():
 
 @pytest.fixture
 def sample_retraction_config():
-    """Sample retraction configuration."""
     from ArticleCrawler.config import RetractionConfig
     return RetractionConfig(
         enable_retraction_watch=True,
@@ -210,7 +171,6 @@ def sample_retraction_config():
 
 @pytest.fixture
 def sample_stopping_config():
-    """Sample stopping configuration."""
     from ArticleCrawler.config import StoppingConfig
     return StoppingConfig(
         max_iter=2,
@@ -218,25 +178,197 @@ def sample_stopping_config():
     )
 
 
-# Seed Data
-
 @pytest.fixture
 def sample_seed_papers():
-    """Sample seed paper IDs."""
     return ['W2134567890', 'W9876543210']
 
 
 @pytest.fixture
 def sample_keywords():
-    """Sample keyword filters."""
     return ['machine learning', 'deep learning', 'neural networks']
 
 
-# Test Utilities
-
 @pytest.fixture
 def assert_dataframe_equals():
-    """Utility function to compare DataFrames."""
     def _assert_equals(df1, df2, check_dtype=True):
         pd.testing.assert_frame_equal(df1, df2, check_dtype=check_dtype)
     return _assert_equals
+
+
+@pytest.fixture
+def mock_requests(monkeypatch):
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.json = Mock(return_value={})
+    mock_response.content = b''
+    mock_get = Mock(return_value=mock_response)
+    mock_post = Mock(return_value=mock_response)
+    monkeypatch.setattr('requests.get', mock_get)
+    monkeypatch.setattr('requests.post', mock_post)
+    return {'get': mock_get, 'post': mock_post, 'response': mock_response}
+
+
+@pytest.fixture
+def mock_sentence_transformer(monkeypatch):
+    import numpy as np
+    mock_model = Mock()
+    mock_model.encode = Mock(return_value=np.random.rand(10, 384))
+    mock_model.get_sentence_embedding_dimension = Mock(return_value=384)
+    mock_class = Mock(return_value=mock_model)
+    monkeypatch.setattr('sentence_transformers.SentenceTransformer', mock_class)
+    return mock_model
+
+
+@pytest.fixture
+def integration_test_storage(temp_dir):
+    experiment_dir = temp_dir / 'test_experiment'
+    experiment_dir.mkdir(parents=True, exist_ok=True)
+    (experiment_dir / 'pkl').mkdir(exist_ok=True)
+    (experiment_dir / 'log').mkdir(exist_ok=True)
+    (experiment_dir / 'vault').mkdir(exist_ok=True)
+    (experiment_dir / 'figures').mkdir(exist_ok=True)
+    return experiment_dir
+
+
+@pytest.fixture
+def sample_crawler_parameters(sample_seed_papers, sample_keywords):
+    from ArticleCrawler.config.crawler_initialization import CrawlerParameters
+    return CrawlerParameters(
+        seed_paperid=sample_seed_papers,
+        keywords=sample_keywords
+    )
+
+
+@pytest.fixture
+def integration_configs(temp_dir):
+    from tests.fixtures.sample_configs import get_full_config
+    return get_full_config(temp_dir)
+
+
+@pytest.fixture
+def mock_api_with_sample_data(sample_papers_list):
+    mock_api = Mock()
+    mock_api.get_papers = Mock(return_value=sample_papers_list)
+    mock_api.get_paper = Mock(side_effect=lambda paper_id: sample_papers_list[0] if paper_id else None)
+    mock_api.failed_paper_ids = []
+    mock_api.inconsistent_api_response_paper_ids = []
+    return mock_api
+
+
+@pytest.fixture
+def mock_pdf_metadata():
+    from ArticleCrawler.pdf_processing.models import PDFMetadata
+    return PDFMetadata(
+        filename="test.pdf",
+        title="Test Paper Title",
+        doi="10.1234/test.2024.001",
+        year="2024",
+        authors="John Doe, Jane Smith",
+        venue="Test Journal"
+    )
+
+
+@pytest.fixture
+def mock_pdf_processing_result(mock_pdf_metadata):
+    from ArticleCrawler.pdf_processing.models import PDFProcessingResult
+    from pathlib import Path
+    return PDFProcessingResult(
+        pdf_path=Path("test.pdf"),
+        metadata=mock_pdf_metadata,
+        success=True
+    )
+
+
+@pytest.fixture
+def mock_api_match_result(mock_pdf_metadata):
+    from ArticleCrawler.pdf_processing.models import APIMatchResult
+    return APIMatchResult(
+        metadata=mock_pdf_metadata,
+        matched=True,
+        paper_id="W123456789",
+        confidence=0.95,
+        match_method="DOI"
+    )
+
+
+@pytest.fixture
+def mock_docker_manager():
+    manager = Mock()
+    manager.is_grobid_running.return_value = True
+    manager.start_container.return_value = True
+    manager.stop_container.return_value = True
+    manager.is_docker_available.return_value = True
+    manager.is_container_running.return_value = False
+    return manager
+
+
+@pytest.fixture
+def mock_grobid_client():
+    client = Mock()
+    client.process_pdfs.return_value = {}
+    return client
+
+
+@pytest.fixture
+def mock_metadata_extractor():
+    extractor = Mock()
+    extractor.extract.return_value = None
+    return extractor
+
+
+@pytest.fixture
+def sample_grobid_xml():
+    return """<?xml version="1.0"?>
+    <TEI xmlns="http://www.tei-c.org/ns/1.0">
+        <teiHeader>
+            <fileDesc>
+                <titleStmt>
+                    <title>Test Paper Title</title>
+                </titleStmt>
+                <sourceDesc>
+                    <biblStruct>
+                        <analytic>
+                            <author>
+                                <persName><surname>Doe</surname><forename>John</forename></persName>
+                            </author>
+                            <idno type="DOI">10.1234/test</idno>
+                        </analytic>
+                        <monogr>
+                            <title level="j">Test Journal</title>
+                            <imprint>
+                                <date type="published" when="2024">2024</date>
+                            </imprint>
+                        </monogr>
+                    </biblStruct>
+                </sourceDesc>
+            </fileDesc>
+        </teiHeader>
+    </TEI>
+    """
+
+
+@pytest.fixture
+def mock_rich_console():
+    console = Mock()
+    console.print = Mock()
+    return console
+
+
+@pytest.fixture
+def mock_prompter():
+    prompter = Mock()
+    prompter.console = Mock()
+    prompter.input = Mock(return_value="")
+    prompter.input_int = Mock(return_value=0)
+    prompter.confirm = Mock(return_value=False)
+    prompter.choice = Mock(return_value=0)
+    prompter.error = Mock()
+    prompter.success = Mock()
+    prompter.warning = Mock()
+    return prompter
+
+
+@pytest.fixture
+def mock_config_builder():
+    from ArticleCrawler.cli.models.experiment_config import ConfigBuilder
+    return ConfigBuilder()

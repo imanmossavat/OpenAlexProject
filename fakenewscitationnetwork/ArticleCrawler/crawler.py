@@ -44,7 +44,6 @@ class Crawler:
                  storage_config=None,
                  graph_config=None,
                  retraction_config=None,
-                 # Backward compatibility parameters
                  reporting_options=None,
                  sampling_options=None,
                  nlp_options=None,
@@ -53,30 +52,7 @@ class Crawler:
                  retraction_options=None,
                  frames=None,
                  md_generator=None):
-        """
-        Initialize the Crawler with enhanced architecture.
         
-        Args:
-            crawl_initial_condition: Initial crawling parameters
-            stopping_criteria_config: Stopping criteria configuration
-            api_config: API provider configuration (new)
-            sampling_config: Sampling configuration (new)
-            text_config: Text processing configuration (new)
-            storage_config: Storage and logging configuration (new)
-            graph_config: Graph configuration (new)
-            retraction_config: Retraction configuration (new)
-            # Backward compatibility arguments
-            reporting_options: Legacy reporting options
-            sampling_options: Legacy sampling options (maps to sampling_config)
-            nlp_options: Legacy NLP options (maps to text_config)
-            graph_options: Legacy graph options (maps to graph_config)
-            storage_and_logging_options: Legacy storage options (maps to storage_config)
-            retraction_options: Legacy retraction options (maps to retraction_config)
-            frames: Pre-existing frame manager
-            md_generator: Markdown generator
-        """
-        
-        # Handle backward compatibility by converting old options to new configs
         self._resolve_configurations(
             api_config, sampling_config, text_config, storage_config,
             graph_config, retraction_config, stopping_criteria_config,
@@ -84,7 +60,6 @@ class Crawler:
             storage_and_logging_options, retraction_options
         )
         
-        # Store core parameters
         self.crawl_initial_condition = crawl_initial_condition
         self.crawl_initial_condition.validate_keywords()
         self.md_generator = md_generator
@@ -244,7 +219,9 @@ class Crawler:
         
         self.text_processor = TextAnalysisManager(
             config=self.text_config,
-            retraction_watch_manager=self.retraction_manager
+            retraction_watch_manager=self.retraction_manager,
+            api_provider_type=self.api_config.provider_type
+
         )
         
         self.sampler = Sampler(
@@ -255,6 +232,14 @@ class Crawler:
             data_storage_options=self.storage_config,
             retraction_watch_manager=self.retraction_manager
         )
+
+    def add_seed_papers(self, paper_ids: list):
+        if not paper_ids:
+            return
+        
+        self.logger.info(f"Adding {len(paper_ids)} additional seed papers")
+        self.data_coordinator.add_seed_papers(paper_ids)
+        self.logger.info(f"Total seed papers: {self.data_coordinator.frames.df_paper_metadata['isSeed'].sum()}")
 
     def crawl(self):
         """
