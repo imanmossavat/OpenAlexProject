@@ -4,6 +4,8 @@ import pandas as pd
 from .preprocessing import TextPreProcessing
 from .vectorization import TextTransformation
 from .topic_modeling import TopicModeling
+from ArticleCrawler.utils.url_builder import PaperURLBuilder
+
 
 class TextAnalysisManager:
     """
@@ -13,7 +15,7 @@ class TextAnalysisManager:
     separation of concerns and strategy-based topic modeling.
     """
     
-    def __init__(self, config=None, retraction_watch_manager=None):
+    def __init__(self, config=None, retraction_watch_manager=None, api_provider_type='semantic_scholar'):
         """
         Initialize the text analysis manager.
         
@@ -23,7 +25,10 @@ class TextAnalysisManager:
         """
         self.config = config
         self.retraction_watch_manager = retraction_watch_manager
-        
+        self.api_provider_type = api_provider_type
+        self.url_builder = PaperURLBuilder()
+
+
         # Initialize components with new architecture
         self.preprocessing = TextPreProcessing(config=config)
         self.transformations = TextTransformation(config=config)
@@ -211,7 +216,9 @@ class TextAnalysisManager:
             else:
                 logger.warning(f"Skipping visualization for {model_type} - model not fitted")
 
-    # Keep all existing report generation methods unchanged for backward compatibility
+    def _get_paper_url(self, paper_id: str) -> str:
+        return self.url_builder.build_url(paper_id, self.api_provider_type)
+
     def generate_report(self, timestamp_final_pkl, experiment_file_name, xlsx_folder, vault_folder, logger=None):
         """Generate the report and save it in both Excel and Markdown formats."""
         try:
@@ -253,7 +260,6 @@ class TextAnalysisManager:
             raise
 
     def save_to_markdown(self, df, folder, filename, logger=None):
-        """Save subsets of the DataFrame as Markdown sections in a .md file."""
         try:
             from tabulate import tabulate
             os.makedirs(folder, exist_ok=True)
@@ -262,7 +268,8 @@ class TextAnalysisManager:
             df = df.copy()
             
             def make_paper_id_link(paper_id, title):
-                return f"[{title}](https://www.semanticscholar.org/paper/{paper_id})"
+                url = self._get_paper_url(paper_id)
+                return f"[{title}]({url})"
 
             df = df[["paperId", "venue", "year", "title", "centrality (in)", "centrality (out)", "selected", "isSeed"]]
             df["paperId"] = df.apply(lambda row: make_paper_id_link(row["paperId"], row["title"]), axis=1)
@@ -313,7 +320,6 @@ class TextAnalysisManager:
             raise
 
     def save_seed_papers_to_markdown(self, df, folder, filename, logger=None):
-        """Save seed papers as a Markdown file with a subsection."""
         try:
             from tabulate import tabulate
             os.makedirs(folder, exist_ok=True)
@@ -322,7 +328,8 @@ class TextAnalysisManager:
             df = df.copy()
 
             def make_paper_id_link(paper_id):
-                return f"[{paper_id}](https://www.semanticscholar.org/paper/{paper_id})"
+                url = self._get_paper_url(paper_id)
+                return f"[{paper_id}]({url})"
 
             df = df[["paperId", "venue", "year", "title", "centrality (in)", "centrality (out)", "isSeed"]]
             df["paperId"] = df["paperId"].apply(make_paper_id_link)
@@ -355,8 +362,8 @@ class TextAnalysisManager:
             logger.error(f"An error occurred while saving seed papers to Markdown: {e}")
             raise
 
+
     def save_forbidden_papers_to_markdown(self, df_forbidden_dois_metadata, folder, filename, logger=None):
-        """Save forbidden papers as a Markdown file with a subsection."""
         try:
             from tabulate import tabulate
             os.makedirs(folder, exist_ok=True)
@@ -365,7 +372,8 @@ class TextAnalysisManager:
             df_forbidden_dois_metadata = df_forbidden_dois_metadata.copy()
 
             def make_paper_id_link(paper_id, title):
-                return f"[{title}](https://www.semanticscholar.org/paper/{paper_id})"
+                url = self._get_paper_url(paper_id)
+                return f"[{title}]({url})"
 
             df_forbidden_dois_metadata = df_forbidden_dois_metadata[["paperId", "venue", "year", "title", "doi"]]
             df_forbidden_dois_metadata["paperId"] = df_forbidden_dois_metadata.apply(

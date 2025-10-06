@@ -110,21 +110,32 @@ def version():
     console.print("Scientific Literature Discovery Tool\n")
 
 
+
 def _run_crawler(config):
-    """
-    Internal function to start crawler with given config.
-    
-    Args:
-        config: ExperimentConfig object with all settings
-    """
     from ArticleCrawler import Crawler
     from ArticleCrawler.config.crawler_initialization import CrawlerParameters
     from ArticleCrawler.DataManagement.markdown_writer import MarkdownFileGenerator
     from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
     
     try:
+        pdf_seed_count = getattr(config, '_pdf_seed_count', 0)
+        initial_seed_count = getattr(config, '_initial_seed_count', len(config.seeds))
+        
+        non_pdf_count = initial_seed_count - pdf_seed_count
+        
+        if pdf_seed_count > 0:
+            if non_pdf_count == 0:
+                initial_seeds = []
+                pdf_seeds = config.seeds
+            else:
+                initial_seeds = config.seeds[:non_pdf_count]
+                pdf_seeds = config.seeds[non_pdf_count:]
+        else:
+            initial_seeds = config.seeds
+            pdf_seeds = []
+        
         crawl_params = CrawlerParameters(
-            seed_paperid=config.seeds,
+            seed_paperid=initial_seeds if initial_seeds else pdf_seeds,
             keywords=config.keywords
         )
         
@@ -132,7 +143,10 @@ def _run_crawler(config):
         
         crawler_configs["storage_config"].experiment_file_name = config.name
         
-        md_gen = MarkdownFileGenerator(crawler_configs["storage_config"])
+        md_gen = MarkdownFileGenerator(
+            crawler_configs["storage_config"],
+            api_provider_type=config.api_provider
+        )
         
         console.print("\n" + "=" * 70)
         console.print("[bold cyan]INITIALIZING CRAWLER[/bold cyan]")
@@ -147,9 +161,12 @@ def _run_crawler(config):
             **crawler_configs
         )
         
+        if pdf_seeds and initial_seeds:
+            console.print(f"\n[cyan]Adding {len(pdf_seeds)} PDF-derived seed papers...[/cyan]")
+            crawler.add_seed_papers(pdf_seeds)
+        
         console.print("[green]✓[/green] Crawler initialized successfully")
         
-        # Phase 1: Crawling
         console.print("\n" + "=" * 70)
         console.print("[bold cyan]PHASE 1: CRAWLING[/bold cyan]")
         console.print("=" * 70)
@@ -158,7 +175,6 @@ def _run_crawler(config):
         
         console.print("\n[bold green]✅ Crawling completed successfully![/bold green]")
         
-        # Phase 2: Markdown Generation
         console.print("\n" + "=" * 70)
         console.print("[bold cyan]PHASE 2: GENERATING MARKDOWN FILES[/bold cyan]")
         console.print("=" * 70)
@@ -167,7 +183,6 @@ def _run_crawler(config):
         
         console.print(f"\n[green]✓[/green] Markdown files generated at: {crawler_configs['storage_config'].vault_folder}")
         
-        # Phase 3: Analysis
         console.print("\n" + "=" * 70)
         console.print("[bold cyan]PHASE 3: ANALYSIS AND REPORTING[/bold cyan]")
         console.print("=" * 70)
@@ -179,12 +194,19 @@ def _run_crawler(config):
         
         console.print("\n[bold green]✅ Analysis and reporting completed![/bold green]")
         
-        # Summary
         console.print("\n" + "=" * 70)
         console.print("[bold green]🎉 EXPERIMENT COMPLETE - SUMMARY[/bold green]")
         console.print("=" * 70)
         console.print(f"\n[cyan]Experiment:[/cyan] {config.name}")
         console.print(f"[cyan]API Provider:[/cyan] {config.api_provider}")
+        
+        if pdf_seed_count > 0 and non_pdf_count > 0:
+            console.print(f"[cyan]Total Seeds:[/cyan] {len(config.seeds)} ({non_pdf_count} from file, {pdf_seed_count} from PDF)")
+        elif pdf_seed_count > 0:
+            console.print(f"[cyan]Total Seeds:[/cyan] {len(config.seeds)} ({pdf_seed_count} from PDF)")
+        else:
+            console.print(f"[cyan]Total Seeds:[/cyan] {len(config.seeds)}")
+        
         console.print(f"[cyan]Topic Model:[/cyan] {config.topic_model}")
         console.print(f"\n[cyan]Outputs:[/cyan]")
         console.print(f"  - PKL: {crawler_configs['storage_config'].pkl_folder}")
@@ -194,7 +216,7 @@ def _run_crawler(config):
         console.print("\n" + "=" * 70 + "\n")
         
     except Exception as e:
-        console.print(f"\n[bold red]❌ Crawler failed: {e}[/bold red]")
+        console.print(f"\n[bold red]✗ Crawler failed: {e}[/bold red]")
         raise
 
 
