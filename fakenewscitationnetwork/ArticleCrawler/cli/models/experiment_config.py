@@ -233,6 +233,21 @@ class ConfigBuilder:
         self._config["enable_retraction_watch"] = enable
         return self
     
+    def with_ignored_venues(self, venues: List[str]) -> "ConfigBuilder":
+        """Set ignored venues list."""
+        self._config["ignored_venues"] = venues
+        return self
+
+    def with_save_figures(self, save: bool) -> "ConfigBuilder":
+        """Set whether to save figures."""
+        self._config["save_figures"] = save
+        return self
+
+    def with_language(self, language: str) -> "ConfigBuilder":
+        """Set language for text processing."""
+        self._config["language"] = language
+        return self
+    
     def with_root_folder(self, folder: Path) -> "ConfigBuilder":
         """Set root output folder."""
         self._config["root_folder"] = folder

@@ -2,7 +2,7 @@ Metadata-Version: 2.4
 Name: articlecrawler
 Version: 0.1.0
 Summary: Scientific Literature Discovery Tool
-Author-email: Your Name <your.email@example.com>
+Author: Iman Mossavat, Bryan Hoppenbrouwer
 Requires-Python: >=3.8
 Description-Content-Type: text/markdown
 Requires-Dist: networkx

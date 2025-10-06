@@ -66,6 +66,9 @@ class WizardCommand:
                 self.console.print("  - Topic modeling (NMF, 20 topics)")
                 self.console.print("  - Graph options (no author nodes)")
                 self.console.print("  - Retraction watch (enabled)")
+                self.console.print("  - Save figures (enabled)")
+                self.console.print("  - Ignored venues (ArXiv, medRxiv, WWW)")
+                self.console.print("  - Language (English)")
             
             # Step 6: Review & Confirm
             config = self.config_builder.build()
@@ -224,6 +227,51 @@ class WizardCommand:
             default=True
         )
         self.config_builder.with_enable_retraction_watch(enable_retraction)
+
+        save_figs = self.prompter.confirm(
+            "Save topic modeling figures? (PNG files for visualization)",
+            default=True
+        )
+        self.config_builder.with_save_figures(save_figs)
+
+        if self.prompter.confirm("\nCustomize ignored venues?", default=False):
+            self.console.print("\n[dim]Default ignored: '', 'ArXiv', 'medRxiv', 'WWW'[/dim]")
+            self.console.print("Enter additional venues to ignore (one per line, blank when done):")
+            
+            custom_venues = []
+            idx = 1
+            while True:
+                venue = self.prompter.input(f"Venue {idx}").strip()
+                if not venue:
+                    break
+                custom_venues.append(venue)
+                self.console.print(f"[green]✓[/green] Added: {venue}")
+                idx += 1
+            
+            if custom_venues:
+                # Merge with defaults
+                all_ignored = ["", "ArXiv", "medRxiv", "WWW"] + custom_venues
+                self.config_builder.with_ignored_venues(all_ignored)
+                self.console.print(f"[green]✓[/green] Total ignored venues: {len(all_ignored)}")
+
+        language_choice = self.prompter.choice(
+            "Language for text processing",
+            choices=[
+                "English (en)",
+                "Spanish (es)", 
+                "French (fr)",
+                "German (de)",
+                "Other (specify)"
+            ],
+            default=0
+        )
+        
+        if language_choice == 4:  # Other
+            custom_lang = self.prompter.input("Enter ISO 639-1 language code (e.g., 'it', 'pt', 'zh')")
+            self.config_builder.with_language(custom_lang)
+        else:
+            lang_map = {0: "en", 1: "es", 2: "fr", 3: "de"}
+            self.config_builder.with_language(lang_map[language_choice])
         
         self.console.print("[green]✓[/green] Advanced options configured\n")
     
@@ -239,6 +287,9 @@ class WizardCommand:
         self.console.print(f"[cyan]Max iterations:[/cyan] {config.max_iterations}")
         self.console.print(f"[cyan]API:[/cyan] {config.api_provider}")
         self.console.print(f"[cyan]Output:[/cyan] {config.root_folder / config.name}")
+        self.console.print(f"[cyan]Language:[/cyan] {config.language}")
+        self.console.print(f"[cyan]Save figures:[/cyan] {'Yes' if config.save_figures else 'No'}")
+        self.console.print(f"[cyan]Ignored venues:[/cyan] {len(config.ignored_venues)} venues")
         
         # Confirm
         return self.prompter.confirm("\nStart crawling now?", default=True)
