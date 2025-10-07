@@ -4,6 +4,7 @@ import pandas as pd
 from .preprocessing import TextPreProcessing
 from .vectorization import TextTransformation
 from .topic_modeling import TopicModeling
+from pathlib import Path
 from ArticleCrawler.utils.url_builder import PaperURLBuilder
 
 
@@ -364,46 +365,68 @@ class TextAnalysisManager:
 
 
     def save_forbidden_papers_to_markdown(self, df_forbidden_dois_metadata, folder, filename, logger=None):
+        """
+        Save forbidden papers to a Markdown file.
+        
+        Args:
+            df_forbidden_dois_metadata: DataFrame with forbidden papers metadata
+            folder: Folder path to save the file
+            filename: Name of the output file (without extension)
+            logger: Optional logger instance
+            
+        Returns:
+            str: Path to the saved Markdown file
+        """
         try:
-            from tabulate import tabulate
-            os.makedirs(folder, exist_ok=True)
-            file_path = os.path.join(folder, f"{filename}.md")
-
-            df_forbidden_dois_metadata = df_forbidden_dois_metadata.copy()
-
+            folder = Path(folder)
+            folder.mkdir(parents=True, exist_ok=True)
+            file_path = str(folder / f"{filename}.md")
+            
+            # Handle empty DataFrame case
+            if df_forbidden_dois_metadata.empty:
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    f.write("# Forbidden Papers\n\n")
+                    f.write("No forbidden papers found.\n")
+                
+                if logger:
+                    logger.info(f"Forbidden papers Markdown file saved at {file_path} (empty)")
+                return file_path
+            
+            # Helper function to create clickable links
             def make_paper_id_link(paper_id, title):
-                url = self._get_paper_url(paper_id)
+                url = f"https://openalex.org/{paper_id}"
                 return f"[{title}]({url})"
-
-            df_forbidden_dois_metadata = df_forbidden_dois_metadata[["paperId", "venue", "year", "title", "doi"]]
+            
+            # Select and reorder columns
+            df_forbidden_dois_metadata = df_forbidden_dois_metadata[
+                ["paperId", "venue", "year", "title", "doi"]
+            ].copy()  # Use .copy() to avoid SettingWithCopyWarning
+            
+            # Create clickable links for paper IDs
             df_forbidden_dois_metadata["paperId"] = df_forbidden_dois_metadata.apply(
                 lambda row: make_paper_id_link(row["paperId"], row["title"]), axis=1
             )
-
-            forbidden_papers = df_forbidden_dois_metadata.sort_values(by="year", ascending=False)
-
-            if len(forbidden_papers) > 0:
-                section = (
-                    "## Section 1: All Forbidden Papers\n\n"
-                    + tabulate(
-                        forbidden_papers[
-                            ["paperId", "venue", "year", "title", "doi"]
-                        ],
-                        headers="keys",
-                        tablefmt="pipe",
-                        showindex=False,
-                    )
-                )
-            else:
-                section = "## Section 1: All Forbidden Papers\n\nNo forbidden papers found.\n"
-
-            with open(file_path, 'w', encoding='utf-8') as md_file:
-                md_file.write("# Forbidden Papers\n\n")
-                md_file.write(section)
-
-            logger.info(f"Forbidden papers Markdown file saved at {file_path}")
+            
+            # Convert to Markdown table
+            from tabulate import tabulate
+            markdown_table = tabulate(
+                df_forbidden_dois_metadata, 
+                headers="keys", 
+                tablefmt="pipe", 
+                showindex=False
+            )
+            
+            # Write to file
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write("# Forbidden Papers\n\n")
+                f.write(markdown_table)
+            
+            if logger:
+                logger.info(f"Forbidden papers Markdown file saved at {file_path}")
+            
             return file_path
-
+            
         except Exception as e:
-            logger.error(f"An error occurred while saving forbidden papers to Markdown: {e}")
+            if logger:
+                logger.error(f"An error occurred while saving forbidden papers to Markdown: {e}")
             raise

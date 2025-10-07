@@ -125,8 +125,36 @@ class PDFSeedProvider(SeedProvider):
         return self.workflow.execute()
 
 
+class ZoteroSeedProvider(SeedProvider):
+    """
+    Provides seeds from Zotero library.
+    Uses ZoteroSeedWorkflow for orchestration.
+    """
+    
+    def __init__(self, prompter: Prompter, api_provider_type: str = 'openalex'):
+        self.prompter = prompter
+        self.api_provider_type = api_provider_type
+        self.console = Console()
+    
+    def display_name(self) -> str:
+        return "Import from Zotero library"
+    
+    def get_seeds(self) -> List[str]:
+        """Execute workflow and return paper IDs."""
+        from ..zotero.workflow import ZoteroSeedWorkflow
+        
+        workflow = ZoteroSeedWorkflow(
+            prompter=self.prompter,
+            console=self.console,
+            api_provider_type=self.api_provider_type
+        )
+        
+        return workflow.execute()
+
+
 SEED_PROVIDERS = [
     ManualSeedProvider,
     FileSeedProvider,
     PDFSeedProvider,
+    ZoteroSeedProvider,
 ]
