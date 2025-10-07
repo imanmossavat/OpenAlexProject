@@ -155,8 +155,6 @@ def metadata_parser(empty_data_frame_store, mock_logger):
     return MetadataParser(empty_data_frame_store, feature_computer, mock_logger)
 
 
-# Mocking Helpers
-
 @pytest.fixture
 def mock_networkx_graph():
     """Mock NetworkX graph."""
@@ -172,3 +170,65 @@ def mock_networkx_graph():
 def patch_api_sleep(monkeypatch):
     """Patch time.sleep to speed up tests."""
     monkeypatch.setattr('time.sleep', lambda x: None)
+
+@pytest.fixture
+def mock_rich_console():
+    """Mock rich Console."""
+    console = Mock()
+    console.print = Mock()
+    console.status.return_value.__enter__ = Mock()
+    console.status.return_value.__exit__ = Mock()
+    return console
+
+
+@pytest.fixture
+def sample_zotero_metadata():
+    """Sample Zotero metadata dictionary."""
+    return {
+        'title': 'Test Paper Title',
+        'authors': ['John Doe', 'Jane Smith'],
+        'date': '2024-01-15',
+        'year': 2024,
+        'publication': 'Test Journal',
+        'doi': '10.1234/test.2024.001',
+        'url': 'https://example.com/paper',
+        'abstract': 'This is a test abstract.',
+        'tags': ['machine learning', 'AI'],
+        'item_type': 'journalArticle',
+        'zotero_key': 'ITEM123'
+    }
+
+
+@pytest.fixture
+def sample_zotero_collection():
+    """Sample Zotero collection."""
+    return {
+        'key': 'COL123',
+        'name': 'Test Collection',
+        'data': {
+            'key': 'COL123',
+            'name': 'Test Collection'
+        }
+    }
+
+
+@pytest.fixture
+def sample_zotero_item():
+    """Sample Zotero item dictionary."""
+    return {
+        'data': {
+            'key': 'ITEM123',
+            'title': 'Test Paper Title',
+            'creators': [
+                {'creatorType': 'author', 'firstName': 'John', 'lastName': 'Doe'},
+                {'creatorType': 'author', 'firstName': 'Jane', 'lastName': 'Smith'}
+            ],
+            'date': '2024-01-15',
+            'publicationTitle': 'Test Journal',
+            'DOI': '10.1234/test.2024.001',
+            'url': 'https://example.com/paper',
+            'abstractNote': 'This is a test abstract.',
+            'tags': [{'tag': 'machine learning'}, {'tag': 'AI'}],
+            'itemType': 'journalArticle'
+        }
+    }
