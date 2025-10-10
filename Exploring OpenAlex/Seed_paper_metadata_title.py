@@ -2,7 +2,7 @@ import pyalex
 from pyalex import Works
 
 # Configure pyalex
-pyalex.config.email = "885585@fontys.nl"
+pyalex.config.email = "Email"
 
 # Configuration
 TEST_TITLE = "SciBERT: A Pretrained Language Model for Scientific Text"

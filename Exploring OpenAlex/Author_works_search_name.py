@@ -2,7 +2,7 @@ import pyalex
 from pyalex import Works, Authors
 
 # Configure pyalex
-pyalex.config.email = "885585@fontys.nl"
+pyalex.config.email = "Email"
 
 # Find author by name
 author_name = "Iz Beltagy"

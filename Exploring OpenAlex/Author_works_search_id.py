@@ -2,7 +2,7 @@ import pyalex
 from pyalex import Works
 
 # Configure pyalex
-pyalex.config.email = "885585@fontys.nl"
+pyalex.config.email = "Email"
 
 # Use author ID directly
 author_id = "https://openalex.org/A5090038537"

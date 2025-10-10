@@ -5,6 +5,7 @@ import os
 from dotenv import load_dotenv
 import logging
 from typing import List, Dict, Optional, Tuple
+from ..library.models import PaperData
 from .base_api import BaseAPIProvider
 
 class OpenAlexAPIProvider(BaseAPIProvider):
@@ -91,6 +92,262 @@ class OpenAlexAPIProvider(BaseAPIProvider):
                     self.logger.error(f"Failed to get paper {paper_id}: {e}")
                     return None
                 time.sleep(2 ** attempt)
+
+    def get_paper_metadata_only(self, paper_id: str) -> Optional[Dict]:
+        """
+        Get a single paper with FULL OpenAlex metadata but WITHOUT references/citations.
+        This is for LIBRARY CREATION use cases.
+        
+        Returns the raw OpenAlex dictionary with all fields including concepts, topics, etc.
+        Does NOT fetch references or citations (much faster).
+        """
+        for attempt in range(self.retries + 1):
+            try:
+                self._rate_limit()
+                normalized_id = self._normalize_paper_id(paper_id)
+                
+                work = Works()[normalized_id]
+                
+                if not work:
+                    return None
+                
+                returned_id = self._clean_id(work['id'])
+                requested_id = self._clean_id(paper_id).lstrip('W')
+                
+                if returned_id != f"W{requested_id}" and returned_id.lstrip('W') != requested_id:
+                    self._inconsistent_api_response_paper_ids.append((paper_id, returned_id))
+                    self.logger.warning(f"ID mismatch: requested {paper_id}, got {returned_id}")
+                
+                return work
+                
+            except Exception as e:
+                if attempt == self.retries:
+                    self._failed_paper_ids.append(paper_id)
+                    self.logger.error(f"Failed to get paper {paper_id}: {e}")
+                    return None
+                time.sleep(2 ** attempt)
+        
+        return None
+
+    def get_papers_batch(self, paper_ids: List[str]) -> List[Dict]:
+        """
+        Get multiple papers in batches with FULL OpenAlex metadata.
+        For LIBRARY CREATION - returns raw OpenAlex dictionaries.
+        Does NOT fetch references or citations.
+        
+        Args:
+            paper_ids: List of paper IDs to fetch
+            
+        Returns:
+            List of OpenAlex work dictionaries
+        """
+        if not paper_ids:
+            return []
+        
+        all_works = []
+        batch_size = 25
+        
+        for i in range(0, len(paper_ids), batch_size):
+            batch_ids = paper_ids[i:i + batch_size]
+            
+            clean_ids = []
+            for pid in batch_ids:
+                clean_id = self._clean_id(pid)
+                if not clean_id.startswith('W'):
+                    clean_id = f"W{clean_id}"
+                clean_ids.append(clean_id)
+            
+            for attempt in range(self.retries + 1):
+                try:
+                    self._rate_limit()
+                    
+                    batch_works = Works().filter(openalex_id='|'.join(clean_ids)).get()
+                    
+                    all_works.extend(batch_works)
+                    
+                    self.logger.info(f"Fetched batch {i//batch_size + 1}: {len(batch_works)}/{len(clean_ids)} papers")
+                    
+                    break
+                    
+                except Exception as e:
+                    if attempt == self.retries:
+                        self.logger.error(f"Failed to fetch batch {i//batch_size + 1} after {self.retries + 1} attempts: {e}")
+                        break
+                    time.sleep(2 ** attempt)
+            
+            if i + batch_size < len(paper_ids):
+                time.sleep(0.5)
+        
+        self.logger.info(f"Total fetched: {len(all_works)}/{len(paper_ids)} papers")
+        return all_works
+    
+
+
+    def get_paper_as_paper_data(self, paper_id: str) -> Optional['PaperData']:
+        """
+        Get a single paper as PaperData object with full OpenAlex metadata.
+        This is the main method for library creation - returns ready-to-use PaperData.
+        
+        Args:
+            paper_id: Paper identifier (can be W12345, 12345, or full URL)
+            
+        Returns:
+            PaperData object or None if fetch fails
+        """
+        work = self.get_paper_metadata_only(paper_id)
+        
+        if not work:
+            return None
+        
+        return self._convert_work_to_paper_data(work)
+
+
+    def _convert_work_to_paper_data(self, work: Dict) -> 'PaperData':
+        """
+        Convert OpenAlex work dictionary to PaperData object.
+        
+        Args:
+            work: OpenAlex work dictionary
+            
+        Returns:
+            PaperData object
+        """
+        from ..library.models import PaperData
+        
+        paper_id = self._clean_id(work['id'])
+        title = work.get('title', '') or work.get('display_name', '')
+        year = work.get('publication_year')
+        
+        doi = work.get('doi', '')
+        if doi and doi.startswith('https://doi.org/'):
+            doi = doi.replace('https://doi.org/', '')
+        
+        venue = None
+        if work.get('primary_location') and work['primary_location'].get('source'):
+            venue = work['primary_location']['source'].get('display_name')
+        
+        abstract = work.get('abstract')
+        if not abstract and work.get('abstract_inverted_index'):
+            abstract = self._reconstruct_abstract(work['abstract_inverted_index'])
+        
+        authors = []
+        for authorship in work.get('authorships', []):
+            author = authorship.get('author', {})
+            author_id = author.get('id', '')
+            if author_id.startswith('https://openalex.org/'):
+                author_id = author_id.split('/')[-1]
+            author_name = author.get('display_name', '')
+            if author_name:
+                authors.append({
+                    'authorId': author_id,
+                    'name': author_name
+                })
+        
+        concepts = []
+        for concept in work.get('concepts', []):
+            concepts.append({
+                'id': concept.get('id', ''),
+                'display_name': concept.get('display_name', ''),
+                'level': concept.get('level', 0),
+                'score': concept.get('score', 0.0)
+            })
+        
+        topics_data = self._extract_hierarchy_from_concepts(concepts)
+        
+        url = f"https://openalex.org/{paper_id}"
+        
+        return PaperData(
+            paper_id=paper_id,
+            title=title,
+            authors=authors,
+            year=year,
+            venue=venue,
+            doi=doi,
+            abstract=abstract,
+            url=url,
+            concepts=concepts,
+            topics=topics_data['topics'],
+            subfields=topics_data['subfields'],
+            fields=topics_data['fields'],
+            domains=topics_data['domains']
+        )
+
+
+    def _extract_hierarchy_from_concepts(self, concepts: List[Dict]) -> Dict[str, List[Dict]]:
+        """
+        Extract hierarchical concept data from concepts list.
+        
+        Based on concept levels:
+        - level 0: Domain
+        - level 1: Field
+        - level 2: Subfield
+        - level 3+: Topic
+        
+        Args:
+            concepts: List of concept dictionaries
+            
+        Returns:
+            Dictionary with 'topics', 'subfields', 'fields', 'domains' keys
+        """
+        topics = []
+        subfields = []
+        fields = []
+        domains = []
+        
+        for concept in concepts:
+            level = concept.get('level', 0)
+            display_name = concept.get('display_name', '')
+            concept_id = concept.get('id', '')
+            score = concept.get('score', 0.0)
+            
+            if not display_name:
+                continue
+            
+            item = {
+                'id': concept_id,
+                'display_name': display_name,
+                'score': score
+            }
+            
+            if level == 0:
+                domains.append(item)
+            elif level == 1:
+                fields.append(item)
+            elif level == 2:
+                subfields.append(item)
+            elif level >= 3:
+                topics.append(item)
+        
+        return {
+            'topics': topics,
+            'subfields': subfields,
+            'fields': fields,
+            'domains': domains
+        }
+
+
+    def _reconstruct_abstract(self, inverted_index: Dict[str, List[int]]) -> str:
+        """
+        Reconstruct abstract text from OpenAlex inverted index.
+        
+        Args:
+            inverted_index: Dictionary mapping words to position lists
+            
+        Returns:
+            Reconstructed abstract text
+        """
+        if not inverted_index:
+            return ""
+        
+        max_pos = max(max(positions) for positions in inverted_index.values())
+        
+        words = [''] * (max_pos + 1)
+        
+        for word, positions in inverted_index.items():
+            for pos in positions:
+                words[pos] = word
+        
+        return ' '.join(words)
 
     def get_papers(self, paper_id_list: List[str]):
         results = []

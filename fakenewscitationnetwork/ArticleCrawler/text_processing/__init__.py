@@ -4,6 +4,9 @@ from .topic_strategies import TopicModelStrategy, NMFTopicStrategy, LDATopicStra
 from .topic_modeling import TopicModeling
 from .visualization import TopicVisualization
 from .text_analyzer import TextAnalysisManager
+from .topic_labeler import TopicLabeler
+from .topic_labeling_strategy import TopicLabelingStrategy
+from .refined_method_b_strategy import RefinedMethodBStrategy
 
 __all__ = [
     'TextPreProcessing',
@@ -14,5 +17,8 @@ __all__ = [
     'TopicStrategyFactory',
     'TopicModeling',
     'TopicVisualization',
-    'TextAnalysisManager'
+    'TextAnalysisManager',
+    'TopicLabeler',
+    'TopicLabelingStrategy',
+    'RefinedMethodBStrategy'
 ]
