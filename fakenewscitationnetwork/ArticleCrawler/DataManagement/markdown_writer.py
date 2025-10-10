@@ -3,6 +3,7 @@ from pathlib import Path
 import os
 import pandas as pd
 from ArticleCrawler.utils.url_builder import PaperURLBuilder
+from ArticleCrawler.library.models import PaperData
 class MarkdownFileGenerator:
     """
     Class responsible for generating markdown files based on provided dataframes.
@@ -300,5 +301,167 @@ class MarkdownFileGenerator:
             os.startfile(self.vault_folder)
 
         print(f'Vault stored at {self.vault_folder}')
+
+    
+
+    def create_paper_markdown_with_openalex_metadata(
+        self, 
+        paper_data: 'PaperData',
+        output_path: Path
+    ) -> Path:
+        """
+        Create markdown file for a paper with OpenAlex metadata in YAML frontmatter.
+        
+        This is specifically for the library creation use case where we have
+        full OpenAlex metadata including concepts, topics, fields, etc.
+        
+        Args:
+            paper_data: PaperData object with all metadata
+            output_path: Path where to save the markdown file
+            
+        Returns:
+            Path to created markdown file
+        """
+        frontmatter = self._create_openalex_frontmatter(paper_data)
+        
+        body = self._create_paper_body_with_openalex(paper_data)
+        
+        content = f"---\n{frontmatter}---\n\n{body}"
+        
+        output_path = Path(output_path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+        
+        return output_path
+    
+    def _create_openalex_frontmatter(self, paper_data: 'PaperData') -> str:
+        """
+        Create YAML frontmatter with OpenAlex metadata.
+        
+        Args:
+            paper_data: Paper data with metadata
+            
+        Returns:
+            YAML frontmatter string
+        """
+        import yaml
+        
+        frontmatter_dict = {
+            'paper_id': paper_data.paper_id,
+            'title': paper_data.title,
+            'authors': [
+                {'id': a.get('authorId') or a.get('id'), 'name': a.get('name')}
+                for a in paper_data.authors
+            ],
+            'year': paper_data.year,
+            'venue': paper_data.venue,
+            'doi': paper_data.doi,
+            'url': paper_data.url,
+            'abstract': paper_data.abstract,
+        }
+        
+        if paper_data.concepts:
+            frontmatter_dict['concepts'] = [
+                {
+                    'id': c.get('id'),
+                    'display_name': c.get('display_name'),
+                    'level': c.get('level'),
+                    'score': c.get('score')
+                }
+                for c in paper_data.concepts[:10]
+            ]
+        
+        if paper_data.topics:
+            frontmatter_dict['topics'] = [
+                {
+                    'id': t.get('id'),
+                    'display_name': t.get('display_name'),
+                    'score': t.get('score')
+                }
+                for t in paper_data.topics[:5]
+            ]
+        
+        if paper_data.fields:
+            frontmatter_dict['fields'] = [
+                {'id': f.get('id'), 'display_name': f.get('display_name')}
+                for f in paper_data.fields
+            ]
+        
+        if paper_data.subfields:
+            frontmatter_dict['subfields'] = [
+                {'id': s.get('id'), 'display_name': s.get('display_name')}
+                for s in paper_data.subfields
+            ]
+        
+        if paper_data.domains:
+            frontmatter_dict['domains'] = [
+                {'id': d.get('id'), 'display_name': d.get('display_name')}
+                for d in paper_data.domains
+            ]
+        
+        if paper_data.assigned_topic is not None:
+            frontmatter_dict['assigned_topic'] = paper_data.assigned_topic
+        if paper_data.topic_label:
+            frontmatter_dict['topic_label'] = paper_data.topic_label
+        
+        return yaml.dump(frontmatter_dict, default_flow_style=False, allow_unicode=True)
+    
+    def _create_paper_body_with_openalex(self, paper_data: 'PaperData') -> str:
+        """
+        Create markdown body for paper with OpenAlex metadata sections.
+        
+        Args:
+            paper_data: Paper data with metadata
+            
+        Returns:
+            Markdown body string
+        """
+        paper_url = self._get_paper_url(paper_data.paper_id)
+        
+        body_parts = [
+            f"# [{paper_data.title}]({paper_url})\n\n"
+        ]
+        
+        author_names = ', '.join(a.get('name', '') for a in paper_data.authors)
+        body_parts.append(f"**Authors**: {author_names}\n\n")
+        
+        if paper_data.year:
+            body_parts.append(f"**Year**: {paper_data.year}\n\n")
+        if paper_data.venue:
+            body_parts.append(f"**Venue**: {paper_data.venue}\n\n")
+        if paper_data.doi:
+            body_parts.append(f"**DOI**: {paper_data.doi}\n\n")
+        
+        body_parts.append("## Abstract\n\n")
+        if paper_data.abstract:
+            body_parts.append(f"{paper_data.abstract}\n\n")
+        else:
+            body_parts.append("*No abstract available*\n\n")
+        
+        if paper_data.concepts:
+            body_parts.append("## Concepts\n\n")
+            for concept in paper_data.concepts[:10]:
+                name = concept.get('display_name', 'Unknown')
+                level = concept.get('level', 0)
+                score = concept.get('score', 0)
+                body_parts.append(f"- **{name}** (Level {level}, Score: {score:.2f})\n")
+            body_parts.append("\n")
+        
+        if paper_data.topics:
+            body_parts.append("## Topics\n\n")
+            for topic in paper_data.topics[:5]:
+                name = topic.get('display_name', 'Unknown')
+                score = topic.get('score', 0)
+                body_parts.append(f"- **{name}** (Score: {score:.2f})\n")
+            body_parts.append("\n")
+        
+        if paper_data.fields:
+            body_parts.append("## Fields\n\n")
+            field_names = ', '.join(f.get('display_name', '') for f in paper_data.fields)
+            body_parts.append(f"{field_names}\n\n")
+        
+        return ''.join(body_parts)
 
 

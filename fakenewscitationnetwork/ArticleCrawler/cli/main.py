@@ -1,14 +1,11 @@
-"""
-Main CLI entry point for ArticleCrawler.
-
-Defines all available commands and orchestrates the application flow.
-"""
 
 import typer
 from pathlib import Path
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
+from .commands.library_create import library_create_command
+from .commands.topic_modeling_cmd import topic_modeling_command
 import sys
 
 app = typer.Typer(
@@ -108,6 +105,7 @@ def version():
     
     console.print(f"\n[bold cyan]ArticleCrawler[/bold cyan] version [bold]{version}[/bold]")
     console.print("Scientific Literature Discovery Tool\n")
+
 
 
 
@@ -219,6 +217,9 @@ def _run_crawler(config):
         console.print(f"\n[bold red]✗ Crawler failed: {e}[/bold red]")
         raise
 
+
+app.command("library-create")(library_create_command)
+app.command("topic-modeling")(topic_modeling_command)
 
 if __name__ == "__main__":
     app()

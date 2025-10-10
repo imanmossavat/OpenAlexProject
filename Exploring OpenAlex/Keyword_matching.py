@@ -5,7 +5,7 @@ from multiprocessing import Pool, cpu_count
 from functools import partial
 
 # Configure pyalex
-pyalex.config.email = "885585@fontys.nl"
+pyalex.config.email = "Email"
 
 # Configuration
 SEED_PAPER_ID = "https://openalex.org/w2970771982"
