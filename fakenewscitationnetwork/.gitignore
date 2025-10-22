@@ -12,6 +12,6 @@
 *.log.*
 *.pyc
 *.json
-data/
+FakeNewsCitationNetwork/data
 Experiment/data
 libraries/
