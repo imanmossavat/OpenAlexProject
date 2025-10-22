@@ -12,53 +12,233 @@ class WizardCommand:
         self.prompter = prompter
         self.config_builder = config_builder
         self.console = console
+        self.current_step = 1
     
     def run(self, output_dir: Path = None) -> ExperimentConfig:
         try:
-            name = self._get_experiment_name()
-            self.config_builder.with_name(name)
-            
             if output_dir:
                 root_folder = output_dir
             else:
                 root_folder = Path.cwd() / 'data' / 'crawler_experiments'
             
             self.config_builder.with_root_folder(root_folder)
-            experiment_folder = root_folder / name
-            self.console.print(f"[green]✓[/green] Experiment will be saved to: {experiment_folder}\n")
             
-            api_choice = self._get_api_provider()
+            while self.current_step <= 7:
+                result = None
+                
+                if self.current_step == 1:
+                    result = self._step_experiment_name(root_folder)
+                elif self.current_step == 2:
+                    result = self._step_api_provider()
+                elif self.current_step == 3:
+                    result = self._step_seed_papers()
+                elif self.current_step == 4:
+                    result = self._step_keywords()
+                elif self.current_step == 5:
+                    result = self._step_basic_config()
+                elif self.current_step == 6:
+                    result = self._step_advanced_config()
+                elif self.current_step == 7:
+                    config = self.config_builder.build()
+                    action = self._step_review_confirm(config)
+                    if action == 0:
+                        return config
+                    elif action == 1:
+                        self.current_step -= 1
+                        continue
+                    elif action == 2:
+                        self._jump_to_step()
+                        continue
+                    else:
+                        self.console.print("\n[yellow]Configuration cancelled.[/yellow]")
+                        return None
+                
+                if result is None:
+                    self.console.print("\n[yellow]Configuration cancelled.[/yellow]")
+                    return None
+                elif result:
+                    self.current_step += 1
             
-            seeds = self._get_seed_papers(api_choice)
-            self.config_builder.with_seeds(seeds)
-            
-            keywords = self._get_keywords()
-            self.config_builder.with_keywords(keywords)
-            
-            self._get_basic_config()
-            
-            if self.prompter.confirm("\nConfigure advanced settings?", default=False):
-                self._get_advanced_config()
-            else:
-                self.console.print("\n[green]✓[/green] Using default settings for:")
-                self.console.print("  - Topic modeling (NMF, 20 topics)")
-                self.console.print("  - Graph options (no author nodes)")
-                self.console.print("  - Retraction watch (enabled)")
-                self.console.print("  - Save figures (enabled)")
-                self.console.print("  - Ignored venues (ArXiv, medRxiv, WWW)")
-                self.console.print("  - Language (English)")
-            
-            config = self.config_builder.build()
-            
-            if self._review_and_confirm(config):
-                return config
-            else:
-                self.console.print("\n[yellow]Configuration cancelled.[/yellow]")
-                return None
+            return self.config_builder.build()
                 
         except KeyboardInterrupt:
-            self.console.print("\n\n[yellow]⚠️ Wizard cancelled by user[/yellow]")
+            self.console.print("\n\n[yellow]⚠️  Wizard cancelled by user[/yellow]")
             return None
+    
+    def _ask_next_action(self) -> int:
+        if self.current_step == 1:
+            action = self.prompter.choice(
+                "\nWhat would you like to do?",
+                choices=[
+                    "Continue to next step",
+                    "Cancel wizard"
+                ],
+                default=0
+            )
+            return 0 if action == 0 else 3
+        
+        return self.prompter.choice(
+            "\nWhat would you like to do?",
+            choices=[
+                "Continue to next step",
+                "Go back to previous step",
+                "Jump to specific step",
+                "Cancel wizard"
+            ],
+            default=0
+        )
+    
+    def _jump_to_step(self):
+        all_steps = [
+            "1. Experiment Name",
+            "2. API Provider",
+            "3. Seed Papers",
+            "4. Keywords",
+            "5. Basic Configuration",
+            "6. Advanced Configuration",
+            "7. Review & Confirm"
+        ]
+        
+        available_steps = all_steps[:self.current_step]
+        
+        choice = self.prompter.choice(
+            "Select step to jump to",
+            choices=available_steps,
+            default=0
+        )
+        self.current_step = choice + 1
+    
+    def _step_experiment_name(self, root_folder: Path) -> bool:
+        self._print_step_header("STEP 1: Experiment Name")
+        
+        name = self._get_experiment_name()
+        self.config_builder.with_name(name)
+        experiment_folder = root_folder / name
+        self.console.print(f"[green]✓[/green] Experiment will be saved to: {experiment_folder}\n")
+        
+        action = self._ask_next_action()
+        if action == 3:
+            return None
+        return True
+    
+    def _step_api_provider(self) -> bool:
+        self._print_step_header("STEP 2: API Provider")
+        
+        api_choice = self._get_api_provider()
+        
+        action = self._ask_next_action()
+        if action == 1:
+            self.current_step -= 1
+            return False
+        elif action == 2:
+            self._jump_to_step()
+            return False
+        elif action == 3:
+            return None
+        return True
+    
+    def _step_seed_papers(self) -> bool:
+        self._print_step_header("STEP 3: Seed Papers")
+        
+        api_provider = self.config_builder._config.get('api_provider', 'openalex')
+        seeds = self._get_seed_papers(api_provider)
+        self.config_builder.with_seeds(seeds)
+        
+        action = self._ask_next_action()
+        if action == 1:
+            self.current_step -= 1
+            return False
+        elif action == 2:
+            self._jump_to_step()
+            return False
+        elif action == 3:
+            return None
+        return True
+    
+    def _step_keywords(self) -> bool:
+        self._print_step_header("STEP 4: Keywords")
+        
+        keywords = self._get_keywords()
+        self.config_builder.with_keywords(keywords)
+        
+        action = self._ask_next_action()
+        if action == 1:
+            self.current_step -= 1
+            return False
+        elif action == 2:
+            self._jump_to_step()
+            return False
+        elif action == 3:
+            return None
+        return True
+    
+    def _step_basic_config(self) -> bool:
+        self._print_step_header("STEP 5: Basic Configuration")
+        
+        self._get_basic_config()
+        
+        action = self._ask_next_action()
+        if action == 1:
+            self.current_step -= 1
+            return False
+        elif action == 2:
+            self._jump_to_step()
+            return False
+        elif action == 3:
+            return None
+        return True
+    
+    def _step_advanced_config(self) -> bool:
+        self._print_step_header("STEP 6: Advanced Configuration")
+        
+        if self.prompter.confirm("\nConfigure advanced settings?", default=False):
+            self._get_advanced_config()
+        else:
+            self.console.print("\n[green]✓[/green] Using default settings for:")
+            self.console.print("  - Topic modeling (NMF, 20 topics)")
+            self.console.print("  - Graph options (no author nodes)")
+            self.console.print("  - Retraction watch (enabled)")
+            self.console.print("  - Save figures (enabled)")
+            self.console.print("  - Ignored venues (ArXiv, medRxiv, WWW)")
+            self.console.print("  - Language (English)")
+        
+        action = self._ask_next_action()
+        if action == 1:
+            self.current_step -= 1
+            return False
+        elif action == 2:
+            self._jump_to_step()
+            return False
+        elif action == 3:
+            return None
+        return True
+    
+    def _step_review_confirm(self, config: ExperimentConfig) -> int:
+        self._print_step_header("STEP 7: Review & Confirm")
+        
+        self.console.print(f"[cyan]Experiment:[/cyan] {config.name}")
+        self.console.print(f"[cyan]Seed papers:[/cyan] {len(config.seeds)}")
+        self.console.print(f"[cyan]Keywords:[/cyan] {len(config.keywords)} filters")
+        self.console.print(f"[cyan]Papers/iteration:[/cyan] {config.papers_per_iteration}")
+        self.console.print(f"[cyan]Max iterations:[/cyan] {config.max_iterations}")
+        self.console.print(f"[cyan]API:[/cyan] {config.api_provider}")
+        self.console.print(f"[cyan]Output:[/cyan] {config.root_folder / config.name}")
+        self.console.print(f"[cyan]Language:[/cyan] {config.language}")
+        self.console.print(f"[cyan]Save figures:[/cyan] {'Yes' if config.save_figures else 'No'}")
+        self.console.print(f"[cyan]Ignored venues:[/cyan] {len(config.ignored_venues)} venues")
+        
+        action = self.prompter.choice(
+            "\nWhat would you like to do?",
+            choices=[
+                "Start crawling now",
+                "Go back to previous step",
+                "Jump to specific step",
+                "Cancel"
+            ],
+            default=0
+        )
+        
+        return action
     
     def _print_step_header(self, title: str):
         self.console.print()
@@ -66,8 +246,6 @@ class WizardCommand:
         self.console.print()
     
     def _get_experiment_name(self) -> str:
-        self._print_step_header("STEP 1: Experiment Name")
-        
         while True:
             name = self.prompter.input("Enter a name for this experiment")
             
@@ -83,8 +261,6 @@ class WizardCommand:
             return name
     
     def _get_api_provider(self) -> str:
-        self._print_step_header("STEP 2: API Provider")
-        
         api_choice = self.prompter.choice(
             "Select API provider",
             choices=["openalex", "semantic_scholar"],
@@ -98,70 +274,22 @@ class WizardCommand:
         return api_provider
     
     def _get_seed_papers(self, api_provider: str) -> list[str]:
-        self._print_step_header("STEP 3: Seed Papers")
+        from ..ui.paper_source_collector import PaperSourceCollector
+        collector = PaperSourceCollector(self.prompter, self.console)
+        seeds = collector.collect_from_multiple_sources(api_provider)
         
-        providers = [
-            Provider(self.prompter) if Provider != PDFSeedProvider 
-            else Provider(self.prompter, api_provider) 
-            for Provider in SEED_PROVIDERS
-        ]
-        
-        choices = [p.display_name() for p in providers]
-        
-        self.console.print("How would you like to provide seed papers?\n")
-        
-        choice_idx = self.prompter.choice("Select method", choices=choices)
-        
-        selected_provider = providers[choice_idx]
-        
-        try:
-            seeds = selected_provider.get_seeds()
-            
-            if not seeds:
-                self.prompter.error("No seeds provided. You need at least one seed paper.")
-                return self._get_seed_papers(api_provider)
-            
-            initial_seed_count = len(seeds)
-            is_pdf_provider = isinstance(selected_provider, PDFSeedProvider)
-            
-            if is_pdf_provider:
-                pdf_seed_count = initial_seed_count
-                all_seeds = seeds
-            else:
-                if self.prompter.confirm("\nAlso add seeds from PDF files?", default=False):
-                    pdf_provider = PDFSeedProvider(self.prompter, api_provider)
-                    pdf_seeds = pdf_provider.get_seeds()
-                    all_seeds = seeds + pdf_seeds
-                    pdf_seed_count = len(pdf_seeds)
-                else:
-                    all_seeds = seeds
-                    pdf_seed_count = 0
-            
-            self.config_builder._config['_pdf_seed_count'] = pdf_seed_count
-            self.config_builder._config['_initial_seed_count'] = initial_seed_count
-            
-            self.console.print(f"[green]✓[/green] Loaded {len(all_seeds)} total seed papers")
-            if pdf_seed_count > 0:
-                non_pdf_count = 0 if is_pdf_provider else initial_seed_count
-                if is_pdf_provider:
-                    self.console.print(f"[dim]  ({pdf_seed_count} from PDF)[/dim]\n")
-                else:
-                    self.console.print(f"[dim]  ({non_pdf_count} from primary source, {pdf_seed_count} from PDF)[/dim]\n")
-            else:
-                self.console.print()
-            
-            return all_seeds
-            
-        except NotImplementedError:
-            self.prompter.error("This feature is not yet implemented.")
+        if not seeds:
+            self.prompter.error("No seeds provided. You need at least one seed paper.")
             return self._get_seed_papers(api_provider)
-        except Exception as e:
-            self.prompter.error(f"Error loading seeds: {e}")
-            return self._get_seed_papers(api_provider)
+        
+        self.config_builder._config['_pdf_seed_count'] = 0
+        self.config_builder._config['_initial_seed_count'] = len(seeds)
+        
+        self.console.print(f"[green]✓[/green] Loaded {len(seeds)} total seed papers\n")
+        
+        return seeds
     
     def _get_keywords(self) -> list[str]:
-        self._print_step_header("STEP 4: Keywords")
-        
         self.console.print("Enter keyword filters (one per line, blank line when done):")
         self.console.print("[dim]Use operators: AND, OR, NOT, parentheses for grouping[/dim]\n")
         
@@ -185,8 +313,6 @@ class WizardCommand:
         return keywords
     
     def _get_basic_config(self):
-        self._print_step_header("STEP 5: Basic Configuration")
-        
         max_iterations = self.prompter.input_int(
             "Maximum iterations",
             default=1,
@@ -204,8 +330,6 @@ class WizardCommand:
         self.console.print(f"[green]✓[/green] Basic configuration complete\n")
     
     def _get_advanced_config(self):
-        self._print_step_header("STEP 6: Advanced Configuration")
-        
         topic_choice = self.prompter.choice(
             "Topic modeling algorithm",
             choices=["NMF (Non-negative Matrix Factorization)", "LDA (Latent Dirichlet Allocation)"],
@@ -278,19 +402,3 @@ class WizardCommand:
             self.config_builder.with_language(lang_map[language_choice])
         
         self.console.print("[green]✓[/green] Advanced options configured\n")
-    
-    def _review_and_confirm(self, config: ExperimentConfig) -> bool:
-        self._print_step_header("STEP 7: Review & Confirm")
-        
-        self.console.print(f"[cyan]Experiment:[/cyan] {config.name}")
-        self.console.print(f"[cyan]Seed papers:[/cyan] {len(config.seeds)}")
-        self.console.print(f"[cyan]Keywords:[/cyan] {len(config.keywords)} filters")
-        self.console.print(f"[cyan]Papers/iteration:[/cyan] {config.papers_per_iteration}")
-        self.console.print(f"[cyan]Max iterations:[/cyan] {config.max_iterations}")
-        self.console.print(f"[cyan]API:[/cyan] {config.api_provider}")
-        self.console.print(f"[cyan]Output:[/cyan] {config.root_folder / config.name}")
-        self.console.print(f"[cyan]Language:[/cyan] {config.language}")
-        self.console.print(f"[cyan]Save figures:[/cyan] {'Yes' if config.save_figures else 'No'}")
-        self.console.print(f"[cyan]Ignored venues:[/cyan] {len(config.ignored_venues)} venues")
-        
-        return self.prompter.confirm("\nStart crawling now?", default=True)

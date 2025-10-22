@@ -159,3 +159,11 @@ class LibraryManager:
             safe = safe[:max_length].strip()
         
         return safe
+    
+    @staticmethod
+    def sanitize_filename(title: str, max_length: int = 50) -> str:
+        """Create safe filename from title."""
+        import re
+        safe = re.sub(r'[^\w\s-]', '', title)
+        safe = re.sub(r'[-\s]+', '_', safe)
+        return safe[:max_length]

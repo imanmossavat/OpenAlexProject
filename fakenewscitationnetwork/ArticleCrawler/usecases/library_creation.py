@@ -116,7 +116,7 @@ class LibraryCreationOrchestrator:
                 paper_data = self.api.get_paper_as_paper_data(paper_id)
                 
                 if paper_data:
-                    safe_title = self._sanitize_filename(paper_data.title)
+                    safe_title = self.library_manager.sanitize_filename(paper_data.title)
                     filename = f"{paper_data.paper_id}_{safe_title}.md"
                     output_path = papers_dir / filename
                     
@@ -159,16 +159,8 @@ class LibraryCreationOrchestrator:
         return SimpleStorageConfig(library_path)
     
     def _sanitize_filename(self, title: str, max_length: int = 50) -> str:
-        """
-        Create safe filename from title.
-        
-        Args:
-            title: Paper title
-            max_length: Maximum length
-            
-        Returns:
-            Sanitized filename
-        """
-        safe = ''.join(c for c in title if c.isalnum() or c in (' ', '-', '_'))
-        safe = safe.replace(' ', '_')
+        """Create safe filename from title."""
+        import re
+        safe = re.sub(r'[^\w\s-]', '', title)
+        safe = re.sub(r'[-\s]+', '_', safe)
         return safe[:max_length]

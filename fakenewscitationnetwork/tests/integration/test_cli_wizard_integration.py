@@ -28,38 +28,80 @@ class TestWizardCommandIntegration:
     
     def test_wizard_complete_flow_minimal(self, wizard, mock_prompter, temp_dir):
         mock_prompter.input.side_effect = ["test_experiment"]
-        mock_prompter.choice.side_effect = [0]
-        with patch.object(wizard, '_get_seed_papers', return_value=["W123", "W456"]):
-            with patch.object(wizard, '_get_keywords', return_value=["AI", "ML"]):
-                with patch.object(wizard, '_get_basic_config'):
-                    mock_prompter.confirm.side_effect = [False, True]
-                    config = wizard.run(output_dir=temp_dir)
-                    assert config is not None
-                    assert config.name == "test_experiment"
-                    assert config.seeds == ["W123", "W456"]
-                    assert config.keywords == ["AI", "ML"]
+        mock_prompter.choice.side_effect = [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+        ]
+        mock_prompter.confirm.side_effect = [False]
+        
+        with patch.object(wizard, '_step_experiment_name', return_value=True):
+            with patch.object(wizard, '_step_api_provider', return_value=True):
+                with patch.object(wizard, '_step_seed_papers', return_value=True):
+                    with patch.object(wizard, '_step_keywords', return_value=True):
+                        with patch.object(wizard, '_step_basic_config', return_value=True):
+                            with patch.object(wizard, '_step_advanced_config', return_value=True):
+                                wizard.config_builder.with_name("test_experiment")
+                                wizard.config_builder.with_api_provider("openalex")
+                                wizard.config_builder.with_seeds(["W123", "W456"])
+                                wizard.config_builder.with_keywords(["AI", "ML"])
+                                wizard.config_builder.with_max_iterations(1)
+                                wizard.config_builder.with_papers_per_iteration(1)
+                                
+                                mock_prompter.choice.side_effect = [0]
+                                
+                                config = wizard.run(output_dir=temp_dir)
+                                assert config is not None
+                                assert config.name == "test_experiment"
+                                assert config.seeds == ["W123", "W456"]
+                                assert config.keywords == ["AI", "ML"]
     
     def test_wizard_complete_flow_with_advanced(self, wizard, mock_prompter, temp_dir):
         mock_prompter.input.side_effect = ["advanced_experiment"]
-        mock_prompter.choice.side_effect = [1]
-        with patch.object(wizard, '_get_seed_papers', return_value=["W789"]):
-            with patch.object(wizard, '_get_keywords', return_value=["test"]):
-                with patch.object(wizard, '_get_basic_config'):
-                    with patch.object(wizard, '_get_advanced_config'):
-                        mock_prompter.confirm.side_effect = [True, True]
-                        config = wizard.run(output_dir=temp_dir)
-                        assert config is not None
-                        assert config.name == "advanced_experiment"
+        mock_prompter.choice.side_effect = [0]
+        mock_prompter.confirm.side_effect = [True]
+        
+        with patch.object(wizard, '_step_experiment_name', return_value=True):
+            with patch.object(wizard, '_step_api_provider', return_value=True):
+                with patch.object(wizard, '_step_seed_papers', return_value=True):
+                    with patch.object(wizard, '_step_keywords', return_value=True):
+                        with patch.object(wizard, '_step_basic_config', return_value=True):
+                            with patch.object(wizard, '_step_advanced_config', return_value=True):
+                                wizard.config_builder.with_name("advanced_experiment")
+                                wizard.config_builder.with_api_provider("openalex")
+                                wizard.config_builder.with_seeds(["W789"])
+                                wizard.config_builder.with_keywords(["test"])
+                                wizard.config_builder.with_max_iterations(1)
+                                wizard.config_builder.with_papers_per_iteration(1)
+                                
+                                config = wizard.run(output_dir=temp_dir)
+                                assert config is not None
+                                assert config.name == "advanced_experiment"
     
     def test_wizard_cancelled_by_user(self, wizard, mock_prompter, temp_dir):
         mock_prompter.input.side_effect = ["test"]
-        mock_prompter.choice.side_effect = [0]
-        with patch.object(wizard, '_get_seed_papers', return_value=["W123"]):
-            with patch.object(wizard, '_get_keywords', return_value=["test"]):
-                with patch.object(wizard, '_get_basic_config'):
-                    mock_prompter.confirm.side_effect = [False, False]
-                    config = wizard.run(output_dir=temp_dir)
-                    assert config is None
+        mock_prompter.choice.side_effect = [3]
+        mock_prompter.confirm.side_effect = [False]
+        
+        with patch.object(wizard, '_step_experiment_name', return_value=True):
+            with patch.object(wizard, '_step_api_provider', return_value=True):
+                with patch.object(wizard, '_step_seed_papers', return_value=True):
+                    with patch.object(wizard, '_step_keywords', return_value=True):
+                        with patch.object(wizard, '_step_basic_config', return_value=True):
+                            with patch.object(wizard, '_step_advanced_config', return_value=True):
+                                wizard.config_builder.with_name("test")
+                                wizard.config_builder.with_api_provider("openalex")
+                                wizard.config_builder.with_seeds(["W123"])
+                                wizard.config_builder.with_keywords(["test"])
+                                wizard.config_builder.with_max_iterations(1)
+                                wizard.config_builder.with_papers_per_iteration(1)
+                                
+                                config = wizard.run(output_dir=temp_dir)
+                                assert config is None
     
     def test_get_experiment_name_sanitization(self, wizard, mock_prompter):
         mock_prompter.input.return_value = "test@experiment#name"

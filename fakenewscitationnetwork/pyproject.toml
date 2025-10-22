@@ -27,6 +27,12 @@ dependencies = [
     "openpyxl",
     "xlsxwriter",
     "tabulate",
+    "pyalex",
+    "pyzotero",
+    "grobid-client-python",
+    "scipy",
+    "torch",
+    "s2",
 ]
 
 [project.optional-dependencies]
