@@ -132,65 +132,8 @@ def _print_step_header(console: Console, step_text: str):
 
 
 def _get_papers_from_sources(prompter: RichPrompter, api_provider: str, console: Console) -> List[str]:
-    """
-    Get paper IDs from various sources.
+    """Get paper IDs from various sources."""
+    from ..ui.paper_source_collector import PaperSourceCollector
     
-    Args:
-        prompter: RichPrompter instance
-        api_provider: API provider to use
-        console: Console instance for printing
-        
-    Returns:
-        List of paper IDs
-    """
-    all_paper_ids = []
-    
-    sources_list = [
-        'Manual Entry',
-        'From File',
-        'From PDFs',
-        'From Zotero',
-        'Done selecting sources'
-    ]
-    
-    sources_map = {
-        'Manual Entry': ManualSeedProvider,
-        'From File': FileSeedProvider,
-        'From PDFs': PDFSeedProvider,
-        'From Zotero': ZoteroSeedProvider,
-    }
-    
-    while True:
-        choice_idx = prompter.choice(
-            "Select paper source",
-            choices=sources_list,
-            default=0
-        )
-        
-        choice = sources_list[choice_idx]
-        
-        if choice == 'Done selecting sources':
-            break
-        
-        provider_class = sources_map[choice]
-        provider = provider_class(prompter, api_provider)
-        
-        try:
-            paper_ids = provider.get_seeds()
-            if paper_ids:
-                all_paper_ids.extend(paper_ids)
-                console.print(f"[green]✓ Added {len(paper_ids)} papers[/green]")
-        except Exception as e:
-            console.print(f"[red]Error: {e}[/red]")
-        
-        if not prompter.confirm("\nAdd papers from another source?"):
-            break
-    
-    unique_paper_ids = list(set(all_paper_ids))
-    
-    if len(unique_paper_ids) < len(all_paper_ids):
-        console.print(
-            f"[yellow]Removed {len(all_paper_ids) - len(unique_paper_ids)} duplicates[/yellow]"
-        )
-    
-    return unique_paper_ids
+    collector = PaperSourceCollector(prompter, console)
+    return collector.collect_from_multiple_sources(api_provider)

@@ -6,6 +6,7 @@ from rich.panel import Panel
 from rich.text import Text
 from .commands.library_create import library_create_command
 from .commands.topic_modeling_cmd import topic_modeling_command
+from .commands.author_topic_evolution_cmd import author_topic_evolution_command
 import sys
 
 app = typer.Typer(
@@ -63,6 +64,48 @@ def wizard(
         console.print(f"\n[bold red]❌ Error: {e}[/bold red]")
         raise
 
+@app.command()
+def edit(
+    config: Path = typer.Option(
+        None,
+        "--config", "-c",
+        help="Path to config file to edit"
+    )
+):
+    """
+    Edit an existing experiment configuration.
+    
+    Create a new experiment based on a previous configuration,
+    with the ability to modify seed papers, keywords, and other settings.
+    """
+    try:
+        from .commands.edit_wizard import EditWizardCommand
+        from .ui.prompts import RichPrompter
+        
+        console.print(Panel.fit(
+            "[bold cyan]ARTICLE CRAWLER - EDIT CONFIGURATION WIZARD[/bold cyan]",
+            border_style="cyan"
+        ))
+        console.print("\nEdit an existing configuration to create a new experiment.")
+        console.print("You can press [bold red]Ctrl+C[/bold red] at any time to cancel.\n")
+        
+        prompter = RichPrompter(console)
+        edit_cmd = EditWizardCommand(prompter, console)
+        
+        new_config = edit_cmd.run(config)
+        
+        if new_config:
+            _run_crawler(new_config)
+        else:
+            console.print("\n[yellow]Edit cancelled.[/yellow]")
+            
+    except KeyboardInterrupt:
+        console.print("\n\n[yellow]⚠️  Edit wizard cancelled by user[/yellow]")
+        sys.exit(0)
+    except Exception as e:
+        console.print(f"\n[bold red]âŒ Error: {e}[/bold red]")
+        raise
+
 
 @app.command()
 def run(
@@ -114,6 +157,8 @@ def _run_crawler(config):
     from ArticleCrawler.config.crawler_initialization import CrawlerParameters
     from ArticleCrawler.DataManagement.markdown_writer import MarkdownFileGenerator
     from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
+    from ArticleCrawler.cli.utils.config_loader import save_config
+    from pathlib import Path
     
     try:
         pdf_seed_count = getattr(config, '_pdf_seed_count', 0)
@@ -138,9 +183,19 @@ def _run_crawler(config):
         )
         
         crawler_configs = config.to_crawler_configs()
-        
+
+        if config.root_folder is None:
+            root_folder = Path.cwd() / 'data' / 'crawler_experiments'
+        else:
+            root_folder = config.root_folder
+
+        experiment_folder = root_folder / config.name
+        config_path = experiment_folder / 'config.yaml'
+        save_config(config, config_path)
+        console.print(f"[green]✓[/green] Configuration saved to: {config_path}")
+
         crawler_configs["storage_config"].experiment_file_name = config.name
-        
+                
         md_gen = MarkdownFileGenerator(
             crawler_configs["storage_config"],
             api_provider_type=config.api_provider
@@ -218,8 +273,15 @@ def _run_crawler(config):
         raise
 
 
+
+
 app.command("library-create")(library_create_command)
 app.command("topic-modeling")(topic_modeling_command)
+
+@app.command(name="author-evolution")
+def author_evolution():
+    author_topic_evolution_command()
+
 
 if __name__ == "__main__":
     app()

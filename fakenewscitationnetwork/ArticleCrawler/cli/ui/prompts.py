@@ -123,6 +123,16 @@ class RichPrompter(Prompter):
         
         return result if result is not None else default
     
+    def checkbox(self, message: str, choices: list[str]) -> list[str]:
+        from questionary import checkbox
+        
+        result = checkbox(
+            message,
+            choices=[{"name": choice, "value": choice} for choice in choices]
+        ).ask()
+        
+        return result if result else []
+    
     def choice(self, message: str, choices: list[str], default: int = 0) -> int:
         """Present choices and return selected index."""
         result = questionary.select(
@@ -212,6 +222,8 @@ class SimplePrompter(Prompter):
                     print(f"Error: Please enter a number between 1 and {len(choices)}")
             except ValueError:
                 print("Error: Please enter a valid number")
+
+    
     
     def error(self, message: str):
         """Display error message."""

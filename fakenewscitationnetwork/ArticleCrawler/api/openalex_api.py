@@ -5,7 +5,7 @@ import os
 from dotenv import load_dotenv
 import logging
 from typing import List, Dict, Optional, Tuple
-from ..library.models import PaperData
+from ..library.models import PaperData, AuthorInfo
 from .base_api import BaseAPIProvider
 
 class OpenAlexAPIProvider(BaseAPIProvider):
@@ -553,3 +553,118 @@ class OpenAlexAPIProvider(BaseAPIProvider):
             'failed': self._failed_paper_ids,
             'inconsistent': self._inconsistent_api_response_paper_ids
         }
+    
+    def search_authors(self, author_name: str, limit: int = 10) -> List[AuthorInfo]:
+        """
+        Search for authors by name using OpenAlex API.
+        
+        Args:
+            author_name: Name to search for
+            limit: Maximum number of results
+            
+        Returns:
+            List of AuthorInfo objects
+        """
+        try:
+            self._rate_limit()
+            
+            authors = Authors().search(author_name).get()
+            
+            if not authors:
+                self.logger.info(f"No authors found for query: {author_name}")
+                return []
+            
+            authors = authors[:limit]
+            
+            author_infos = []
+            for author in authors:
+                institutions = []
+                if author.get('affiliations'):
+                    for aff in author['affiliations'][:3]:
+                        if aff.get('institution') and aff['institution'].get('display_name'):
+                            institutions.append(aff['institution']['display_name'])
+                
+                author_info = AuthorInfo(
+                    id=self._clean_id(author['id']),
+                    name=author.get('display_name', ''),
+                    works_count=author.get('works_count', 0),
+                    cited_by_count=author.get('cited_by_count', 0),
+                    institutions=institutions,
+                    orcid=author.get('orcid')
+                )
+                author_infos.append(author_info)
+            
+            self.logger.info(f"Found {len(author_infos)} authors for query: {author_name}")
+            return author_infos
+            
+        except Exception as e:
+            self.logger.error(f"Error searching for authors '{author_name}': {e}")
+            return []
+
+
+    def get_author_papers_as_paper_data(
+    self, 
+    author_id: str,
+    max_papers: Optional[int] = None
+) -> List[PaperData]:
+        """
+        Get all papers by an author as full PaperData objects with complete metadata.
+        
+        This is the ENHANCED version that returns full PaperData objects with
+        concepts, fields, subfields, and domains.
+        
+        Args:
+            author_id: Author identifier (can be A12345 or full URL)
+            max_papers: Optional limit on number of papers to retrieve
+            
+        Returns:
+            List of PaperData objects with full OpenAlex metadata
+        """
+        try:
+            from itertools import chain
+            
+            self._rate_limit()
+            normalized_id = self._normalize_author_id(author_id)
+            
+            # Build the query
+            query = Works().filter(**{"authorships.author.id": normalized_id})
+            
+            # Set up pagination parameters
+            per_page = 200  # Max allowed by OpenAlex
+            
+            # Calculate n_max for paginate (max number of results to retrieve)
+            n_max = max_papers if max_papers else None
+            
+            # Use paginate to get all results (or up to max_papers)
+            pager = query.paginate(per_page=per_page, n_max=n_max)
+            
+            # Convert paginator to list of all works using chain
+            # This iterates through all pages and flattens into a single list
+            all_works = list(chain(*pager))
+            
+            if not all_works:
+                self.logger.info(f"No papers found for author {author_id}")
+                return []
+            
+            self.logger.info(f"Fetched {len(all_works)} works for author {author_id}")
+            
+            # Convert each work to PaperData with full metadata
+            papers = []
+            for i, work in enumerate(all_works, 1):
+                try:
+                    paper_data = self._convert_work_to_paper_data(work)
+                    papers.append(paper_data)
+                    
+                    if i % 50 == 0:
+                        self.logger.debug(f"Converted {i}/{len(all_works)} papers to PaperData")
+                        
+                except Exception as e:
+                    self.logger.warning(f"Failed to convert work {work.get('id')}: {e}")
+                    continue
+            
+            self.logger.info(f"Retrieved {len(papers)} papers with full metadata for author {author_id}")
+            return papers
+            
+        except Exception as e:
+            self.logger.error(f"Error retrieving papers for author {author_id}: {e}")
+            return []

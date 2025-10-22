@@ -76,12 +76,7 @@ class TopicModelingOrchestrator:
         self.vectorizer = vectorizer or TextTransformation(self.topic_config)
         self.topic_model = topic_model or TopicModeling(self.topic_config)
     
-    def run_topic_modeling(
-    self,
-    library_path: Path,
-    model_type: str = 'NMF',
-    num_topics: Optional[int] = None
-) -> tuple[List[TopicCluster], Path]:
+    def run_topic_modeling(self,library_path: Path,model_type: str = 'NMF',num_topics: Optional[int] = None) -> tuple[List[TopicCluster], Path]:
         """
         Run topic modeling on library and organize papers by topics.
         
@@ -91,7 +86,7 @@ class TopicModelingOrchestrator:
             num_topics: Number of topics (overrides config)
             
         Returns:
-            Tuple of (labeled_clusters, overview_path)  # UPDATE DOCSTRING
+            Tuple of (labeled_clusters, overview_path)
         """
         library_path = Path(library_path)
         
@@ -110,19 +105,29 @@ class TopicModelingOrchestrator:
         if not papers:
             raise ValueError("No papers found in library")
         
-        assignments, top_words = self._run_topic_modeling(papers, model_type)
+        assignments, top_words, processed_paper_ids = self._run_topic_modeling(papers, model_type)
         
-        # Map assignments only to the papers that were actually modeled
         papers_with_abstracts = [p for p in papers if p.abstract]
-
-        for i, paper in enumerate(papers_with_abstracts):
-            paper.assigned_topic = int(assignments[i])
-
-        # Assign a default topic (e.g., -1) to those without abstracts
-        for paper in papers:
-            if paper.abstract is None or not paper.abstract.strip():
+        
+        assignment_map = {}
+        processed_ids_list = list(processed_paper_ids)
+        for i, paper_id in enumerate(processed_ids_list):
+            if i < len(assignments):
+                assignment_map[paper_id] = int(assignments[i])
+        
+        # Assign topics based on the mapping
+        for paper in papers_with_abstracts:
+            if paper.paper_id in assignment_map:
+                paper.assigned_topic = assignment_map[paper.paper_id]
+            else:
+                # Paper had abstract but was filtered during preprocessing
                 paper.assigned_topic = -1
+                self.logger.debug(f"Paper {paper.paper_id} filtered during preprocessing")
 
+        # Assign -1 to papers without abstracts
+        for paper in papers:
+            if not paper.abstract or not paper.abstract.strip():
+                paper.assigned_topic = -1
         
         clusters = self._group_papers_by_cluster(papers)
         
@@ -134,10 +139,12 @@ class TopicModelingOrchestrator:
         label_map = {cluster.cluster_id: cluster.label for cluster in labeled_clusters}
         for paper in papers:
             paper.topic_label = label_map.get(paper.assigned_topic)
+
+        self.logger.info("Saving papers with topic assignments back to library...")
+        self._save_all_papers_to_library(library_path, papers)
         
         self._organize_papers_by_topics(papers, labeled_clusters, library_path)
         
-        # ADD THESE LINES - Create the overview file
         overview_path = self.topic_overview_writer.create_overview(
             clusters=labeled_clusters,
             library_path=library_path,
@@ -146,9 +153,12 @@ class TopicModelingOrchestrator:
         )
         self.logger.info(f"Created topic overview at: {overview_path}")
         
-        self.logger.info(f"Topic modeling complete. Created {len(labeled_clusters)} topic clusters")
+        self.logger.info(
+            f"Topic modeling complete. Created {len(labeled_clusters)} topic clusters. "
+            f"Processed {len(processed_paper_ids)}/{len(papers_with_abstracts)} papers with abstracts."
+        )
         
-        return labeled_clusters, overview_path  # CHANGE THIS LINE - was just: return labeled_clusters
+        return labeled_clusters, overview_path
     
     def _load_papers_from_library(self, library_path: Path) -> List[PaperData]:
         """
@@ -166,11 +176,7 @@ class TopicModelingOrchestrator:
         
         return papers
     
-    def _run_topic_modeling(
-        self,
-        papers: List[PaperData],
-        model_type: str
-    ) -> tuple:
+    def _run_topic_modeling(self,papers: List[PaperData],model_type: str) -> tuple:
         """
         Run topic modeling on papers using injected components.
         
@@ -179,7 +185,7 @@ class TopicModelingOrchestrator:
             model_type: Type of model ('NMF' or 'LDA')
             
         Returns:
-            Tuple of (assignments, top_words_dict)
+            Tuple of (assignments, top_words_dict, processed_paper_ids)
         """
         import pandas as pd
         
@@ -212,6 +218,8 @@ class TopicModelingOrchestrator:
         
         self.logger.info(f"After preprocessing: {len(df_final)} valid abstracts")
         
+        processed_paper_ids = set(df_final['paperId'].tolist())
+        
         if model_type.upper() == 'NMF':
             self.vectorizer.vectorize_and_extract(
                 df_final,
@@ -235,7 +243,38 @@ class TopicModelingOrchestrator:
         assignments = results['assignments']
         top_words = results['top_words']
         
-        return assignments, top_words
+        return assignments, top_words, processed_paper_ids
+    
+
+    def _save_all_papers_to_library(self, library_path: Path, papers: List[PaperData]):
+        """
+        Save all papers back to library (updates topic assignments).
+        
+        Args:
+            library_path: Library path
+            papers: List of all papers (some may have topic assignments)
+        """
+        from ArticleCrawler.DataManagement.markdown_writer import MarkdownFileGenerator
+        
+        papers_dir = self.library_manager.get_papers_directory(library_path)
+        storage_config = self._create_storage_config(library_path)
+        markdown_writer = MarkdownFileGenerator(
+            storage_and_logging_options=storage_config,
+            api_provider_type='openalex'
+        )
+        
+        for paper in papers:
+            try:
+                safe_title = self._sanitize_filename(paper.title)
+                filename = f"{paper.paper_id}_{safe_title}.md"
+                output_path = papers_dir / filename
+                
+                markdown_writer.create_paper_markdown_with_openalex_metadata(
+                    paper_data=paper,
+                    output_path=output_path
+                )
+            except Exception as e:
+                self.logger.warning(f"Failed to save paper {paper.paper_id}: {e}")
     
     def _group_papers_by_cluster(
         self,
@@ -334,16 +373,8 @@ class TopicModelingOrchestrator:
         return SimpleStorageConfig(library_path)
     
     def _sanitize_filename(self, title: str, max_length: int = 50) -> str:
-        """
-        Create safe filename from title.
-        
-        Args:
-            title: Paper title
-            max_length: Maximum length
-            
-        Returns:
-            Sanitized filename
-        """
-        safe = ''.join(c for c in title if c.isalnum() or c in (' ', '-', '_'))
-        safe = safe.replace(' ', '_')
+        """Create safe filename from title."""
+        import re
+        safe = re.sub(r'[^\w\s-]', '', title)
+        safe = re.sub(r'[-\s]+', '_', safe)
         return safe[:max_length]

@@ -41,12 +41,16 @@ class TestConfigLoader:
     def test_load_config_nested_structure(self, temp_dir):
         nested_config = {
             "experiment": {
-                "name": "nested_test",
-                "seeds": ["W789"]
+                "name": "nested_test"
             },
+            "seeds": {
+                "ids": ["W789"]
+            },
+            "keywords": ["test"],
             "crawling": {
                 "max_iterations": 2,
-                "papers_per_iteration": 3
+                "papers_per_iteration": 3,
+                "api_provider": "openalex"
             }
         }
         config_file = temp_dir / "nested.yaml"
@@ -55,6 +59,7 @@ class TestConfigLoader:
         config = load_config(config_file)
         assert config.name == "nested_test"
         assert config.seeds == ["W789"]
+        assert config.max_iterations == 2
     
     def test_save_config_success(self, temp_dir):
         config = ExperimentConfig(
@@ -68,11 +73,12 @@ class TestConfigLoader:
         assert config_file.exists()
         with open(config_file, 'r') as f:
             loaded_data = yaml.safe_load(f)
-        assert "name" in loaded_data or any("name" in v for v in loaded_data.values() if isinstance(v, dict))
+        assert "experiment" in loaded_data
+        assert loaded_data["experiment"]["name"] == "save_test"
     
     
     def test_save_config_creates_directory(self, temp_dir):
-        config = ExperimentConfig(name="test", seeds=["W123"])
+        config = ExperimentConfig(name="test", seeds=["W123"], keywords=[])
         nested_path = temp_dir / "subdir" / "config.yaml"
         save_config(config, nested_path)
         assert nested_path.exists()
@@ -85,10 +91,12 @@ class TestConfigLoader:
     
     def test_flatten_config_nested(self):
         nested_dict = {
-            "experiment": {"name": "test", "seeds": ["W123"]},
-            "settings": {"max_iterations": 5}
+            "experiment": {"name": "test"},
+            "seeds": {"ids": ["W123"]},
+            "crawling": {"max_iterations": 5, "api_provider": "openalex"}
         }
         result = _flatten_config(nested_dict)
         assert result["name"] == "test"
         assert result["seeds"] == ["W123"]
         assert result["max_iterations"] == 5
+        assert result["api_provider"] == "openalex"

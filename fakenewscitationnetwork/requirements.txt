@@ -1,3 +1,4 @@
+# Core dependencies
 networkx
 pandas
 numpy
@@ -17,17 +18,9 @@ pyzotero
 grobid-client-python
 scipy
 torch
-s2
-
-[cli]
 typer[all]>=0.9.0
 rich>=13.0.0
 questionary>=2.0.0
 pyyaml>=6.0
 pydantic>=2.0.0
-
-[dev]
-pytest>=7.0.0
-pytest-cov>=4.0.0
-black>=23.0.0
-flake8>=6.0.0
+s2

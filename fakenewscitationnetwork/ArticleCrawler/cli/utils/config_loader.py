@@ -55,79 +55,110 @@ def save_config(config: ExperimentConfig, config_path: Path):
 
 
 def _flatten_config(nested_dict: dict) -> dict:
-    """
-    Flatten nested configuration dictionary.
-    
-    Handles both flat and nested YAML structures.
-    """
     flat = {}
     
-    # Check if already flat
     if 'name' in nested_dict and 'seeds' in nested_dict:
         return nested_dict
     
-    # Extract from nested structure
-    for section_name, section_data in nested_dict.items():
-        if isinstance(section_data, dict):
-            flat.update(section_data)
-        else:
-            flat[section_name] = section_data
+    if 'experiment' in nested_dict and isinstance(nested_dict['experiment'], dict):
+        flat['name'] = nested_dict['experiment'].get('name')
+    
+    if 'seeds' in nested_dict:
+        if isinstance(nested_dict['seeds'], dict) and 'ids' in nested_dict['seeds']:
+            flat['seeds'] = nested_dict['seeds']['ids']
+        elif isinstance(nested_dict['seeds'], list):
+            flat['seeds'] = nested_dict['seeds']
+    
+    if 'keywords' in nested_dict:
+        flat['keywords'] = nested_dict['keywords']
+    
+    if 'crawling' in nested_dict and isinstance(nested_dict['crawling'], dict):
+        crawl = nested_dict['crawling']
+        flat['max_iterations'] = crawl.get('max_iterations', 1)
+        flat['papers_per_iteration'] = crawl.get('papers_per_iteration', 1)
+        flat['api_provider'] = crawl.get('api_provider', 'openalex')
+        flat['api_retries'] = crawl.get('api_retries', 3)
+    
+    if 'sampling' in nested_dict and isinstance(nested_dict['sampling'], dict):
+        samp = nested_dict['sampling']
+        flat['no_keyword_lambda'] = samp.get('no_keyword_lambda', 0.2)
+        flat['sampling_hyperparams'] = samp.get('hyperparams', {'year': 0.3, 'centrality': 1.0})
+        flat['ignored_venues'] = samp.get('ignored_venues', ['', 'ArXiv', 'medRxiv', 'WWW'])
+    
+    if 'text_processing' in nested_dict and isinstance(nested_dict['text_processing'], dict):
+        text = nested_dict['text_processing']
+        flat['min_abstract_length'] = text.get('min_abstract_length', 120)
+        flat['num_topics'] = text.get('num_topics', 20)
+        flat['topic_model'] = text.get('topic_model', 'NMF')
+        flat['stemmer'] = text.get('stemmer', 'Porter')
+        flat['language'] = text.get('language', 'en')
+        flat['save_figures'] = text.get('save_figures', True)
+        flat['random_state'] = text.get('random_state', 42)
+    
+    if 'graph' in nested_dict and isinstance(nested_dict['graph'], dict):
+        graph = nested_dict['graph']
+        flat['include_author_nodes'] = graph.get('include_author_nodes', False)
+        flat['max_centrality_iterations'] = graph.get('max_centrality_iterations', 1000)
+    
+    if 'retraction' in nested_dict and isinstance(nested_dict['retraction'], dict):
+        retr = nested_dict['retraction']
+        flat['enable_retraction_watch'] = retr.get('enable', True)
+        flat['avoid_retraction_in_sampler'] = retr.get('avoid_in_sampler', False)
+        flat['avoid_retraction_in_reporting'] = retr.get('avoid_in_reporting', True)
+    
+    if 'output' in nested_dict and isinstance(nested_dict['output'], dict):
+        output = nested_dict['output']
+        root = output.get('root_folder')
+        if root:
+            flat['root_folder'] = Path(root)
+        flat['log_level'] = output.get('log_level', 'INFO')
+        flat['open_vault_folder'] = output.get('open_vault_folder', True)
     
     return flat
 
 
 def _structure_config(flat_dict: dict) -> dict:
-    """
-    Structure flat configuration into logical sections.
-    
-    Creates a more readable YAML output.
-    """
-    # Convert Path objects to strings
-    for key, value in flat_dict.items():
-        if isinstance(value, Path):
-            flat_dict[key] = str(value)
-    
     structured = {
-        "experiment": {
-            "name": flat_dict.pop("name"),
+        'experiment': {
+            'name': flat_dict.get('name')
         },
-        "seeds": {
-            "ids": flat_dict.pop("seeds"),
+        'seeds': {
+            'ids': flat_dict.get('seeds', [])
         },
-        "keywords": flat_dict.pop("keywords", []),
-        "crawling": {
-            "max_iterations": flat_dict.pop("max_iterations"),
-            "papers_per_iteration": flat_dict.pop("papers_per_iteration"),
-            "api_provider": flat_dict.pop("api_provider"),
-            "api_retries": flat_dict.pop("api_retries"),
+        'keywords': flat_dict.get('keywords', []),
+        'crawling': {
+            'max_iterations': flat_dict.get('max_iterations', 1),
+            'papers_per_iteration': flat_dict.get('papers_per_iteration', 1),
+            'api_provider': flat_dict.get('api_provider', 'openalex'),
+            'api_retries': flat_dict.get('api_retries', 3)
         },
-        "sampling": {
-            "no_keyword_lambda": flat_dict.pop("no_keyword_lambda"),
-            "hyperparams": flat_dict.pop("sampling_hyperparams"),
-            "ignored_venues": flat_dict.pop("ignored_venues"),
+        'sampling': {
+            'no_keyword_lambda': flat_dict.get('no_keyword_lambda', 0.2),
+            'hyperparams': flat_dict.get('sampling_hyperparams', {'year': 0.3, 'centrality': 1.0}),
+            'ignored_venues': flat_dict.get('ignored_venues', ['', 'ArXiv', 'medRxiv', 'WWW'])
         },
-        "text_processing": {
-            "min_abstract_length": flat_dict.pop("min_abstract_length"),
-            "num_topics": flat_dict.pop("num_topics"),
-            "topic_model": flat_dict.pop("topic_model"),
-            "stemmer": flat_dict.pop("stemmer"),
-            "language": flat_dict.pop("language"),
-            "save_figures": flat_dict.pop("save_figures"),
-            "random_state": flat_dict.pop("random_state"),
+        'text_processing': {
+            'min_abstract_length': flat_dict.get('min_abstract_length', 120),
+            'num_topics': flat_dict.get('num_topics', 20),
+            'topic_model': flat_dict.get('topic_model', 'NMF'),
+            'stemmer': flat_dict.get('stemmer', 'Porter'),
+            'language': flat_dict.get('language', 'en'),
+            'save_figures': flat_dict.get('save_figures', True),
+            'random_state': flat_dict.get('random_state', 42)
         },
-        "graph": {
-            "include_author_nodes": flat_dict.pop("include_author_nodes"),
-            "max_centrality_iterations": flat_dict.pop("max_centrality_iterations"),
+        'graph': {
+            'include_author_nodes': flat_dict.get('include_author_nodes', False),
+            'max_centrality_iterations': flat_dict.get('max_centrality_iterations', 1000)
         },
-        "retraction": {
-            "enable": flat_dict.pop("enable_retraction_watch"),
-            "avoid_in_sampler": flat_dict.pop("avoid_retraction_in_sampler"),
-            "avoid_in_reporting": flat_dict.pop("avoid_retraction_in_reporting"),
+        'retraction': {
+            'enable': flat_dict.get('enable_retraction_watch', True),
+            'avoid_in_sampler': flat_dict.get('avoid_retraction_in_sampler', False),
+            'avoid_in_reporting': flat_dict.get('avoid_retraction_in_reporting', True)
         },
-        "output": {
-            "root_folder": flat_dict.pop("root_folder", None),
-            "log_level": flat_dict.pop("log_level"),
-            "open_vault_folder": flat_dict.pop("open_vault_folder"),
+        'output': {
+            'root_folder': str(flat_dict.get('root_folder', Path.cwd() / 'data' / 'crawler_experiments')),
+            'log_level': flat_dict.get('log_level', 'INFO'),
+            'open_vault_folder': flat_dict.get('open_vault_folder', True)
         }
     }
     
