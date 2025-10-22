@@ -1,0 +1,45 @@
+experiment:
+  name: tryremove
+seeds:
+  ids:
+  - W3049136412
+  - W3202064744
+  - W3006444335
+keywords:
+- Healthcare
+- Machine
+- Learning
+crawling:
+  max_iterations: 1
+  papers_per_iteration: 1
+  api_provider: openalex
+  api_retries: 3
+sampling:
+  no_keyword_lambda: 0.2
+  hyperparams:
+    year: 0.3
+    centrality: 1.0
+  ignored_venues:
+  - ''
+  - ArXiv
+  - medRxiv
+  - WWW
+text_processing:
+  min_abstract_length: 120
+  num_topics: 20
+  topic_model: LDA
+  stemmer: Porter
+  language: en
+  save_figures: true
+  random_state: 42
+graph:
+  include_author_nodes: true
+  max_centrality_iterations: 1000
+retraction:
+  enable: true
+  avoid_in_sampler: false
+  avoid_in_reporting: true
+output:
+  root_folder: D:\OpenAlexProject\fakenewscitationnetwork\data\crawler_experiments
+  log_level: INFO
+  open_vault_folder: true

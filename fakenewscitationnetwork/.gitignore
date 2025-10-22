@@ -13,6 +13,5 @@
 *.pyc
 *.json
 FakeNewsCitationNetwork/data
-FakeNewsCitationNetwork/ArticleCrawler/data.gitkeep
 Experiment/data
 libraries/
