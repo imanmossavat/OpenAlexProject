@@ -2,12 +2,23 @@
 
 ## Table of Contents
 
-1. System Requirements
-2. Installation
-3. Configuration
-4. Getting Started
+1. What is needed
+2. System Requirements
+3. Installation
+4. Configuration
+5. Getting Started
 
 ---
+
+## What is needed
+
+Docker for GROBID(PDF metadata extraction)
+OPENALEX_EMAIL=your.email@example.com
+ 
+# Zotero Configuration (Optional - only needed for Zotero integration)
+ZOTERO_LIBRARY_ID=your_library_id
+ZOTERO_LIBRARY_TYPE=user
+ZOTERO_API_KEY=your_api_key
 
 ## System Requirements
 
@@ -39,6 +50,49 @@ git checkout Bryan
 ### Step 2: Set Up Python Environment
 
 I highly recommend using a virtual environment to avoid conflicts with your system Python packages.
+
+###  Automatic option: One-Step Setup Script
+
+Instead of manually creating the environment and installing dependencies, you can use the included `setup.py` installer.
+
+This script will:
+
+* Create a virtual environment (`articlecrawler`)
+* Install all dependencies
+* Download NLTK data
+* Prompt you for `.env` configuration values
+* Check for Docker installation
+
+First, navigate to your project directory:
+
+```bash
+cd OpenAlexProject\fakenewscitationnetwork
+```
+
+Run it with:
+
+```bash
+python setup.py
+```
+
+After it completes, activate the environment:
+
+* **Windows**
+
+  ```bash
+  articlecrawler\Scripts\activate
+  ```
+
+* **Linux/macOS**
+
+  ```bash
+  source articlecrawler/bin/activate
+  ```
+
+If it was succesful you can then skip directly to the **Getting Started** section.
+
+---
+
 
 #### Option A: Using venv
 

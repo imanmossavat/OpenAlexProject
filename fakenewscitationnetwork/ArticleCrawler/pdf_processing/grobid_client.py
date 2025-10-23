@@ -1,4 +1,3 @@
-
 import os
 import tempfile
 import shutil
@@ -15,7 +14,7 @@ class GrobidClientWrapper:
                  logger: Optional[logging.Logger] = None):
         self.server_url = server_url
         self.logger = logger or logging.getLogger(__name__)
-        self.client = GrobidClient(grobid_server=server_url)
+        self.client = GrobidClient(grobid_server=server_url, check_server=False)
     
     def process_pdfs(self, pdf_paths: List[Path]) -> dict:
         if not pdf_paths:

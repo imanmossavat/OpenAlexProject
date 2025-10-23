@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import List
 from rich.console import Console
+import os
+from dotenv import load_dotenv
 from .prompts import Prompter
 from .validators import validate_paper_id, validate_file_path
 from .pdf_ui_helpers import PDFFileSelector, MetadataReviewer, MatchResultsPresenter
@@ -18,6 +20,24 @@ class SeedProvider(ABC):
     @abstractmethod
     def display_name(self) -> str:
         pass
+    
+    def is_available(self) -> tuple[bool, str]:
+        """
+        Check if this provider is available.
+        
+        Returns:
+            tuple[bool, str]: (is_available, reason_if_not_available)
+        """
+        return True, None
+    
+    def get_unavailable_message(self) -> str:
+        """
+        Get a helpful message to show when this provider is unavailable.
+        
+        Returns:
+            str: Helpful message for the user
+        """
+        return "This source is currently unavailable. Please select another."
 
 
 class ManualSeedProvider(SeedProvider):
@@ -121,6 +141,34 @@ class PDFSeedProvider(SeedProvider):
     def display_name(self) -> str:
         return "Extract from PDF files"
     
+    def is_available(self) -> tuple[bool, str]:
+        """Check if GROBID is available for PDF processing."""
+        try:
+            from ...pdf_processing.docker_manager import DockerManager
+            
+            docker_manager = DockerManager()
+            
+            try:
+                if docker_manager.is_grobid_running():
+                    return True, None
+            except Exception:
+                pass
+            
+            if not docker_manager.is_docker_available():
+                return False, "Docker not available"
+            
+            return False, "GROBID not running"
+            
+        except Exception as e:
+            return False, "GROBID not available"
+    
+    def get_unavailable_message(self) -> str:
+        """Get helpful message for unavailable PDF processing."""
+        return (
+            "PDF processing requires GROBID to be running.\n"
+            "   Start it with: docker run -d -p 8070:8070 --name grobid-service lfoppiano/grobid:0.8.2"
+        )
+    
     def get_seeds(self) -> List[str]:
         return self.workflow.execute()
 
@@ -138,6 +186,30 @@ class ZoteroSeedProvider(SeedProvider):
     
     def display_name(self) -> str:
         return "Import from Zotero library"
+    
+    def is_available(self) -> tuple[bool, str]:
+        """Check if Zotero is configured."""
+        import os
+        from dotenv import load_dotenv
+        
+        load_dotenv()
+        
+        library_id = os.getenv('ZOTERO_LIBRARY_ID')
+        api_key = os.getenv('ZOTERO_API_KEY')
+        
+        if not library_id or not api_key:
+            return False, "not configured in .env"
+        
+        return True, None
+    
+    def get_unavailable_message(self) -> str:
+        """Get helpful message for unavailable Zotero."""
+        return (
+            "Zotero is not configured. Add these to your .env file:\n"
+            "   ZOTERO_LIBRARY_ID=your_library_id\n"
+            "   ZOTERO_API_KEY=your_api_key\n"
+            "   Get credentials from: https://www.zotero.org/settings/keys"
+        )
     
     def get_seeds(self) -> List[str]:
         """Execute workflow and return paper IDs."""

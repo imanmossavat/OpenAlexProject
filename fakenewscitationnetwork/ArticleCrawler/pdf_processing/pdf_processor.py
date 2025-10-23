@@ -1,4 +1,3 @@
-
 from pathlib import Path
 from typing import List, Optional
 import logging
@@ -24,15 +23,15 @@ class PDFProcessor:
         if self.docker_manager.is_grobid_running():
             return True
         
-        self.logger.info("GROBID service not running, attempting to start...")
-        return self.docker_manager.start_container()
+        self.logger.error("GROBID service is not running. Please start it manually.")
+        return False
     
     def process_pdfs(self, pdf_paths: List[Path]) -> List[PDFProcessingResult]:
         if not pdf_paths:
             return []
         
         if not self.ensure_grobid_running():
-            self.logger.error("Could not start GROBID service")
+            self.logger.error("GROBID service not available. Start it with: docker run -d -p 8070:8070 lfoppiano/grobid:0.8.2")
             return [
                 PDFProcessingResult(
                     pdf_path=path,

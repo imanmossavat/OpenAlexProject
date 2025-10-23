@@ -4,11 +4,13 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from typing import Optional
+import logging
 
 from ...usecases.topic_modeling_usecase import TopicModelingOrchestrator
 from ...config.text_config import TextProcessingConfig
 from ..ui.prompts import RichPrompter
 from .library_create import library_create_command
+from ..utils.library_discovery import LibraryDiscovery
 
 console = Console()
 
@@ -18,9 +20,6 @@ def topic_modeling_command(
     model_type: Optional[str] = typer.Option(None, "--model-type", "-m", help="Topic model type (NMF or LDA)"),
     num_topics: Optional[int] = typer.Option(None, "--num-topics", "-n", help="Number of topics")
 ):
-    """Run topic modeling on an existing library."""
-    
-    # Header matching wizard style
     console.print(Panel.fit(
         "[bold cyan]TOPIC MODELING[/bold cyan]",
         border_style="cyan"
@@ -30,33 +29,12 @@ def topic_modeling_command(
     
     prompter = RichPrompter(console)
     
-    # STEP 1: Library Selection
     _print_step_header(console, "STEP 1: Library Selection")
     
     if not library_path:
-        library_choices = ["Use an existing library", "Create a new library"]
-        library_choice_idx = prompter.choice(
-            "What would you like to do?",
-            choices=library_choices,
-            default=0
-        )
-        
-        if library_choice_idx == 1:  # Create new library
-            console.print("\n[cyan]Let's create a new library first...[/cyan]\n")
-            
-            created_library_path = library_create_command(name=None, path=None, api_provider='openalex')
-            
-            if not created_library_path:
-                console.print("\n[yellow]Library creation cancelled[/yellow]")
-                return
-            
-            if not prompter.confirm("\nContinue with topic modeling on this library?"):
-                console.print("\n[yellow]Cancelled[/yellow]")
-                return
-            
-            library_path = str(created_library_path)
-        else:  # Use existing
-            library_path = prompter.input("Library path")
+        library_path = _select_library(prompter, console)
+        if not library_path:
+            return
     
     library_path_obj = Path(library_path)
     
@@ -67,7 +45,6 @@ def topic_modeling_command(
     
     console.print(f"[green]✓[/green] Library: {library_path}\n")
     
-    # STEP 2: Model Type
     _print_step_header(console, "STEP 2: Topic Modeling Algorithm")
     
     if not model_type:
@@ -85,7 +62,6 @@ def topic_modeling_command(
     model_type = model_type.upper()
     console.print(f"[green]✓[/green] Algorithm: {model_type}\n")
     
-    # STEP 3: Number of Topics
     _print_step_header(console, "STEP 3: Number of Topics")
     
     if not num_topics:
@@ -97,7 +73,6 @@ def topic_modeling_command(
     
     console.print(f"[green]✓[/green] Topics: {num_topics}\n")
     
-    # Review Configuration
     console.print("\n" + "=" * 70)
     console.print("[bold]Review Configuration[/bold]")
     console.print("=" * 70)
@@ -124,10 +99,10 @@ def topic_modeling_command(
         
         with console.status("[bold cyan]Processing papers and identifying topics..."):
             labeled_clusters, overview_path = orchestrator.run_topic_modeling(
-            library_path=library_path_obj,
-            model_type=model_type,
-            num_topics=num_topics
-        )
+                library_path=library_path_obj,
+                model_type=model_type,
+                num_topics=num_topics
+            )
         
         _display_results(console, labeled_clusters, library_path_obj, overview_path)
         
@@ -136,23 +111,93 @@ def topic_modeling_command(
         raise
 
 
+def _select_library(prompter: RichPrompter, console: Console) -> Optional[str]:
+    logger = logging.getLogger(__name__)
+    discovery = LibraryDiscovery(logger)
+    
+    console.print("[dim]Searching for existing libraries...[/dim]")
+    libraries = discovery.find_libraries()
+    
+    choices = []
+    library_paths = {}
+    
+    if libraries:
+        for idx, lib_info in enumerate(libraries):
+            choice_text = discovery.format_library_choice(lib_info)
+            choices.append(choice_text)
+            library_paths[idx] = str(lib_info['path'])
+        
+        choices.append("---")
+        manual_idx = len(choices)
+        choices.append("Enter library path manually")
+        
+        create_idx = len(choices)
+        choices.append("Create a new library")
+        
+        console.print(f"[green]Found {len(libraries)} existing libraries[/green]\n")
+        
+        choice_idx = prompter.choice(
+            "Select a library",
+            choices=choices,
+            default=0
+        )
+        
+        if choice_idx < manual_idx - 1:
+            return library_paths[choice_idx]
+        elif choice_idx == manual_idx:
+            return prompter.input("Library path")
+        elif choice_idx == create_idx:
+            console.print("\n[cyan]Let's create a new library first...[/cyan]\n")
+            created_library_path = library_create_command(name=None, path=None, api_provider='openalex')
+            
+            if not created_library_path:
+                console.print("\n[yellow]Library creation cancelled[/yellow]")
+                return None
+            
+            if not prompter.confirm("\nContinue with topic modeling on this library?"):
+                console.print("\n[yellow]Cancelled[/yellow]")
+                return None
+            
+            return str(created_library_path)
+    
+    else:
+        console.print("[yellow]No existing libraries found[/yellow]\n")
+        
+        choices = [
+            "Enter library path manually",
+            "Create a new library"
+        ]
+        
+        choice_idx = prompter.choice(
+            "What would you like to do?",
+            choices=choices,
+            default=0
+        )
+        
+        if choice_idx == 0:
+            return prompter.input("Library path")
+        else:
+            console.print("\n[cyan]Let's create a new library first...[/cyan]\n")
+            created_library_path = library_create_command(name=None, path=None, api_provider='openalex')
+            
+            if not created_library_path:
+                console.print("\n[yellow]Library creation cancelled[/yellow]")
+                return None
+            
+            if not prompter.confirm("\nContinue with topic modeling on this library?"):
+                console.print("\n[yellow]Cancelled[/yellow]")
+                return None
+            
+            return str(created_library_path)
+
+
 def _print_step_header(console: Console, step_text: str):
-    """Print step header matching wizard style."""
     console.print("─" * 70)
     console.print(f"[bold cyan]{step_text}[/bold cyan]")
     console.print("─" * 70 + "\n")
 
 
 def _display_results(console: Console, labeled_clusters, library_path: Path, overview_path: Path):
-    """
-    Display topic modeling results.
-    
-    Args:
-        console: Rich console
-        labeled_clusters: List of TopicCluster objects
-        library_path: Library path
-        overview_path: Path to overview file
-    """
     console.print("\n" + "=" * 70)
     console.print("[bold green]✅ TOPIC MODELING COMPLETE[/bold green]")
     console.print("=" * 70 + "\n")

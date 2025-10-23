@@ -25,7 +25,7 @@ class DockerManager:
             result = subprocess.run(
                 ["docker", "version"],
                 capture_output=True,
-                timeout=5
+                timeout=1
             )
             return result.returncode == 0
         except (subprocess.TimeoutExpired, FileNotFoundError):
@@ -35,7 +35,7 @@ class DockerManager:
         try:
             response = requests.get(
                 f"{self.base_url}/api/isalive",
-                timeout=5
+                timeout=1
             )
             return response.status_code == 200
         except requests.RequestException:
@@ -47,7 +47,7 @@ class DockerManager:
                 ["docker", "ps", "--filter", f"name={self.CONTAINER_NAME}", "--format", "{{.Names}}"],
                 capture_output=True,
                 text=True,
-                timeout=5
+                timeout=1
             )
             return self.CONTAINER_NAME in result.stdout
         except (subprocess.TimeoutExpired, FileNotFoundError):
