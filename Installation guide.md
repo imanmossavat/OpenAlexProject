@@ -11,8 +11,7 @@
 ---
 
 ## What is needed
-
-Docker for GROBID(PDF metadata extraction)
+Email Adress for better rate limits open alex
 OPENALEX_EMAIL=your.email@example.com
  
 # Zotero Configuration (Optional - only needed for Zotero integration)
@@ -53,11 +52,11 @@ I highly recommend using a virtual environment to avoid conflicts with your syst
 
 ###  Automatic option: One-Step Setup Script
 
-Instead of manually creating the environment and installing dependencies, you can use the included `setup.py` installer.
+Instead of manually creating the environment and installing dependencies, you can use the included `install.py` installer.
 
 This script will:
 
-* Create a virtual environment (`articlecrawler`)
+* Create a virtual environment (`venv`)
 * Install all dependencies
 * Download NLTK data
 * Prompt you for `.env` configuration values
@@ -72,7 +71,7 @@ cd OpenAlexProject\fakenewscitationnetwork
 Run it with:
 
 ```bash
-python setup.py
+python install.py
 ```
 
 After it completes, activate the environment:
