@@ -66,6 +66,12 @@ conda activate articlecrawler
 
 Install the package with all dependencies using pip:
 
+First, navigate to your project directory:
+
+```bash
+cd OpenAlexProject\fakenewscitationnetwork
+```
+
 ```bash
 pip install -e ".[cli,dev]"
 ```
