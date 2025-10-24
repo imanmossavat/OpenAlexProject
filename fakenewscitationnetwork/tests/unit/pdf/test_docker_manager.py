@@ -45,7 +45,7 @@ class TestDockerManager:
         mock_response.status_code = 200
         mock_get.return_value = mock_response
         assert docker_manager.is_grobid_running() is True
-        mock_get.assert_called_once_with("http://localhost:8070/api/isalive", timeout=5)
+        mock_get.assert_called_once_with("http://localhost:8070/api/isalive", timeout=1)
     
     @patch('requests.get')
     def test_is_grobid_running_not_available(self, mock_get, docker_manager):

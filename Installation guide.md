@@ -221,6 +221,18 @@ docker run --rm -p 8070:8070 lfoppiano/grobid:0.8.2
 
 ## Getting Started
 
+**Testing installation**
+To test if the installation was succesfull first navigate to your projet directory
+```bash
+cd OpenAlexProject\fakenewscitationnetwork
+```
+
+then run the test file
+
+```bash
+python test.py
+```
+
 **ArticleCrawler** provides 5 main use cases accessible through the command-line interface.
 
 First, navigate to your project directory:

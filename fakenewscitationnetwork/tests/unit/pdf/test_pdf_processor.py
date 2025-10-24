@@ -66,11 +66,10 @@ class TestPDFProcessor:
     
     def test_ensure_grobid_running_needs_start(self, pdf_processor, mock_docker_manager, mock_logger):
         mock_docker_manager.is_grobid_running.return_value = False
-        mock_docker_manager.start_container.return_value = True
         result = pdf_processor.ensure_grobid_running()
-        assert result is True
-        mock_logger.info.assert_called()
-        mock_docker_manager.start_container.assert_called_once()
+        assert result is False
+        mock_logger.error.assert_called()
+        mock_docker_manager.start_container.assert_not_called()
     
     def test_ensure_grobid_running_fails_to_start(self, pdf_processor, mock_docker_manager):
         mock_docker_manager.is_grobid_running.return_value = False

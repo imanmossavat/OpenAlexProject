@@ -27,13 +27,13 @@ class TestGrobidClientWrapper:
         client = GrobidClientWrapper(logger=mock_logger)
         assert client.server_url == "http://localhost:8070"
         assert client.logger == mock_logger
-        mock_grobid_class.assert_called_once_with(grobid_server="http://localhost:8070")
+        mock_grobid_class.assert_called_once_with(grobid_server="http://localhost:8070", check_server=False)
     
     @patch('ArticleCrawler.pdf_processing.grobid_client.GrobidClient')
     def test_initialization_custom_url(self, mock_grobid_class, mock_logger):
         client = GrobidClientWrapper(server_url="http://custom:9000", logger=mock_logger)
         assert client.server_url == "http://custom:9000"
-        mock_grobid_class.assert_called_once_with(grobid_server="http://custom:9000")
+        mock_grobid_class.assert_called_once_with(grobid_server="http://custom:9000", check_server=False)
     
     def test_process_pdfs_empty_list(self, grobid_client):
         result = grobid_client.process_pdfs([])
