@@ -1,6 +1,6 @@
 annotated-types==0.7.0
 anyio==4.11.0
--e git+https://github.com/imanmossavat/OpenAlexProject.git@7eea3902e8aa6abda882221576d657656243fd13#egg=articlecrawler&subdirectory=fakenewscitationnetwork
+
 bibtexparser==1.4.3
 black==25.9.0
 certifi==2025.10.5

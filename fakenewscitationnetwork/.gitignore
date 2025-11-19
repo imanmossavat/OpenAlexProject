@@ -1,17 +1,19 @@
 # Ignore all .pkl files
 *.pkl
 
-# Ignore all .md files
-*.md
 
 .env
 *.csv
 *.xlsx
-*.png
 *.log
 *.log.*
 *.pyc
-*.json
 FakeNewsCitationNetwork/data
 Experiment/data
+experiments/
 libraries/
+venv/
+*.egg-info/
+__pycache__/
+*.pyc
+*.pyd
