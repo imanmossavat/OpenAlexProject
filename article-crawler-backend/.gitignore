@@ -40,3 +40,5 @@ logs/
 Thumbs.db
 
 ArticleCrawler
+
+.env
