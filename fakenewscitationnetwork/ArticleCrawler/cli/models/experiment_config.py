@@ -13,7 +13,6 @@ class ExperimentConfig(BaseModel):
     """
     Complete experiment configuration.
     
-    Matches the configuration structure from demo.py with sensible defaults.
     """
     
     # Core settings
@@ -62,6 +61,10 @@ class ExperimentConfig(BaseModel):
     root_folder: Optional[Path] = Field(default=None, description="Root folder for experiments")
     log_level: str = Field(default="INFO", description="Logging level")
     open_vault_folder: bool = Field(default=True, description="Open vault folder after completion")
+
+    # Library reference (optional; for workflows that start from a library)
+    library_path: Optional[Path] = Field(default=None, description="Path to the library used for seeds")
+    library_name: Optional[str] = Field(default=None, description="Name of the library used for seeds")
     
     @field_validator('api_provider')
     @classmethod

@@ -1,0 +1,134 @@
+{
+  "sample_papers": [
+    {
+      "paper_id": "W2741809807",
+      "title": "Attention Is All You Need",
+      "authors": ["Ashish Vaswani", "Noam Shazeer", "Niki Parmar", "Jakob Uszkoreit"],
+      "year": 2017,
+      "venue": "NeurIPS",
+      "doi": "10.48550/arXiv.1706.03762",
+      "abstract": "The dominant sequence transduction models are based on complex recurrent or convolutional neural networks...",
+      "source": "openalex"
+    },
+    {
+      "paper_id": "W2964141474",
+      "title": "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding",
+      "authors": ["Jacob Devlin", "Ming-Wei Chang", "Kenton Lee", "Kristina Toutanova"],
+      "year": 2019,
+      "venue": "NAACL",
+      "doi": "10.18653/v1/N19-1423",
+      "abstract": "We introduce a new language representation model called BERT...",
+      "source": "openalex"
+    },
+    {
+      "paper_id": "W2950950274",
+      "title": "Deep Learning",
+      "authors": ["Yann LeCun", "Yoshua Bengio", "Geoffrey Hinton"],
+      "year": 2015,
+      "venue": "Nature",
+      "doi": "10.1038/nature14539",
+      "abstract": "Deep learning allows computational models that are composed of multiple processing layers...",
+      "source": "openalex"
+    },
+    {
+      "paper_id": "W2963146890",
+      "title": "Language Models are Few-Shot Learners",
+      "authors": ["Tom B. Brown", "Benjamin Mann", "Nick Ryder"],
+      "year": 2020,
+      "venue": "NeurIPS",
+      "doi": "10.48550/arXiv.2005.14165",
+      "abstract": "Recent work has demonstrated substantial gains on many NLP tasks...",
+      "source": "openalex"
+    },
+    {
+      "paper_id": "W2147488220",
+      "title": "ImageNet Classification with Deep Convolutional Neural Networks",
+      "authors": ["Alex Krizhevsky", "Ilya Sutskever", "Geoffrey E. Hinton"],
+      "year": 2012,
+      "venue": "NeurIPS",
+      "doi": "10.1145/3065386",
+      "abstract": "We trained a large, deep convolutional neural network to classify the 1.2 million...",
+      "source": "openalex"
+    }
+  ],
+  "zotero_collections": [
+    {
+      "key": "ABC123",
+      "name": "Machine Learning Papers",
+      "num_items": 10,
+      "parent": null
+    },
+    {
+      "key": "DEF456",
+      "name": "NLP Research",
+      "num_items": 5,
+      "parent": null
+    },
+    {
+      "key": "GHI789",
+      "name": "Computer Vision",
+      "num_items": 8,
+      "parent": null
+    }
+  ],
+  "zotero_items": [
+    {
+      "key": "ITEM001",
+      "version": 1,
+      "itemType": "journalArticle",
+      "title": "Attention Is All You Need",
+      "creators": [
+        {"creatorType": "author", "firstName": "Ashish", "lastName": "Vaswani"}
+      ],
+      "date": "2017",
+      "DOI": "10.48550/arXiv.1706.03762",
+      "publicationTitle": "NeurIPS"
+    },
+    {
+      "key": "ITEM002",
+      "version": 1,
+      "itemType": "journalArticle",
+      "title": "BERT: Pre-training of Deep Bidirectional Transformers",
+      "creators": [
+        {"creatorType": "author", "firstName": "Jacob", "lastName": "Devlin"}
+      ],
+      "date": "2019",
+      "DOI": "10.18653/v1/N19-1423",
+      "publicationTitle": "NAACL"
+    }
+  ],
+  "pdf_metadata_examples": [
+    {
+      "filename": "attention_paper.pdf",
+      "extracted_title": "Attention Is All You Need",
+      "extracted_authors": ["Ashish Vaswani", "Noam Shazeer"],
+      "extracted_year": 2017,
+      "extracted_abstract": "The dominant sequence transduction models...",
+      "extraction_confidence": 0.95
+    },
+    {
+      "filename": "incomplete_paper.pdf",
+      "extracted_title": "Untitled",
+      "extracted_authors": [],
+      "extracted_year": null,
+      "extracted_abstract": "",
+      "extraction_confidence": 0.3
+    }
+  ],
+  "api_match_responses": {
+    "successful_match": {
+      "matched": true,
+      "paper_id": "W2741809807",
+      "confidence": 0.95,
+      "title": "Attention Is All You Need",
+      "authors": ["Ashish Vaswani", "Noam Shazeer"],
+      "year": 2017,
+      "doi": "10.48550/arXiv.1706.03762"
+    },
+    "failed_match": {
+      "matched": false,
+      "confidence": 0.2,
+      "error": "Insufficient metadata to match paper"
+    }
+  }
+}

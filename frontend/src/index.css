@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.mm-highlight {
+  font-weight: 600;
+  color: #7c3aed;
+}
+
