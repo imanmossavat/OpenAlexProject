@@ -1,11 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
-import { AlertCircle, Check, ChevronDown, Filter, Loader2, RefreshCw } from 'lucide-react'
+import { AlertCircle, Check, ChevronDown, Filter, Loader2, RefreshCw, X } from 'lucide-react'
 import Stepper from '@/components/Stepper'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import apiClient from '@/shared/api/client'
 import { endpoints } from '@/shared/api/endpoints'
 import { getSessionId, hydrateSessionFromQuery } from '@/shared/lib/session'
@@ -13,6 +15,58 @@ import { getSessionId, hydrateSessionFromQuery } from '@/shared/lib/session'
 const workflowSteps = ['Add', 'Stage', 'Match', 'Library']
 const editableFields = ['title', 'authors', 'year', 'venue', 'doi', 'url', 'abstract']
 const defaultGrobidStatus = { checked: false, available: true, message: null }
+const FILTERABLE_COLUMNS = [
+  { key: 'title', label: 'Title' },
+  { key: 'authors', label: 'Authors' },
+  { key: 'year', label: 'Year' },
+  { key: 'venue', label: 'Venue' },
+  { key: 'identifier', label: 'Identifiers' },
+]
+const COLUMN_QUERY_MAP = {
+  title: 'title_values',
+  authors: 'author_values',
+  year: 'year_values',
+  venue: 'venue_values',
+  identifier: 'identifier_values',
+}
+const createColumnState = () =>
+  FILTERABLE_COLUMNS.reduce((acc, { key }) => {
+    acc[key] = []
+    return acc
+  }, {})
+const createColumnCustomState = () =>
+  FILTERABLE_COLUMNS.reduce((acc, { key }) => {
+    acc[key] = null
+    return acc
+  }, {})
+const TEXT_FILTER_OPERATIONS = [
+  { value: 'equals', label: 'Equals' },
+  { value: 'not_equals', label: 'Does not equal' },
+  { value: 'begins_with', label: 'Begins with' },
+  { value: 'not_begins_with', label: 'Does not begin with' },
+  { value: 'ends_with', label: 'Ends with' },
+  { value: 'not_ends_with', label: 'Does not end with' },
+  { value: 'contains', label: 'Contains' },
+  { value: 'not_contains', label: 'Does not contain' },
+]
+const NUMBER_FILTER_OPERATIONS = [
+  { value: 'equals', label: 'Equals' },
+  { value: 'not_equals', label: 'Does not equal' },
+  { value: 'greater_than', label: 'Is greater than' },
+  { value: 'greater_than_or_equal', label: 'Is greater than or equal to' },
+  { value: 'less_than', label: 'Is less than' },
+  { value: 'less_than_or_equal', label: 'Is less than or equal to' },
+  { value: 'between', label: 'Is between' },
+  { value: 'not_between', label: 'Is not between' },
+]
+const FILTER_OPERATION_DESCRIPTIONS = TEXT_FILTER_OPERATIONS.concat(NUMBER_FILTER_OPERATIONS).reduce(
+  (acc, item) => {
+    acc[item.value] = item.label
+    return acc
+  },
+  {}
+)
+const getColumnType = (columnKey) => (columnKey === 'year' ? 'number' : 'text')
 
 export default function UnifiedStagingPage() {
   const navigate = useNavigate()
@@ -23,7 +77,7 @@ export default function UnifiedStagingPage() {
   const [page, setPage] = useState(1)
   const [pageSize] = useState(25)
   const [totalPages, setTotalPages] = useState(1)
-  const [stats, setStats] = useState({ totalRows: 0, selectedCount: 0 })
+  const [stats, setStats] = useState({ totalRows: 0, filteredRows: 0, selectedCount: 0 })
   const [filters, setFilters] = useState({
     sources: [],
     yearMin: '',
@@ -54,6 +108,26 @@ export default function UnifiedStagingPage() {
   const [grobidStatus, setGrobidStatus] = useState(defaultGrobidStatus)
   const [editing, setEditing] = useState({ id: null, field: null, value: '' })
   const [matching, setMatching] = useState(false)
+  const [columnFilters, setColumnFilters] = useState(() => createColumnState())
+  const [columnCustomFilters, setColumnCustomFilters] = useState(() => createColumnCustomState())
+  const [columnOptions, setColumnOptions] = useState(() => createColumnState())
+  const columnFilterValues = useMemo(
+    () =>
+      FILTERABLE_COLUMNS.reduce((acc, { key }) => {
+        acc[key] = columnFilters[key].map((item) => item.value)
+        return acc
+      }, {}),
+    [columnFilters]
+  )
+  const activeColumnFilterCount = useMemo(
+    () =>
+      FILTERABLE_COLUMNS.reduce(
+        (total, { key }) =>
+          total + (columnFilters[key]?.length || 0) + (columnCustomFilters[key] ? 1 : 0),
+        0
+      ),
+    [columnFilters, columnCustomFilters]
+  )
 
   useEffect(() => {
     const sid = getSessionId() || hydrateSessionFromQuery()
@@ -84,6 +158,30 @@ export default function UnifiedStagingPage() {
       year_max: filters.yearMax || undefined,
     }
     if (filters.sources.length) query.sources = filters.sources
+    FILTERABLE_COLUMNS.forEach(({ key }) => {
+      const values = columnFilterValues[key]
+      if (values && values.length) {
+        query[COLUMN_QUERY_MAP[key]] = values
+      }
+    })
+    const customFiltersPayload = []
+    FILTERABLE_COLUMNS.forEach(({ key }) => {
+      const custom = columnCustomFilters[key]
+      if (!custom || !custom.operator) return
+      const primaryValue = `${custom.value ?? ''}`.trim()
+      if (!primaryValue) return
+      let payload = `${key}::${custom.operator}::${primaryValue}`
+      if (custom.valueTo !== undefined && custom.valueTo !== null) {
+        const secondaryValue = `${custom.valueTo}`.trim()
+        if (secondaryValue) {
+          payload = `${payload}::${secondaryValue}`
+        }
+      }
+      customFiltersPayload.push(payload)
+    })
+    if (customFiltersPayload.length) {
+      query.column_filters = customFiltersPayload
+    }
     const res = await apiClient('GET', `${endpoints.seedsSession}/${sessionId}/staging`, null, { query })
     if (res.error) {
       setFetchError(res.error)
@@ -92,8 +190,16 @@ export default function UnifiedStagingPage() {
       setRows(data.rows || [])
       setStats({
         totalRows: data.total_rows || 0,
+        filteredRows: data.filtered_rows || data.total_rows || 0,
         selectedCount: data.selected_count || 0,
       })
+      const nextOptions = createColumnState()
+      const optionPayload = data.column_options || {}
+      FILTERABLE_COLUMNS.forEach(({ key }) => {
+        const columnOption = optionPayload[key]
+        nextOptions[key] = Array.isArray(columnOption) ? columnOption : []
+      })
+      setColumnOptions(nextOptions)
       setTotalPages(data.total_pages || 1)
       if (page > (data.total_pages || 1)) setPage(1)
       const newOptions = (data.rows || []).reduce((acc, row) => {
@@ -122,6 +228,8 @@ export default function UnifiedStagingPage() {
     filters.yearMin,
     filters.yearMax,
     filters.sources,
+    columnFilterValues,
+    columnCustomFilters,
   ])
 
   useEffect(() => {
@@ -194,6 +302,46 @@ export default function UnifiedStagingPage() {
       doi: 'all',
       selectedOnly: false,
     })
+    setColumnFilters(createColumnState())
+    setColumnCustomFilters(createColumnCustomState())
+    setPage(1)
+  }
+
+  const handleColumnFilterApply = (columnKey, selections) => {
+    const safeSelections = Array.isArray(selections) ? selections : []
+    setColumnFilters((prev) => {
+      const next = { ...prev }
+      const deduped = []
+      const seen = new Set()
+      safeSelections.forEach((item) => {
+        if (!item || !item.value || seen.has(item.value)) return
+        seen.add(item.value)
+        deduped.push({
+          value: item.value,
+          label: item.label || item.value,
+          meta: item.meta || null,
+        })
+      })
+      next[columnKey] = deduped
+      return next
+    })
+    setPage(1)
+  }
+
+  const handleColumnCustomFilterApply = (columnKey, customPayload) => {
+    setColumnCustomFilters((prev) => ({ ...prev, [columnKey]: customPayload }))
+    setPage(1)
+  }
+
+  const clearColumnFilter = (columnKey) => {
+    setColumnFilters((prev) => ({ ...prev, [columnKey]: [] }))
+    setColumnCustomFilters((prev) => ({ ...prev, [columnKey]: null }))
+    setPage(1)
+  }
+
+  const clearAllColumnFilters = () => {
+    setColumnFilters(createColumnState())
+    setColumnCustomFilters(createColumnCustomState())
     setPage(1)
   }
 
@@ -321,8 +469,11 @@ export default function UnifiedStagingPage() {
     })
   }
 
-  const rangeStart = (page - 1) * pageSize + 1
-  const rangeEnd = Math.min(rangeStart + rows.length - 1, stats.totalRows)
+  const totalFilteredRows = stats.filteredRows || stats.totalRows || 0
+  const hasRows = rows.length > 0
+  const rangeStart = hasRows ? (page - 1) * pageSize + 1 : 0
+  const rangeEnd = hasRows ? Math.min(rangeStart + rows.length - 1, totalFilteredRows) : 0
+  const showInitialEmptyState = !loading && !fetchError && stats.totalRows === 0
 
   const renderEditableValue = (row, field, placeholder, isTextArea = false) => {
     const isEditing = editing.id === row.staging_id && editing.field === field
@@ -371,6 +522,54 @@ export default function UnifiedStagingPage() {
     )
   }
 
+  const renderAddMoreSourcesButton = () => (
+    <div className="relative">
+      <Button
+        variant="outline"
+        className="rounded-full border-gray-300 text-gray-900"
+        onClick={() => setShowAddMenu((prev) => !prev)}
+      >
+        Add more sources
+        <ChevronDown className="w-4 h-4 ml-2" />
+      </Button>
+      {showAddMenu && (
+        <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-gray-200 bg-white shadow-lg z-20">
+          <button
+            type="button"
+            className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50"
+            onClick={() => {
+              setManualModalOpen(true)
+              setManualError(null)
+              setShowAddMenu(false)
+            }}
+          >
+            Manual IDs
+            <p className="text-xs text-gray-500">Paste OpenAlex IDs (one per line)</p>
+          </button>
+          <button
+            type="button"
+            className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50"
+            onClick={handleOpenZoteroPicker}
+          >
+            Zotero collections
+            <p className="text-xs text-gray-500">Pick items from your Zotero library</p>
+          </button>
+          <button
+            type="button"
+            className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 rounded-b-2xl"
+            onClick={() => {
+              setShowAddMenu(false)
+              setShowPdfModal(true)
+            }}
+          >
+            Dump files
+            <p className="text-xs text-gray-500">Upload one or more PDF files</p>
+          </button>
+        </div>
+      )}
+    </div>
+  )
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <div className="pt-8">
@@ -378,74 +577,70 @@ export default function UnifiedStagingPage() {
       </div>
 
       <div className="px-6 pb-10 flex-1 flex flex-col">
-        <header className="flex flex-wrap items-center justify-between gap-4 border border-gray-200 rounded-3xl px-6 py-4 bg-white shadow-md
+        {!showInitialEmptyState && (
+          <header className="flex flex-wrap items-center justify-between gap-4 border border-gray-200 rounded-3xl px-6 py-4 bg-white shadow-md
 ">
           <div>
             <p className="text-sm uppercase tracking-[0.3em] text-gray-500 mb-1">Unified staging</p>
-            <h1 className="text-2xl font-semibold text-gray-900">Manage all seed papers in a single table</h1>
+            <h1 className="text-2xl font-semibold text-gray-900">Review, edit, and select seed papers from various sources in one workspace</h1>
           </div>
           <div className="flex items-center gap-2">
             <div className="text-sm text-gray-600">
               <span className="font-semibold text-gray-900">{stats.totalRows}</span> staged •{' '}
               <span className="font-semibold text-gray-900">{stats.selectedCount}</span> selected
             </div>
-            <div className="relative">
-              <Button
-                variant="outline"
-                className="rounded-full border-gray-300 text-gray-900"
-                onClick={() => setShowAddMenu((prev) => !prev)}
-              >
-                Add more papers
-                <ChevronDown className="w-4 h-4 ml-2" />
-              </Button>
-            {showAddMenu && (
-              <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-gray-200 bg-white shadow-lg z-20">
-                  <button
-                    type="button"
-                    className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50"
-                    onClick={() => {
-                      setManualModalOpen(true)
-                      setManualError(null)
-                      setShowAddMenu(false)
-                    }}
-                  >
-                    Manual IDs
-                    <p className="text-xs text-gray-500">Paste OpenAlex IDs (one per line)</p>
-                  </button>
-                  <button
-                    type="button"
-                    className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50"
-                    onClick={handleOpenZoteroPicker}
-                  >
-                    Zotero collections
-                    <p className="text-xs text-gray-500">Pick items from your Zotero library</p>
-                  </button>
-                  <button
-                    type="button"
-                    className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 rounded-b-2xl"
-                    onClick={() => {
-                      setShowAddMenu(false)
-                      setShowPdfModal(true)
-                    }}
-                  >
-                    Dump files
-                    <p className="text-xs text-gray-500">Upload one or more PDF files</p>
-                  </button>
-                </div>
-              )}
-            </div>
+            {renderAddMoreSourcesButton()}
             <Button
               className="rounded-full bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-60"
               disabled={!stats.selectedCount || matching}
               onClick={runMatching}
             >
               {matching ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-              Done selecting seed papers
+              Next
             </Button>
           </div>
-        </header>
+          </header>
+        )}
 
-        <div className="mt-6 flex-1 flex overflow-hidden">
+        {showInitialEmptyState ? (
+          <div className="flex-1 flex flex-col items-center justify-center text-center px-6 mt-10">
+            <div className="max-w-2xl space-y-4">
+              <div>
+                <p className="text-sm uppercase tracking-[0.3em] text-gray-500 mb-2">No papers staged yet</p>
+                <p className="text-2xl font-semibold text-gray-900 mb-3">
+                  Bring in papers to get started
+                </p>
+                <p className="text-base text-gray-600">
+                  Pick one of the options below to import papers from manual IDs, Zotero, or dump files.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 w-full">
+                <Button
+                  variant="outline"
+                  className="rounded-full flex-1"
+                  onClick={() => setManualModalOpen(true)}
+                >
+                  Manual IDs
+                </Button>
+                <Button
+                  variant="outline"
+                  className="rounded-full flex-1"
+                  onClick={() => setShowZoteroModal(true)}
+                >
+                  Zotero collections
+                </Button>
+                <Button
+                  variant="outline"
+                  className="rounded-full flex-1"
+                  onClick={() => setShowPdfModal(true)}
+                >
+                  Dump files
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-6 flex-1 flex overflow-hidden">
           {/* Filters */}
           <aside className="w-full max-w-xs border border-gray-200 rounded-3xl p-5 mr-6 bg-white shadow-md
  overflow-y-auto h-fit">
@@ -604,7 +799,9 @@ export default function UnifiedStagingPage() {
             <div className="flex items-center justify-between px-6 py-3 border-b border-gray-100">
               <div className="text-sm text-gray-500">
                 {stats.totalRows
-                  ? `Showing ${rangeStart}–${rangeEnd} of ${stats.totalRows} papers`
+                  ? `Showing ${
+                      rangeStart && rangeEnd ? `${rangeStart}–${rangeEnd}` : '0'
+                    } of ${totalFilteredRows} papers (${stats.totalRows} staged total)`
                   : 'No staged papers yet'}
               </div>
             <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -644,6 +841,39 @@ export default function UnifiedStagingPage() {
               </button>
             </div>
           </div>
+            {activeColumnFilterCount > 0 && (
+              <div className="border-b border-gray-100 px-6 py-3 bg-gray-50 flex flex-wrap items-center gap-2">
+                {FILTERABLE_COLUMNS.map(({ key, label }) => {
+                  const count = columnFilters[key]?.length || 0
+                  const hasCustom = Boolean(columnCustomFilters[key])
+                  if (!count && !hasCustom) return null
+                  const summary = hasCustom
+                    ? count
+                      ? `${count} + custom`
+                      : 'custom'
+                    : `${count} selected`
+                  return (
+                    <button
+                      key={`chip-${key}`}
+                      type="button"
+                      className="inline-flex items-center gap-2 rounded-full bg-white border border-gray-200 px-3 py-1 text-xs text-gray-700 shadow-sm hover:border-gray-400"
+                      onClick={() => clearColumnFilter(key)}
+                    >
+                      <span className="font-semibold text-gray-900">{label}:</span>
+                      <span>{summary}</span>
+                      <X className="w-3 h-3" />
+                    </button>
+                  )
+                })}
+                <button
+                  type="button"
+                  className="text-xs text-gray-600 underline decoration-dotted hover:text-gray-900"
+                  onClick={clearAllColumnFilters}
+                >
+                  Clear column filters
+                </button>
+              </div>
+            )}
 
             {fetchError && (
               <div className="px-6 py-3 bg-red-50 text-sm text-red-700 flex items-center gap-2">
@@ -715,11 +945,65 @@ export default function UnifiedStagingPage() {
                         />
                       </th>
                       <SortableHead label="Source" field="source" sort={sort} onToggle={toggleSort} />
-                      <SortableHead label="Title" field="title" sort={sort} onToggle={toggleSort} />
-                      <SortableHead label="Authors" field="authors" sort={sort} onToggle={toggleSort} />
-                      <SortableHead label="Year" field="year" sort={sort} onToggle={toggleSort} />
-                      <SortableHead label="Venue" field="venue" sort={sort} onToggle={toggleSort} />
-                      <th className="px-4 py-3">Identifiers</th>
+                      <SortableHead
+                        label="Title"
+                        field="title"
+                        sort={sort}
+                        onToggle={toggleSort}
+                        filterKey="title"
+                        filterOptions={columnOptions.title}
+                        selectedFilters={columnFilters.title}
+                        customFilter={columnCustomFilters.title}
+                        onApplyFilter={handleColumnFilterApply}
+                        onApplyCustomFilter={handleColumnCustomFilterApply}
+                      />
+                      <SortableHead
+                        label="Authors"
+                        field="authors"
+                        sort={sort}
+                        onToggle={toggleSort}
+                        filterKey="authors"
+                        filterOptions={columnOptions.authors}
+                        selectedFilters={columnFilters.authors}
+                        customFilter={columnCustomFilters.authors}
+                        onApplyFilter={handleColumnFilterApply}
+                        onApplyCustomFilter={handleColumnCustomFilterApply}
+                      />
+                      <SortableHead
+                        label="Year"
+                        field="year"
+                        sort={sort}
+                        onToggle={toggleSort}
+                        filterKey="year"
+                        filterOptions={columnOptions.year}
+                        selectedFilters={columnFilters.year}
+                        customFilter={columnCustomFilters.year}
+                        onApplyFilter={handleColumnFilterApply}
+                        onApplyCustomFilter={handleColumnCustomFilterApply}
+                      />
+                      <SortableHead
+                        label="Venue"
+                        field="venue"
+                        sort={sort}
+                        onToggle={toggleSort}
+                        filterKey="venue"
+                        filterOptions={columnOptions.venue}
+                        selectedFilters={columnFilters.venue}
+                        customFilter={columnCustomFilters.venue}
+                        onApplyFilter={handleColumnFilterApply}
+                        onApplyCustomFilter={handleColumnCustomFilterApply}
+                      />
+                      <SortableHead
+                        label="Identifiers"
+                        sort={sort}
+                        onToggle={null}
+                        filterKey="identifier"
+                        filterOptions={columnOptions.identifier}
+                        selectedFilters={columnFilters.identifier}
+                        customFilter={columnCustomFilters.identifier}
+                        onApplyFilter={handleColumnFilterApply}
+                        onApplyCustomFilter={handleColumnCustomFilterApply}
+                      />
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -814,7 +1098,8 @@ export default function UnifiedStagingPage() {
               </div>
             )}
           </section>
-        </div>
+          </div>
+        )}
       </div>
 
       <Dialog open={manualModalOpen} onOpenChange={setManualModalOpen}>
@@ -949,23 +1234,479 @@ export default function UnifiedStagingPage() {
   )
 }
 
-function SortableHead({ label, field, sort, onToggle }) {
-  const isActive = sort.field === field
+function SortableHead({
+  label,
+  field,
+  sort,
+  onToggle,
+  filterKey,
+  filterOptions,
+  selectedFilters,
+  customFilter,
+  onApplyFilter,
+  onApplyCustomFilter,
+}) {
+  const isSortable = Boolean(field && onToggle)
+  const isActive = isSortable && sort.field === field
+  const handleSort = () => {
+    if (!isSortable) return
+    onToggle(field)
+  }
   return (
-    <th
-      className="px-4 py-3 cursor-pointer select-none"
-      onClick={() => onToggle(field)}
-    >
-      <div className="inline-flex items-center gap-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-        {label}
-        {isActive && (
-          <span>{sort.direction === 'asc' ? '↑' : '↓'}</span>
-        )}
+    <th className="px-4 py-3 text-left select-none">
+      <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+        <button
+          type="button"
+          className={`inline-flex items-center gap-1 ${
+            isSortable ? 'text-gray-600 hover:text-gray-900' : 'cursor-default text-gray-400'
+          }`}
+          onClick={handleSort}
+          disabled={!isSortable}
+        >
+          <span>{label}</span>
+          {isActive && <span>{sort.direction === 'asc' ? '↑' : '↓'}</span>}
+        </button>
+        {filterKey ? (
+          <ColumnFilterButton
+            columnKey={filterKey}
+            label={label}
+            options={filterOptions}
+            selectedItems={selectedFilters}
+            customFilter={customFilter}
+            onApply={(values) => onApplyFilter?.(filterKey, values)}
+            onApplyCustomFilter={(payload) => onApplyCustomFilter?.(filterKey, payload)}
+            disableSelectAll={(filterOptions?.length || 0) > 100}
+          />
+        ) : null}
       </div>
     </th>
   )
 }
 
+
+function ColumnFilterButton({
+  columnKey,
+  label,
+  options = [],
+  selectedItems = [],
+  customFilter = null,
+  onApply,
+  onApplyCustomFilter,
+  disableSelectAll = false,
+}) {
+  const [open, setOpen] = useState(false)
+  const [searchValue, setSearchValue] = useState('')
+  const [draftSelections, setDraftSelections] = useState(selectedItems)
+  const [position, setPosition] = useState({ top: 0, left: 0 })
+  const [startIndex, setStartIndex] = useState(0)
+  const [mounted, setMounted] = useState(false)
+  const [customDialogOpen, setCustomDialogOpen] = useState(false)
+  const [customOperator, setCustomOperator] = useState('equals')
+  const [customValue, setCustomValue] = useState('')
+  const [customValueTo, setCustomValueTo] = useState('')
+  const [customError, setCustomError] = useState('')
+  const buttonRef = useRef(null)
+  const popoverRef = useRef(null)
+  const listRef = useRef(null)
+  const selectAllRef = useRef(null)
+  const columnType = getColumnType(columnKey)
+  const availableOperations = columnType === 'number' ? NUMBER_FILTER_OPERATIONS : TEXT_FILTER_OPERATIONS
+  const describeCustomFilter = (filter) => {
+    if (!filter) return ''
+    const operationLabel = FILTER_OPERATION_DESCRIPTIONS[filter.operator] || filter.operator
+    if (filter.operator === 'between' || filter.operator === 'not_between') {
+      const toValue = filter.valueTo ?? ''
+      return `${label} ${operationLabel.toLowerCase()} ${filter.value} and ${toValue}`
+    }
+    return `${label} ${operationLabel.toLowerCase()} ${filter.value}`
+  }
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+  useEffect(() => {
+    if (!open) return
+    setDraftSelections(selectedItems || [])
+    setSearchValue('')
+    setStartIndex(0)
+    if (listRef.current) listRef.current.scrollTop = 0
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect()
+      const width = 320
+      const margin = 12
+      const nextLeft = Math.min(Math.max(margin, rect.left), window.innerWidth - width - margin)
+      const nextTop = Math.min(window.innerHeight - margin, rect.bottom + 8)
+      setPosition({ top: nextTop, left: nextLeft })
+    }
+  }, [open, selectedItems])
+  useEffect(() => {
+    if (!open) return
+    const handlePointerDown = (event) => {
+      if (
+        buttonRef.current?.contains(event.target) ||
+        popoverRef.current?.contains(event.target)
+      ) {
+        return
+      }
+      setOpen(false)
+    }
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setOpen(false)
+    }
+    const handleReposition = () => {
+      if (!buttonRef.current) return
+      const rect = buttonRef.current.getBoundingClientRect()
+      const width = 320
+      const margin = 12
+      const nextLeft = Math.min(Math.max(margin, rect.left), window.innerWidth - width - margin)
+      const nextTop = Math.min(window.innerHeight - margin, rect.bottom + 8)
+      setPosition({ top: nextTop, left: nextLeft })
+    }
+    document.addEventListener('pointerdown', handlePointerDown)
+    document.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('resize', handleReposition)
+    window.addEventListener('scroll', handleReposition, true)
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown)
+      document.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('resize', handleReposition)
+      window.removeEventListener('scroll', handleReposition, true)
+    }
+  }, [open])
+  useEffect(() => {
+    if (!customDialogOpen) return
+    const defaultOperator = customFilter?.operator || availableOperations[0]?.value || 'equals'
+    setCustomOperator(defaultOperator)
+    setCustomValue(customFilter?.value ?? '')
+    setCustomValueTo(customFilter?.valueTo ?? '')
+    setCustomError('')
+  }, [customDialogOpen, customFilter, availableOperations])
+
+  const filteredOptions = useMemo(() => {
+    if (!searchValue) return options || []
+    const lower = searchValue.toLowerCase()
+    return (options || []).filter((opt) => (opt.label || '').toLowerCase().includes(lower))
+  }, [options, searchValue])
+  const selectedValueSet = useMemo(
+    () => new Set((draftSelections || []).map((item) => item.value)),
+    [draftSelections]
+  )
+  const totalFiltered = filteredOptions.length
+  const visibleCount = 12
+  const sliceStart = Math.min(startIndex, Math.max(0, totalFiltered - visibleCount))
+  const sliceEnd = Math.min(totalFiltered, sliceStart + visibleCount)
+  const visibleOptions = filteredOptions.slice(sliceStart, sliceEnd)
+  const paddingTop = sliceStart * 36
+  const paddingBottom = Math.max(0, (totalFiltered - sliceEnd) * 36)
+  const selectionCount = draftSelections?.length || 0
+  const badgeCount = selectionCount + (customFilter ? 1 : 0)
+  const allFilteredSelected = totalFiltered > 0 && filteredOptions.every((opt) => selectedValueSet.has(opt.value))
+  const someFilteredSelected = filteredOptions.some((opt) => selectedValueSet.has(opt.value))
+  const isBetweenOperation = customOperator === 'between' || customOperator === 'not_between'
+  useEffect(() => {
+    if (!selectAllRef.current) return
+    selectAllRef.current.indeterminate = !disableSelectAll && someFilteredSelected && !allFilteredSelected
+  }, [disableSelectAll, someFilteredSelected, allFilteredSelected])
+  const toggleOption = (option) => {
+    setDraftSelections((prev) => {
+      const exists = (prev || []).some((item) => item.value === option.value)
+      if (exists) {
+        return prev.filter((item) => item.value !== option.value)
+      }
+      return [...prev, { value: option.value, label: option.label, meta: option.meta || null }]
+    })
+  }
+  const handleSelectAll = (event) => {
+    if (disableSelectAll) return
+    const checked = event.target.checked
+    setDraftSelections((prev) => {
+      const map = new Map((prev || []).map((item) => [item.value, item]))
+      if (checked) {
+        filteredOptions.forEach((option) => {
+          if (!map.has(option.value)) {
+            map.set(option.value, {
+              value: option.value,
+              label: option.label,
+              meta: option.meta || null,
+            })
+          }
+        })
+      } else {
+        filteredOptions.forEach((option) => map.delete(option.value))
+      }
+      return Array.from(map.values())
+    })
+  }
+  const handleApplySelections = () => {
+    onApply?.(draftSelections)
+    setOpen(false)
+  }
+  const handleClearSelections = () => {
+    onApply?.([])
+    setOpen(false)
+  }
+  const handleClearCustom = () => {
+    onApplyCustomFilter?.(null)
+  }
+  const handleCustomSave = () => {
+    if (!customOperator) {
+      setCustomError('Select an operation')
+      return
+    }
+    const trimmedValue = `${customValue}`.trim()
+    if (!trimmedValue) {
+      setCustomError('Enter a value')
+      return
+    }
+    if (columnType === 'number' && Number.isNaN(Number(trimmedValue))) {
+      setCustomError('Enter a valid number')
+      return
+    }
+    let trimmedValueTo = ''
+    if (isBetweenOperation) {
+      trimmedValueTo = `${customValueTo}`.trim()
+      if (!trimmedValueTo) {
+        setCustomError('Enter both values')
+        return
+      }
+      if (columnType === 'number' && Number.isNaN(Number(trimmedValueTo))) {
+        setCustomError('Enter a valid range')
+        return
+      }
+    }
+    onApplyCustomFilter?.({
+      operator: customOperator,
+      value: trimmedValue,
+      valueTo: isBetweenOperation ? trimmedValueTo : null,
+    })
+    setCustomDialogOpen(false)
+  }
+  const listContent =
+    visibleOptions.length === 0 ? (
+      <div className="text-center text-sm text-gray-500 py-4">No values match this search.</div>
+    ) : (
+      <div style={{ paddingTop, paddingBottom }}>
+        {visibleOptions.map((option) => (
+          <label
+            key={option.value}
+            className="flex items-center justify-between gap-2 px-2 py-1.5 text-sm text-gray-700"
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <input
+                type="checkbox"
+                className="rounded border-gray-300 text-gray-900 focus:ring-gray-900"
+                checked={selectedValueSet.has(option.value)}
+                onChange={() => toggleOption(option)}
+              />
+              <span className="truncate">{option.label}</span>
+              {option.meta?.type && (
+                <span className="text-[10px] uppercase text-gray-400 rounded-full border border-gray-200 px-2 py-0.5">
+                  {option.meta.type}
+                </span>
+              )}
+            </div>
+            <span className="text-xs text-gray-400">{option.count?.toLocaleString?.() || option.count || 0}</span>
+          </label>
+        ))}
+      </div>
+    )
+  if (!mounted) {
+    return (
+      <button
+        type="button"
+        ref={buttonRef}
+        aria-label={`Filter ${label}`}
+        className="inline-flex items-center justify-center rounded-full border border-gray-200 p-1 text-gray-500 hover:bg-gray-100"
+        onClick={() => setOpen((prev) => !prev)}
+      >
+        <Filter className="w-3.5 h-3.5" />
+      </button>
+    )
+  }
+  return (
+    <>
+      <div className="relative">
+        <button
+          type="button"
+          ref={buttonRef}
+          aria-label={`Filter ${label}`}
+          className={`relative inline-flex items-center justify-center rounded-full border p-1 transition ${
+            badgeCount ? 'bg-gray-900 text-white border-gray-900' : 'border-gray-200 text-gray-500 hover:bg-gray-100'
+          }`}
+          onClick={() => setOpen((prev) => !prev)}
+        >
+          <Filter className="w-3.5 h-3.5" />
+          {badgeCount > 0 && (
+            <span className="absolute -top-1 -right-1 rounded-full bg-white text-gray-900 text-[10px] font-semibold px-1">
+              {badgeCount}
+            </span>
+          )}
+        </button>
+        {open &&
+          createPortal(
+            <div
+              ref={popoverRef}
+              className="fixed z-50 w-80 rounded-3xl border border-gray-200 bg-white shadow-2xl p-4 space-y-3"
+              style={{ top: position.top, left: position.left }}
+            >
+              <div className="flex items-center justify-between text-xs text-gray-500">
+                <span className="font-semibold text-gray-900">{label} filters</span>
+                <span>{selectionCount} selected</span>
+              </div>
+              <input
+                type="text"
+                className="w-full rounded-full border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                placeholder={`Search ${label.toLowerCase()}`}
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+              />
+              <div className="flex items-center justify-between text-xs text-gray-600">
+                <label className="inline-flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    ref={selectAllRef}
+                    className="rounded border-gray-300 text-gray-900 focus:ring-gray-900"
+                    disabled={disableSelectAll || filteredOptions.length === 0}
+                    checked={!disableSelectAll && filteredOptions.length > 0 && allFilteredSelected}
+                    onChange={handleSelectAll}
+                  />
+                  <span>Select all</span>
+                </label>
+                {disableSelectAll && (
+                  <span className="text-[11px] text-gray-400">Disabled for large lists</span>
+                )}
+              </div>
+              <div
+                ref={listRef}
+                className="max-h-60 overflow-y-auto border border-gray-100 rounded-2xl"
+                onScroll={(event) => {
+                  const newIndex = Math.floor(event.currentTarget.scrollTop / 36)
+                  if (newIndex !== startIndex) setStartIndex(newIndex)
+                }}
+              >
+                {listContent}
+              </div>
+              {customFilter ? (
+                <div className="rounded-2xl bg-gray-50 px-3 py-2 text-[11px] text-gray-600 flex items-center justify-between gap-3">
+                  <span className="truncate">{describeCustomFilter(customFilter)}</span>
+                  <button
+                    type="button"
+                    className="text-gray-500 hover:text-gray-900 font-semibold"
+                    onClick={handleClearCustom}
+                  >
+                    Clear
+                  </button>
+                </div>
+              ) : null}
+              <button
+                type="button"
+                className="text-xs text-gray-600 underline decoration-dotted hover:text-gray-900"
+                onClick={() => setCustomDialogOpen(true)}
+              >
+                Custom filter…
+              </button>
+              <div className="flex items-center justify-between gap-3 pt-2 border-t border-gray-100">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="rounded-full px-4 text-xs"
+                  onClick={handleClearSelections}
+                >
+                  Clear
+                </Button>
+                <Button
+                  type="button"
+                  className="rounded-full px-4 text-xs bg-gray-900 text-white"
+                  onClick={handleApplySelections}
+                >
+                  Apply
+                </Button>
+              </div>
+            </div>,
+            document.body
+          )}
+      </div>
+      <Dialog open={customDialogOpen} onOpenChange={setCustomDialogOpen}>
+        <DialogContent className="sm:max-w-md bg-white p-6 rounded-3xl border-0 shadow-2xl">
+          <DialogHeader className="pb-2">
+            <DialogTitle>Custom filter for {label}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-sm text-gray-600">
+            <div className="text-xs uppercase tracking-wider text-gray-500">
+              Show items where: <span className="text-gray-900 normal-case">{label.toLowerCase()}</span>
+            </div>
+            <div>
+              <label className="text-xs uppercase tracking-wider text-gray-500 mb-1 block">Operation</label>
+              <Select
+                value={customOperator}
+                onValueChange={(value) => {
+                  setCustomOperator(value)
+                  if (value !== 'between' && value !== 'not_between') {
+                    setCustomValueTo('')
+                  }
+                }}
+              >
+                <SelectTrigger className="w-full rounded-full border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900">
+                  <SelectValue placeholder="Choose operation" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border border-gray-200 bg-white shadow-lg">
+                  {availableOperations.map((operation) => (
+                    <SelectItem key={operation.value} value={operation.value}>
+                      {operation.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className={isBetweenOperation ? 'grid grid-cols-1 sm:grid-cols-2 gap-3' : ''}>
+              <div>
+                <label className="text-xs uppercase tracking-wider text-gray-500 mb-1 block">
+                  {columnType === 'number' ? 'Value' : 'Text'}
+                </label>
+                <Input
+                  type={columnType === 'number' ? 'number' : 'text'}
+                  value={customValue}
+                  onChange={(e) => setCustomValue(e.target.value)}
+                  placeholder={columnType === 'number' ? 'e.g. 2020' : 'e.g. Nature'}
+                  className="rounded-full"
+                />
+              </div>
+              {isBetweenOperation ? (
+                <div>
+                  <label className="text-xs uppercase tracking-wider text-gray-500 mb-1 block">And</label>
+                  <Input
+                    type={columnType === 'number' ? 'number' : 'text'}
+                    value={customValueTo}
+                    onChange={(e) => setCustomValueTo(e.target.value)}
+                    placeholder={columnType === 'number' ? 'e.g. 2024' : 'e.g. Sensors'}
+                    className="rounded-full"
+                  />
+                </div>
+              ) : null}
+            </div>
+            {customError && <p className="text-xs text-red-600">{customError}</p>}
+            <div className="flex justify-end gap-3 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="rounded-full px-4 text-xs"
+                onClick={() => setCustomDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                className="rounded-full px-4 text-xs bg-gray-900 text-white"
+                onClick={handleCustomSave}
+              >
+                OK
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  )
+}
 function normalizeDoi(value) {
   if (!value) return null
   const trimmed = value.trim()
@@ -1109,13 +1850,15 @@ function PdfUploadModal({
         </DialogHeader>
         <div className="px-6 pb-6 space-y-4">
           <div className="border-2 border-dashed border-gray-300 rounded-2xl p-6 text-center space-y-3">
-            <p className="text-sm text-gray-600">Drop PDF files here or browse</p>
+            <p className="text-sm text-gray-600">
+              Drop document files (PDF, DOCX, HTML, XML, LaTeX) here or browse
+            </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <label className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-gray-300 cursor-pointer hover:bg-gray-50">
                 <input
                   type="file"
                   multiple
-                  accept="application/pdf"
+                  accept=".pdf,.docx,.html,.htm,.xml,.tex"
                   onChange={onFileChange}
                   className="hidden"
                 />
@@ -1125,7 +1868,7 @@ function PdfUploadModal({
                 <input
                   type="file"
                   multiple
-                  accept="application/pdf"
+                  accept=".pdf,.docx,.html,.htm,.xml,.tex"
                   webkitdirectory=""
                   directory=""
                   onChange={onFileChange}
@@ -1134,7 +1877,9 @@ function PdfUploadModal({
                 <span className="text-sm font-medium text-gray-700">Select folder</span>
               </label>
             </div>
-            <p className="text-xs text-gray-400">Folder selection is available on Chromium-based browsers.</p>
+            <p className="text-xs text-gray-400">
+              PDFs still require GROBID; other formats extract without it. Folder selection is available on Chromium-based browsers.
+            </p>
           </div>
           {files.length > 0 && (
             <div className="max-h-48 overflow-y-auto border border-gray-100 rounded-2xl">

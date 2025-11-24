@@ -21,16 +21,16 @@ router = APIRouter()
 @router.post("/{session_id}/pdfs/upload", response_model=PDFUploadResponse)
 async def upload_pdfs(
     session_id: str = Path(..., description="Seed session ID"),
-    files: List[UploadFile] = File(..., description="PDF files to upload (max 20 files, 10MB each)"),
+    files: List[UploadFile] = File(..., description="Document files to upload (PDF, DOCX, HTML, XML, LaTeX; max 20 files, 10MB each)"),
     pdf_service = Depends(get_pdf_seed_service)
 ):
     """
-    Upload PDF files for seed extraction.
+    Upload document files for seed extraction.
     
     **Requirements:**
-    - GROBID service must be running on port 8070
-    - Maximum 20 PDF files per upload
-    - Maximum 10MB per PDF file
+    - GROBID service must be running on port 8070 when uploading PDFs
+    - Maximum 20 files per upload
+    - Maximum 10MB per file
     
     **Returns:**
     - upload_id to use for subsequent operations
@@ -60,12 +60,12 @@ async def extract_pdf_metadata(
     pdf_service = Depends(get_pdf_seed_service)
 ):
     """
-    Extract metadata from uploaded PDFs using GROBID.
+    Extract metadata from uploaded documents (PDF, DOCX, HTML, XML, LaTeX).
     
-    This process may take a few seconds per PDF.
+    PDF files still rely on GROBID; other formats are processed directly.
     
     **Returns:**
-    - Extracted metadata for each PDF (title, authors, year, DOI, venue)
+    - Extracted metadata for each file (title, authors, year, DOI, venue, abstract)
     - Success/failure status for each file
     """
     return pdf_service.extract_metadata(upload_id)
@@ -130,7 +130,7 @@ async def stage_reviewed_pdfs(
         raise ValueError("No reviewed metadata available. Review metadata before staging.")
     staging_rows = [
         StagingPaperCreate(
-            source="PDF Uploads",
+            source="Dump Files",
             source_type="pdf",
             title=md.title,
             authors=md.authors,
@@ -138,7 +138,7 @@ async def stage_reviewed_pdfs(
             venue=md.venue,
             doi=md.doi,
             url=None,
-            abstract=None,
+            abstract=md.abstract,
             source_id=md.doi or md.filename,
             is_selected=False,
         )
@@ -185,7 +185,7 @@ async def confirm_pdf_seeds(
             venue=s["venue"],
             confidence=s["confidence"],
             match_method=s["match_method"],
-            source="PDF Uploads",
+            source="Dump Files",
             source_type="pdf",
             source_id=s.get("source_id") or s["paper_id"],
         )
@@ -335,7 +335,7 @@ async def confirm_pdf_seeds(
     
     staging_rows = [
         StagingPaperCreate(
-            source=seed.source or "PDF Uploads",
+            source=seed.source or "Dump Files",
             source_type=seed.source_type or "pdf",
             title=seed.title,
             authors=seed.authors,

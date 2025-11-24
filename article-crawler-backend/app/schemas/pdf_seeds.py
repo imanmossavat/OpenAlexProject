@@ -8,6 +8,7 @@ class PDFMetadata(BaseModel):
     filename: str
     title: Optional[str] = None
     authors: Optional[str] = None
+    abstract: Optional[str] = None
     year: Optional[int] = None
     doi: Optional[str] = None
     venue: Optional[str] = None

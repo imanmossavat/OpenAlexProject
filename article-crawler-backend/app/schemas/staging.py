@@ -1,4 +1,4 @@
-from typing import List, Literal, Optional
+from typing import Dict, List, Literal, Optional, get_args
 
 from pydantic import BaseModel, Field
 
@@ -6,6 +6,46 @@ from app.schemas.seeds import MatchedSeed
 
 
 SourceType = Literal["zotero", "pdf", "manual"]
+TextFilterOperator = Literal[
+    "equals",
+    "not_equals",
+    "begins_with",
+    "not_begins_with",
+    "ends_with",
+    "not_ends_with",
+    "contains",
+    "not_contains",
+]
+NumberFilterOperator = Literal[
+    "equals",
+    "not_equals",
+    "greater_than",
+    "greater_than_or_equal",
+    "less_than",
+    "less_than_or_equal",
+    "between",
+    "not_between",
+]
+FilterOperator = Literal[
+    "equals",
+    "not_equals",
+    "begins_with",
+    "not_begins_with",
+    "ends_with",
+    "not_ends_with",
+    "contains",
+    "not_contains",
+    "greater_than",
+    "greater_than_or_equal",
+    "less_than",
+    "less_than_or_equal",
+    "between",
+    "not_between",
+]
+TEXT_FILTER_COLUMNS = {"title", "authors", "venue", "identifier"}
+NUMBER_FILTER_COLUMNS = {"year"}
+TEXT_FILTER_OPERATOR_VALUES = set(get_args(TextFilterOperator))
+NUMBER_FILTER_OPERATOR_VALUES = set(get_args(NumberFilterOperator))
 
 
 class StagingPaper(BaseModel):
@@ -53,6 +93,24 @@ class StagingPaperUpdate(BaseModel):
     abstract: Optional[str] = None
 
 
+class ColumnFilterOption(BaseModel):
+    """Aggregated option for column-level filtering."""
+
+    value: str
+    label: str
+    count: int
+    meta: Optional[Dict[str, str]] = None
+
+
+class ColumnCustomFilter(BaseModel):
+    """Advanced text/number filter applied to a specific column."""
+
+    column: Literal["title", "authors", "venue", "identifier", "year"]
+    operator: FilterOperator
+    value: str
+    value_to: Optional[str] = None
+
+
 class StagingListResponse(BaseModel):
     """Paginated list response for staged papers."""
 
@@ -64,6 +122,7 @@ class StagingListResponse(BaseModel):
     page: int
     page_size: int
     total_pages: int
+    column_options: Dict[str, List[ColumnFilterOption]] = Field(default_factory=dict)
 
 
 class SelectionUpdateRequest(BaseModel):

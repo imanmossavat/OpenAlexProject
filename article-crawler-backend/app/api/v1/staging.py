@@ -1,6 +1,7 @@
 from typing import Dict, List, Optional, Tuple
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from pydantic import ValidationError
 
 from ArticleCrawler.api.api_factory import create_api_provider
 from ArticleCrawler.pdf_processing.api_matcher import APIMetadataMatcher
@@ -16,6 +17,7 @@ from app.schemas.seeds import MatchedSeed
 from app.schemas.staging import (
     BulkRemoveRequest,
     BulkRemoveResponse,
+    ColumnCustomFilter,
     ConfirmMatchesRequest,
     MatchSelectedRequest,
     SelectionUpdateRequest,
@@ -26,9 +28,43 @@ from app.schemas.staging import (
     StagingPaper,
     StagingPaperCreate,
     StagingPaperUpdate,
+    NUMBER_FILTER_COLUMNS,
+    NUMBER_FILTER_OPERATOR_VALUES,
+    TEXT_FILTER_COLUMNS,
+    TEXT_FILTER_OPERATOR_VALUES,
 )
 
 router = APIRouter()
+
+
+def _parse_column_filters(raw_filters: Optional[List[str]]) -> List[ColumnCustomFilter]:
+    parsed: List[ColumnCustomFilter] = []
+    if not raw_filters:
+        return parsed
+
+    for raw in raw_filters:
+        if not raw:
+            continue
+        parts = [part.strip() for part in raw.split("::")]
+        if len(parts) < 3:
+            continue
+        column, operator, value = parts[0], parts[1], parts[2]
+        value_to = parts[3] if len(parts) > 3 else None
+        value_to = value_to or None
+        try:
+            candidate = ColumnCustomFilter(column=column, operator=operator, value=value, value_to=value_to)
+        except ValidationError:
+            continue
+        if candidate.column in NUMBER_FILTER_COLUMNS:
+            if candidate.operator not in NUMBER_FILTER_OPERATOR_VALUES:
+                continue
+            if candidate.operator in {"between", "not_between"} and not candidate.value_to:
+                continue
+        else:
+            if candidate.operator not in TEXT_FILTER_OPERATOR_VALUES:
+                continue
+        parsed.append(candidate)
+    return parsed
 
 
 @router.get(
@@ -50,12 +86,38 @@ async def list_staged_papers(
         None,
         description="Filter by DOI presence: 'with' for rows with DOI, 'without' for rows without DOI",
     ),
+    title_values: Optional[List[str]] = Query(None, description="Exact match filters for the title column"),
+    author_values: Optional[List[str]] = Query(None, description="Exact match filters for the authors column"),
+    venue_values: Optional[List[str]] = Query(None, description="Exact match filters for the venue column"),
+    year_values: Optional[List[int]] = Query(None, description="Exact match filters for publication year"),
+    identifier_values: Optional[List[str]] = Query(
+        None,
+        description="Identifier filters using 'field::value' format (e.g., 'doi::10.1234/foo')",
+    ),
+    column_filters: Optional[List[str]] = Query(
+        None,
+        description="Advanced column filters in the form column::operator::value(::value_to)",
+    ),
     selected_only: bool = Query(False, description="Return only selected rows"),
     sort_by: Optional[str] = Query(None, description="Sort column"),
     sort_dir: str = Query("asc", description="Sort direction asc|desc"),
     service=Depends(get_staging_service),
 ):
     """Return paginated staged papers for a session."""
+    identifier_filters: List[Dict[str, str]] = []
+    for raw in identifier_values or []:
+        if not raw or "::" not in raw:
+            continue
+        field, value = raw.split("::", 1)
+        clean_field = (field or "").strip().lower()
+        clean_value = (value or "").strip()
+        if not clean_field or not clean_value:
+            continue
+        if clean_field not in {"doi", "url"}:
+            continue
+        identifier_filters.append({"field": clean_field, "value": clean_value})
+    custom_filters = _parse_column_filters(column_filters)
+
     return service.list_rows(
         session_id,
         page=page,
@@ -68,6 +130,12 @@ async def list_staged_papers(
         author_search=author,
         keyword_search=keyword,
         doi_presence=doi_presence,
+        title_values=title_values,
+        author_values=author_values,
+        venue_values=venue_values,
+        year_values=year_values,
+        identifier_filters=identifier_filters,
+        custom_filters=custom_filters,
         selected_only=selected_only,
         sort_by=sort_by,
         sort_dir=sort_dir,

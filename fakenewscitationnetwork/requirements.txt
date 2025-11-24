@@ -1,6 +1,7 @@
 annotated-types==0.7.0
 anyio==4.11.0
 
+beautifulsoup4==4.12.3
 bibtexparser==1.4.3
 black==25.9.0
 certifi==2025.10.5
@@ -57,8 +58,9 @@ pyparsing==3.2.5
 pytest==8.4.2
 pytest-cov==7.0.0
 python-dateutil==2.9.0.post0
+python-docx==1.1.2
 python-dotenv==1.1.1
-pytokens==0.2.0
+python-magic-bin==0.4.14pytokens==0.2.0
 pytz==2025.2
 PyYAML==6.0.3
 pyzotero==1.7.3
@@ -71,6 +73,7 @@ s2sphere==0.2.5
 safetensors==0.6.2
 scikit-learn==1.7.2
 scipy==1.15.3
+pylatexenc==2.10
 sentence-transformers==5.1.1
 sgmllib3k==1.0.0
 shapely==2.1.2

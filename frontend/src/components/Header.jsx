@@ -5,7 +5,7 @@ import fontysLogo from '@/assets/fontys.png'
 import ixdLogo from '@/assets/ixd.svg'
 import logo from '@/assets/logo.png'
 
-export default function Header({ onOpenHelp }) {
+export default function Header({ onOpenHelp, onOpenWorkflow }) {
   const navigate = useNavigate()
   const handleOpenHelp = () => {
     if (onOpenHelp) {
@@ -13,6 +13,13 @@ export default function Header({ onOpenHelp }) {
       return
     }
     navigate('/help')
+  }
+  const handleWorkflow = () => {
+    if (onOpenWorkflow) {
+      onOpenWorkflow()
+      return
+    }
+    navigate('/workflow')
   }
   return (
     <header className="w-full sticky top-0 bg-white border-b border-gray-200 z-40">
@@ -35,7 +42,7 @@ export default function Header({ onOpenHelp }) {
           <Button variant="ghost" onClick={() => navigate('/settings/integrations')} className="rounded-full">
             <SettingsIcon className="w-4 h-4 mr-2" /> Settings
           </Button>
-          <Button variant="outline" onClick={() => navigate('/workflow')} className="rounded-full">
+          <Button variant="outline" onClick={handleWorkflow} className="rounded-full">
             <Workflow className="w-4 h-4 mr-2" /> View workflow
           </Button>
           <Button className="rounded-full bg-purple-600 hover:bg-purple-700" onClick={handleOpenHelp}>

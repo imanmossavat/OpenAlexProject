@@ -5,9 +5,9 @@ from pathlib import Path
 
 from fastapi import UploadFile
 
-from ArticleCrawler.pdf_processing.pdf_processor import PDFProcessor
 from ArticleCrawler.pdf_processing.docker_manager import DockerManager
 from ArticleCrawler.pdf_processing.api_matcher import APIMetadataMatcher
+from ArticleCrawler.metadata_extraction import MetadataDispatcher, PaperMetadata as ExtractedMetadata
 from ArticleCrawler.api.api_factory import create_api_provider
 
 from app.schemas.pdf_seeds import (
@@ -34,7 +34,8 @@ from app.models.pdf_upload_session import PDFUploadSession
 class PDFSeedService:
 
     
-    MAX_PDF_SIZE_MB = 30
+    MAX_FILE_SIZE_MB = 30
+    SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".html", ".htm", ".xml", ".tex"}
     
     def __init__(
         self,
@@ -47,7 +48,7 @@ class PDFSeedService:
         self._storage = file_storage or LocalTempFileStorage()
         
         self.docker_manager = DockerManager(logger=logger)
-        self.pdf_processor = PDFProcessor(logger=logger)
+        self.metadata_dispatcher = MetadataDispatcher(logger=logger)
     
     def check_grobid_availability(self) -> tuple[bool, Optional[str]]:
 
@@ -62,9 +63,10 @@ class PDFSeedService:
     
     def upload_pdfs(self, files: List[UploadFile]) -> PDFUploadResponse:
 
-        is_available, error_msg = self.check_grobid_availability()
-        if not is_available:
-            raise CrawlerException(error_msg)
+        if self._requires_grobid(files):
+            is_available, error_msg = self.check_grobid_availability()
+            if not is_available:
+                raise CrawlerException(error_msg)
         
         upload_id = str(uuid.uuid4())
         temp_dir = self._storage.create_temp_dir(prefix=f"pdf_upload_{upload_id}_")
@@ -77,8 +79,12 @@ class PDFSeedService:
             file_size_mb = file.file.tell() / (1024 * 1024)
             file.file.seek(0)
             
-            if file_size_mb > self.MAX_PDF_SIZE_MB:
+            if file_size_mb > self.MAX_FILE_SIZE_MB:
                 self.logger.warning(f"File {file.filename} exceeds size limit ({file_size_mb:.1f}MB)")
+                continue
+
+            if not self._is_supported_file(file.filename):
+                self.logger.warning(f"Unsupported file type for {file.filename}; skipping.")
                 continue
             
             safe_name = self._sanitize_filename(file.filename, temp_dir)
@@ -103,36 +109,14 @@ class PDFSeedService:
         
         self.logger.info(f"Extracting metadata from {len(session.pdf_paths)} PDFs")
         
-        processing_results = self.pdf_processor.process_pdfs(session.pdf_paths)
-        
         extraction_results = []
         successful_count = 0
         
-        for result in processing_results:
-            filename = result.pdf_path.name
-            
-            if result.success and result.metadata:
-                metadata = PDFMetadata(
-                    filename=filename,
-                    title=result.metadata.title,
-                    authors=result.metadata.authors,
-                    year=result.metadata.year,
-                    doi=result.metadata.doi,
-                    venue=result.metadata.venue
-                )
-                
-                extraction_results.append(PDFExtractionResult(
-                    filename=filename,
-                    success=True,
-                    metadata=metadata
-                ))
+        for file_path in session.pdf_paths:
+            result = self._extract_file_metadata(file_path)
+            extraction_results.append(result)
+            if result.success:
                 successful_count += 1
-            else:
-                extraction_results.append(PDFExtractionResult(
-                    filename=filename,
-                    success=False,
-                    error=result.error_message or "Failed to extract metadata"
-                ))
         
         session.extraction_results = extraction_results
         self._store.save(session)
@@ -144,6 +128,42 @@ class PDFSeedService:
             results=extraction_results,
             successful_count=successful_count,
             failed_count=len(extraction_results) - successful_count
+        )
+    
+    def _extract_file_metadata(self, file_path: Path) -> PDFExtractionResult:
+        filename = file_path.name
+        
+        if self._is_pdf(filename):
+            is_available, error_msg = self.check_grobid_availability()
+            if not is_available:
+                return PDFExtractionResult(
+                    filename=filename,
+                    success=False,
+                    error=error_msg
+                )
+        
+        try:
+            metadata = self.metadata_dispatcher.extract(str(file_path))
+        except Exception as exc:
+            self.logger.error(f"Failed to extract metadata from {filename}: {exc}")
+            return PDFExtractionResult(
+                filename=filename,
+                success=False,
+                error=str(exc)
+            )
+        
+        pdf_metadata = self._to_schema_metadata(filename, metadata)
+        if not self._has_metadata(pdf_metadata):
+            return PDFExtractionResult(
+                filename=filename,
+                success=False,
+                error="No metadata extracted"
+            )
+        
+        return PDFExtractionResult(
+            filename=filename,
+            success=True,
+            metadata=pdf_metadata
         )
     
     def review_metadata(
@@ -431,3 +451,62 @@ class PDFSeedService:
             candidate = f"{stem}_{counter}{suffix}"
             counter += 1
         return candidate
+
+    def _requires_grobid(self, files: List[UploadFile]) -> bool:
+        return any(self._is_pdf(f.filename) for f in files if f.filename)
+
+    def _is_supported_file(self, filename: Optional[str]) -> bool:
+        if not filename:
+            return False
+        return Path(filename).suffix.lower() in self.SUPPORTED_EXTENSIONS
+
+    def _is_pdf(self, filename: Optional[str]) -> bool:
+        if not filename:
+            return False
+        return Path(filename).suffix.lower() == ".pdf"
+
+    def _to_schema_metadata(
+        self,
+        filename: str,
+        metadata: Optional[ExtractedMetadata],
+    ) -> PDFMetadata:
+        if metadata is None:
+            return PDFMetadata(filename=filename)
+        
+        authors_value = metadata.authors
+        if isinstance(authors_value, list):
+            authors_value = ", ".join(a.strip() for a in authors_value if a and a.strip())
+        
+        year_value = self._convert_year(metadata.year)
+        
+        return PDFMetadata(
+            filename=filename,
+            title=metadata.title,
+            authors=authors_value or None,
+            abstract=getattr(metadata, "abstract", None),
+            year=year_value,
+            doi=metadata.doi,
+            venue=metadata.venue
+        )
+
+    def _convert_year(self, year_value: Optional[str]) -> Optional[int]:
+        if not year_value:
+            return None
+        year_str = str(year_value)
+        for token in year_str.split():
+            if token.isdigit() and len(token) == 4:
+                return int(token)
+        digits = "".join(ch for ch in year_str if ch.isdigit())
+        if len(digits) >= 4:
+            return int(digits[:4])
+        return None
+
+    def _has_metadata(self, metadata: PDFMetadata) -> bool:
+        return any([
+            metadata.title,
+            metadata.authors,
+            metadata.abstract,
+            metadata.year,
+            metadata.doi,
+            metadata.venue
+        ])

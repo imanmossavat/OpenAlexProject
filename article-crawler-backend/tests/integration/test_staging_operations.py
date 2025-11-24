@@ -177,6 +177,30 @@ class TestStagingOperations:
             params={"sort_by": "year", "sort_dir": "desc"}
         )
         assert response.status_code == 200
+        response = app_client.get(
+            f"/api/v1/seeds/session/{test_session_id}/staging",
+            params=[("title_values", "Attention Is All You Need")],
+        )
+        assert response.status_code == 200
+        assert "column_options" in response.json()
+        response = app_client.get(
+            f"/api/v1/seeds/session/{test_session_id}/staging",
+            params=[("year_values", "2017")],
+        )
+        assert response.status_code == 200
+        response = app_client.get(
+            f"/api/v1/seeds/session/{test_session_id}/staging",
+            params=[("identifier_values", "doi::10.1007/s00134-020-06294-1")],
+        )
+        assert response.status_code == 200
+        response = app_client.get(
+            f"/api/v1/seeds/session/{test_session_id}/staging",
+            params=[
+                ("column_filters", "title::contains::transformer"),
+                ("column_filters", "year::greater_than_or_equal::2015"),
+            ],
+        )
+        assert response.status_code == 200
     
     def test_staging_inline_editing(
         self,

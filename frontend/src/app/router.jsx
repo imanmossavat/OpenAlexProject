@@ -13,6 +13,7 @@ import ReviewCreatePage from '@/pages/create/review/ReviewCreatePage'
 import IntegrationsSettingsPage from '@/pages/settings/IntegrationsSettingsPage'
 import GrobidSetupPage from '@/pages/help/GrobidSetupPage'
 import AboutPage from '@/pages/about/AboutPage'
+import WorkflowPage from '@/pages/workflow/WorkflowPage'
 
 export const router = createBrowserRouter([
   {
@@ -32,6 +33,7 @@ export const router = createBrowserRouter([
       { path: 'settings/integrations', element: <IntegrationsSettingsPage /> },
       { path: 'help/grobid', element: <GrobidSetupPage /> },
       { path: 'about', element: <AboutPage /> },
+      { path: 'workflow', element: <WorkflowPage /> },
     ],
   },
 ])

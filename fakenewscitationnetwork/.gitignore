@@ -10,7 +10,7 @@
 *.pyc
 FakeNewsCitationNetwork/data
 Experiment/data
-experiments/
+fakenewscitationnetwork/experiments/
 libraries/
 venv/
 *.egg-info/
