@@ -5,6 +5,26 @@ import pandas as pd
 import logging
 
 
+def _normalize_doi(value):
+    """Normalize DOI strings for consistent comparisons."""
+    if value is None or (isinstance(value, float) and pd.isna(value)):
+        return None
+    text = str(value).strip().lower()
+    prefixes = (
+        "https://doi.org/",
+        "http://doi.org/",
+        "https://dx.doi.org/",
+        "http://dx.doi.org/",
+        "doi:",
+    )
+    for prefix in prefixes:
+        if text.startswith(prefix):
+            text = text[len(prefix):]
+            break
+    text = text.strip()
+    return text or None
+
+
 class RetractionWatchManager:
 
     def __init__(self, retraction_options,storage_and_logging_options= None, logger=None):
@@ -153,11 +173,14 @@ class RetractionWatchFetcher:
 
         try:
             self.logger.info(f"Loading data from {self.local_csv_path}...")
-            retraction_data= pd.read_csv(self.local_csv_path)
+            retraction_data = pd.read_csv(self.local_csv_path)
 
+            doi_columns = ['RetractionDOI', 'OriginalPaperDOI']
+            for column in doi_columns:
+                if column in retraction_data.columns:
+                    retraction_data[column] = retraction_data[column].apply(_normalize_doi)
 
             # Get retracted papers from the retraction data by matching the DOI
-            doi_columns = ['RetractionDOI', 'OriginalPaperDOI']  #  
             retraction_data = retraction_data[retraction_data[doi_columns].notnull().any(axis=1)]
             return retraction_data
 

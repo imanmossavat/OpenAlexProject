@@ -4,6 +4,8 @@ from pathlib import Path
 from typing import List, Dict, Optional, Any
 from datetime import datetime
 
+from ..normalization import normalize_venue
+
 
 @dataclass
 class LibraryConfig:
@@ -44,6 +46,7 @@ class PaperData:
     authors: List[Dict[str, str]]
     year: Optional[int] = None
     venue: Optional[str] = None
+    venue_raw: Optional[str] = None
     doi: Optional[str] = None
     abstract: Optional[str] = None
     url: Optional[str] = None
@@ -56,6 +59,15 @@ class PaperData:
     
     assigned_topic: Optional[int] = None
     topic_label: Optional[str] = None
+
+    def __post_init__(self) -> None:
+        if self.venue_raw is None:
+            self.venue_raw = self.venue
+        normalized = normalize_venue(self.venue_raw)
+        if normalized:
+            self.venue = normalized
+        elif self.venue_raw:
+            self.venue = self.venue_raw.strip()
 
 
 @dataclass

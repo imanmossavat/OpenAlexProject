@@ -6,6 +6,7 @@ from typing import Optional
 import logging
 
 from .models import PaperData
+from ..normalization import normalize_venue
 
 
 class PaperFileReader:
@@ -86,6 +87,8 @@ class PaperFileReader:
         
         year = metadata.get('year')
         venue = metadata.get('venue')
+        venue_raw = metadata.get('venue_raw', venue)
+        normalized_venue = normalize_venue(venue_raw)
         doi = metadata.get('doi')
         abstract = metadata.get('abstract')
         url = metadata.get('url')
@@ -104,7 +107,8 @@ class PaperFileReader:
             title=title,
             authors=authors,
             year=year,
-            venue=venue,
+            venue=normalized_venue or venue,
+            venue_raw=venue_raw,
             doi=doi,
             abstract=abstract,
             url=url,

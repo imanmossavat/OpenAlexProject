@@ -30,6 +30,7 @@ ENV/
 *~
 
 data/
+uploaded_dumps/
 *.db
 *.sqlite
 

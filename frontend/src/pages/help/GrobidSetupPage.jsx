@@ -73,7 +73,7 @@ export default function GrobidSetupPage() {
           <h2 className="text-xl font-semibold text-gray-900">3. Verify it is reachable</h2>
           <ol className="list-decimal list-inside text-sm text-gray-700 space-y-2">
             <li>Visit http://localhost:8070/api/isalive in the browser. A JSON response means it is running.</li>
-            <li>Return to the “Import from dump files” dialog and try uploading again.</li>
+            <li>Return to the “Import from uploaded files” dialog and try uploading again.</li>
           </ol>
         </section>
       </div>

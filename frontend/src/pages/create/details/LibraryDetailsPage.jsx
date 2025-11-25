@@ -144,8 +144,7 @@ export default function LibraryDetailsPage() {
         </div>
       </div>
 
-      {/* Bottom navigation */}
-      <div className="border-t border-gray-200 px-6 py-4 bg-white">
+\      <div className="border-t border-gray-200 px-6 py-4 bg-white">
         <div className="max-w-6xl mx-auto flex justify-between">
           <Button
             variant="outline"

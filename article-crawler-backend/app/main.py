@@ -26,7 +26,10 @@ async def lifespan(app: FastAPI):
     logger.info(f"ArticleCrawler path: {settings.ARTICLECRAWLER_PATH}")
     
     container = Container()
-    container.config.from_dict(settings.model_dump())
+    config_payload = settings.model_dump()
+    if "STAGED_FILES_DIR" not in config_payload:
+        config_payload["STAGED_FILES_DIR"] = settings.STAGED_FILES_DIR
+    container.config.from_dict(config_payload)
     
     # Wire dependencies
     container.wire(modules=[
@@ -44,6 +47,12 @@ async def lifespan(app: FastAPI):
     ])
     
     app.state.container = container
+
+    # Cleanup stale staged file sessions on startup
+    staged_file_service = container.source_file_service()
+    removed_count = staged_file_service.cleanup_expired_sessions(settings.STAGED_FILES_TTL_HOURS)
+    if removed_count:
+        logger.info("Startup cleanup removed %d expired staged file session(s)", removed_count)
     
     logger.info(f"API started successfully on {settings.API_V1_PREFIX}")
     

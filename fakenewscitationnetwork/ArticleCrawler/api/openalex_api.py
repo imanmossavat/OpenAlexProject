@@ -262,6 +262,7 @@ class OpenAlexAPIProvider(BaseAPIProvider):
             authors=authors,
             year=year,
             venue=venue,
+            venue_raw=venue,
             doi=doi,
             abstract=abstract,
             url=url,

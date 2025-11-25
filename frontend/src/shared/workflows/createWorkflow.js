@@ -35,7 +35,7 @@ export const createWorkflow = {
         {
           id: 'source-imports',
           title: 'Source imports',
-          description: 'Add seeds via Zotero collections, manual OpenAlex IDs, or local file dumps (PDF, DOCX, XML, LaTeX, HTML).',
+          description: 'Add seeds via Zotero collections, manual OpenAlex IDs, or uploaded files (PDF, DOCX, XML, LaTeX, HTML).',
         },
       ],
       routes: [

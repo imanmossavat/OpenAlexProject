@@ -9,7 +9,11 @@ from app.schemas.seed_session import (
     FinalizeSessionResponse
 )
 from app.schemas.seeds import PaperIDsRequest
-from app.api.dependencies import get_seed_session_service, get_seed_selection_service
+from app.api.dependencies import (
+    get_seed_session_service,
+    get_seed_selection_service,
+    get_source_file_service,
+)
 
 router = APIRouter()
 
@@ -119,10 +123,12 @@ async def finalize_seed_session(
 @router.delete("/{session_id}")
 async def delete_seed_session(
     session_id: str = Path(..., description="Session ID"),
-    service = Depends(get_seed_session_service)
+    service = Depends(get_seed_session_service),
+    source_file_service = Depends(get_source_file_service),
 ):
     """
     Delete a session.
     """
     service.delete_session(session_id)
+    source_file_service.cleanup_session_files(session_id)
     return {"message": f"Session {session_id} deleted successfully"}

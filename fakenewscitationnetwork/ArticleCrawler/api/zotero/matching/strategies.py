@@ -9,6 +9,7 @@ import time
 from difflib import SequenceMatcher
 import re
 
+from ArticleCrawler.normalization import normalize_venue
 
 class TitleMatchStrategy(ABC):
     """Abstract base for title matching strategies."""
@@ -56,7 +57,8 @@ class OpenAlexTitleMatchStrategy(TitleMatchStrategy):
                 continue
             
             paper_id = result.get('id', '').replace('https://openalex.org/', '')
-            venue = self._extract_venue(result)
+            venue_raw = self._extract_venue(result)
+            venue = normalize_venue(venue_raw) or venue_raw
             doi = result.get('doi', '').replace('https://doi.org/', '') if result.get('doi') else None
             
             results.append({
@@ -121,7 +123,8 @@ class SemanticScholarTitleMatchStrategy(TitleMatchStrategy):
             if not api_title:
                 continue
             
-            venue = paper.get('venue', {}).get('name') if isinstance(paper.get('venue'), dict) else paper.get('venue')
+            venue_field = paper.get('venue', {}).get('name') if isinstance(paper.get('venue'), dict) else paper.get('venue')
+            venue = normalize_venue(venue_field) or venue_field
             
             results.append({
                 'paper_id': paper.get('paperId'),

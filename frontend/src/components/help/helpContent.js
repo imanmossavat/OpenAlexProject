@@ -78,7 +78,7 @@ const libraryStartContent = {
       ],
     },
     {
-      title: 'Author topic exploration',
+      title: 'Author evolution',
       description: 'Great for quick investigations into how a researcher’s topics evolved.',
       bullets: [
         'Type the author name.',
@@ -100,7 +100,7 @@ const stagingContent = {
       description: 'Click on the "add more papers" button and choose one of the sources to add more papers.',
       bullets: [
         'Select Zotero to load you zotero collections and add papers from the selected collections.',
-        'Select Dump files, to dump files or select a folder with files, to extract their metadata and add those to the staging area',
+        'Select uploaded files to pick individual files or a folder, extract their metadata, and add those to the staging area',
         'Select manual ID to enter OpenAlex IDs to add papers from OpenAlex to the staging area.',
       ],
     },
