@@ -8,6 +8,7 @@ from app.api.dependencies import (
     get_library_edit_service,
     get_seed_selection_service,
     get_topic_modeling_service,
+    get_source_file_service,
 )
 from app.schemas.library import (
     LibraryDetailsRequest,
@@ -167,9 +168,11 @@ async def preview_library(
 async def create_library(
     session_id: str = Path(..., description="Session ID"),
     library_service = Depends(get_library_service),
-    session_service = Depends(get_seed_session_service)
+    session_service = Depends(get_seed_session_service),
+    source_file_service = Depends(get_source_file_service),
 ):
     result = library_service.create(session_id, session_service)
+    source_file_service.cleanup_session_files(session_id)
     return CreateLibraryResponse(
         session_id=session_id,
         name=result["name"],

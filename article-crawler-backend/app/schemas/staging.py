@@ -1,6 +1,9 @@
+from datetime import datetime
 from typing import Dict, List, Literal, Optional, get_args
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
+
+from ArticleCrawler.normalization import normalize_venue
 
 from app.schemas.seeds import MatchedSeed
 
@@ -61,8 +64,34 @@ class StagingPaper(BaseModel):
     doi: Optional[str] = Field(None, description="DOI if available")
     url: Optional[str] = Field(None, description="URL if available")
     abstract: Optional[str] = Field(None, description="Abstract text")
+    is_retracted: bool = Field(False, description="Flag when the paper matches Retraction Watch")
+    retraction_reason: Optional[str] = Field(
+        default=None,
+        description="Optional text explaining why the paper is marked retracted",
+    )
+    retraction_date: Optional[str] = Field(
+        default=None,
+        description="Date provided by Retraction Watch for this entry",
+    )
+    retraction_checked_at: Optional[datetime] = Field(
+        default=None,
+        description="UTC timestamp when the row was last checked for retractions",
+    )
     source_id: Optional[str] = Field(None, description="Identifier from the source")
     is_selected: bool = Field(False, description="Whether the paper is selected for matching")
+    source_file_id: Optional[str] = Field(
+        default=None,
+        description="Internal identifier for the uploaded source file",
+        exclude=True,
+    )
+    source_file_name: Optional[str] = Field(
+        default=None,
+        description="Original filename of the uploaded source file",
+    )
+
+    @validator("venue", pre=True, always=True)
+    def _normalize_venue_field(cls, value):
+        return _normalize_venue_value(value)
 
 
 class StagingPaperCreate(BaseModel):
@@ -77,8 +106,18 @@ class StagingPaperCreate(BaseModel):
     doi: Optional[str] = None
     url: Optional[str] = None
     abstract: Optional[str] = None
+    is_retracted: bool = False
+    retraction_reason: Optional[str] = None
+    retraction_date: Optional[str] = None
+    retraction_checked_at: Optional[datetime] = None
     source_id: Optional[str] = None
     is_selected: bool = False
+    source_file_id: Optional[str] = None
+    source_file_name: Optional[str] = None
+
+    @validator("venue", pre=True, always=True)
+    def _normalize_venue_field(cls, value):
+        return _normalize_venue_value(value)
 
 
 class StagingPaperUpdate(BaseModel):
@@ -91,6 +130,10 @@ class StagingPaperUpdate(BaseModel):
     doi: Optional[str] = None
     url: Optional[str] = None
     abstract: Optional[str] = None
+
+    @validator("venue", pre=True, always=True)
+    def _normalize_venue_field(cls, value):
+        return _normalize_venue_value(value)
 
 
 class ColumnFilterOption(BaseModel):
@@ -119,10 +162,22 @@ class StagingListResponse(BaseModel):
     total_rows: int
     filtered_rows: int
     selected_count: int
+    retracted_count: int = Field(0, description="How many staged rows are currently marked retracted")
     page: int
     page_size: int
     total_pages: int
     column_options: Dict[str, List[ColumnFilterOption]] = Field(default_factory=dict)
+
+
+class RetractionCheckResponse(BaseModel):
+    """Result summary after running a retraction check."""
+
+    session_id: str
+    total_rows: int
+    checked_rows: int
+    retracted_count: int
+    skipped_without_doi: int
+    checked_at: datetime
 
 
 class SelectionUpdateRequest(BaseModel):
@@ -156,6 +211,16 @@ class MatchSelectedRequest(BaseModel):
     """Request payload to match currently selected staged rows."""
 
     api_provider: str = Field(default="openalex", description="API provider to use for matching")
+
+
+def _normalize_venue_value(value: Optional[str]) -> Optional[str]:
+    if not value:
+        return None
+    normalized = normalize_venue(value)
+    if normalized:
+        return normalized
+    stripped = value.strip()
+    return stripped or None
 
 
 class StagingMatchRow(BaseModel):

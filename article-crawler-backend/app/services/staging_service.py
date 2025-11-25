@@ -14,6 +14,7 @@ from app.schemas.staging import (
     StagingPaperUpdate,
     TEXT_FILTER_COLUMNS,
     TEXT_FILTER_OPERATOR_VALUES,
+    _normalize_venue_value,
 )
 
 
@@ -57,6 +58,7 @@ class StagingService:
             if key and key in existing_keys:
                 self.logger.debug(f"Skipping duplicate staged row for session {session_id} (key: {key})")
                 continue
+            normalized_venue = _normalize_venue_value(payload.venue)
             staging_row = {
                 "staging_id": session["next_id"],
                 "source": payload.source,
@@ -64,12 +66,18 @@ class StagingService:
                 "title": payload.title,
                 "authors": payload.authors,
                 "year": payload.year,
-                "venue": payload.venue,
+                "venue": normalized_venue,
                 "doi": payload.doi,
                 "url": payload.url,
                 "abstract": payload.abstract,
+                "is_retracted": bool(payload.is_retracted),
+                "retraction_reason": payload.retraction_reason,
+                "retraction_checked_at": payload.retraction_checked_at,
+                "retraction_date": payload.retraction_date,
                 "source_id": payload.source_id,
                 "is_selected": bool(payload.is_selected),
+                "source_file_id": payload.source_file_id,
+                "source_file_name": payload.source_file_name,
             }
             session["rows"].append(staging_row)
             created.append(StagingPaper(**staging_row))
@@ -81,8 +89,17 @@ class StagingService:
 
     def update_row(self, session_id: str, staging_id: int, updates: StagingPaperUpdate) -> StagingPaper:
         row = self._find_row(session_id, staging_id)
-        for field, value in updates.dict(exclude_unset=True).items():
-            row[field] = value
+        payload = updates.dict(exclude_unset=True)
+        for field, value in payload.items():
+            if field == "venue":
+                row[field] = _normalize_venue_value(value)
+            else:
+                row[field] = value
+        if "doi" in payload:
+            row["is_retracted"] = False
+            row["retraction_reason"] = None
+            row["retraction_checked_at"] = None
+            row["retraction_date"] = None
         self.logger.debug(f"Updated staging row {staging_id} for session {session_id}")
         return StagingPaper(**row)
 
@@ -131,6 +148,7 @@ class StagingService:
         keyword_search: Optional[str] = None,
         doi_presence: Optional[str] = None,
         selected_only: bool = False,
+        retraction_status: Optional[str] = None,
         sort_by: Optional[str] = None,
         sort_dir: str = "asc",
         title_values: Optional[List[str]] = None,
@@ -158,6 +176,7 @@ class StagingService:
             keyword_search=keyword_search,
             doi_presence=doi_presence,
             selected_only=selected_only,
+            retraction_status=retraction_status,
             title_values=title_values,
             author_values=author_values,
             venue_values=venue_values,
@@ -192,11 +211,70 @@ class StagingService:
             total_rows=len(rows),
             filtered_rows=total_filtered,
             selected_count=selected_count,
+            retracted_count=sum(1 for row in rows if row.get("is_retracted")),
             page=current_page,
             page_size=size,
             total_pages=total_pages,
             column_options=column_options,
         )
+
+    def apply_retraction_results(
+        self,
+        session_id: str,
+        *,
+        retracted_dois: set,
+        checked_at,
+        reason: str,
+        metadata: Optional[Dict[str, Dict[str, Optional[str]]]] = None,
+    ) -> Dict[str, int]:
+        session = self._ensure_session(session_id)
+        normalized = {self._normalize_doi(value) for value in retracted_dois if value}
+        self.logger.debug("Applying retraction results for session %s with %d matched DOIs", session_id, len(normalized))
+        eligible_rows = 0
+        retracted_rows = 0
+        metadata = metadata or {}
+        for row in session["rows"]:
+            doi_value = self._normalize_doi(row.get("doi"))
+            self.logger.debug(
+                "Row %s DOI normalized to %s (raw=%s)",
+                row.get("staging_id"),
+                doi_value,
+                row.get("doi"),
+            )
+            if not doi_value:
+                row["is_retracted"] = False
+                row["retraction_reason"] = None
+                row["retraction_checked_at"] = None
+                row["retraction_date"] = None
+                continue
+            eligible_rows += 1
+            is_retracted = doi_value in normalized
+            if is_retracted:
+                self.logger.debug(
+                    "Row %s marked retracted (doi=%s)",
+                    row.get("staging_id"),
+                    doi_value,
+                )
+            row["is_retracted"] = is_retracted
+            info = metadata.get(doi_value)
+            row["retraction_reason"] = (info and info.get("reason")) if is_retracted else None
+            if row["retraction_reason"] is None and is_retracted:
+                row["retraction_reason"] = reason
+            row["retraction_date"] = (info and info.get("date")) if is_retracted else None
+            row["retraction_checked_at"] = checked_at
+            if is_retracted:
+                self.logger.debug(
+                    "Row %s metadata reason=%r date=%r",
+                    row.get("staging_id"),
+                    row["retraction_reason"],
+                    row["retraction_date"],
+                )
+                retracted_rows += 1
+        return {
+            "eligible_rows": eligible_rows,
+            "retracted_rows": retracted_rows,
+            "checked_rows": eligible_rows,
+        }
 
     def get_selected_rows(self, session_id: str) -> List[StagingPaper]:
         session = self._ensure_session(session_id)
@@ -276,6 +354,7 @@ class StagingService:
         keyword_search: Optional[str],
         doi_presence: Optional[str],
         selected_only: bool,
+        retraction_status: Optional[str],
         title_values: Optional[List[str]],
         author_values: Optional[List[str]],
         venue_values: Optional[List[str]],
@@ -333,6 +412,10 @@ class StagingService:
                     continue
             if selected_only and not row.get("is_selected"):
                 continue
+            if retraction_status == "retracted" and not row.get("is_retracted"):
+                continue
+            if retraction_status == "not_retracted" and row.get("is_retracted"):
+                continue
             if title_exact:
                 normalized_title = self._normalize_string(row.get("title"))
                 if normalized_title not in title_exact:
@@ -370,6 +453,25 @@ class StagingService:
     @staticmethod
     def _normalize_string(value: Optional[str]) -> str:
         return (value or "").strip().lower()
+
+    @staticmethod
+    def _normalize_doi(value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        text = str(value).strip().lower()
+        prefixes = (
+            "https://doi.org/",
+            "http://doi.org/",
+            "https://dx.doi.org/",
+            "http://dx.doi.org/",
+            "doi:",
+        )
+        for prefix in prefixes:
+            if text.startswith(prefix):
+                text = text[len(prefix):]
+                break
+        text = text.strip()
+        return text or None
 
     def _normalize_identifier_filters(
         self,
@@ -647,14 +749,30 @@ class StagingService:
 
         sort_field = "is_selected" if sort_by == "selected" else sort_by
 
-        def sort_key(row: Dict):
+        def is_empty(row: Dict) -> bool:
             value = row.get(sort_field)
-            if value is None:
-                if sort_field == "year":
-                    return -float("inf") if not reverse else float("inf")
-                if sort_field == "is_selected":
-                    return False
-                return ""
+            if sort_field == "year":
+                return value is None
+            if sort_field == "is_selected":
+                return value is None
+            if isinstance(value, str):
+                return not value.strip()
+            return value is None
+
+        def value_key(row: Dict):
+            value = row.get(sort_field)
+            if sort_field == "year":
+                try:
+                    return int(value)
+                except (TypeError, ValueError):
+                    return 0
+            if sort_field == "is_selected":
+                return bool(value)
+            if isinstance(value, str):
+                return value.strip().lower()
             return value
 
-        return sorted(rows, key=sort_key, reverse=reverse)
+        non_empty_rows = [row for row in rows if not is_empty(row)]
+        empty_rows = [row for row in rows if is_empty(row)]
+        sorted_non_empty = sorted(non_empty_rows, key=value_key, reverse=reverse)
+        return sorted_non_empty + empty_rows

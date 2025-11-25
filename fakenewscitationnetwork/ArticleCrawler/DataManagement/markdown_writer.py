@@ -361,6 +361,8 @@ class MarkdownFileGenerator:
             'url': paper_data.url,
             'abstract': paper_data.abstract,
         }
+        if paper_data.venue_raw and paper_data.venue_raw != paper_data.venue:
+            frontmatter_dict['venue_raw'] = paper_data.venue_raw
         
         if paper_data.concepts:
             frontmatter_dict['concepts'] = [

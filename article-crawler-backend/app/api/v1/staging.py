@@ -1,23 +1,22 @@
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
-from pydantic import ValidationError
-
-from ArticleCrawler.api.api_factory import create_api_provider
-from ArticleCrawler.pdf_processing.api_matcher import APIMetadataMatcher
-from ArticleCrawler.pdf_processing.models import PDFMetadata
+from fastapi.responses import FileResponse
+import mimetypes
 
 from app.api.dependencies import (
-    get_seed_selection_service,
+    get_manual_metadata_enricher,
+    get_retraction_service,
     get_seed_session_service,
+    get_source_file_service,
+    get_staging_match_service,
+    get_staging_query_parser,
     get_staging_service,
 )
 from app.schemas.seed_session import AddSeedsToSessionResponse
-from app.schemas.seeds import MatchedSeed
 from app.schemas.staging import (
     BulkRemoveRequest,
     BulkRemoveResponse,
-    ColumnCustomFilter,
     ConfirmMatchesRequest,
     MatchSelectedRequest,
     SelectionUpdateRequest,
@@ -28,43 +27,10 @@ from app.schemas.staging import (
     StagingPaper,
     StagingPaperCreate,
     StagingPaperUpdate,
-    NUMBER_FILTER_COLUMNS,
-    NUMBER_FILTER_OPERATOR_VALUES,
-    TEXT_FILTER_COLUMNS,
-    TEXT_FILTER_OPERATOR_VALUES,
+    RetractionCheckResponse,
 )
 
 router = APIRouter()
-
-
-def _parse_column_filters(raw_filters: Optional[List[str]]) -> List[ColumnCustomFilter]:
-    parsed: List[ColumnCustomFilter] = []
-    if not raw_filters:
-        return parsed
-
-    for raw in raw_filters:
-        if not raw:
-            continue
-        parts = [part.strip() for part in raw.split("::")]
-        if len(parts) < 3:
-            continue
-        column, operator, value = parts[0], parts[1], parts[2]
-        value_to = parts[3] if len(parts) > 3 else None
-        value_to = value_to or None
-        try:
-            candidate = ColumnCustomFilter(column=column, operator=operator, value=value, value_to=value_to)
-        except ValidationError:
-            continue
-        if candidate.column in NUMBER_FILTER_COLUMNS:
-            if candidate.operator not in NUMBER_FILTER_OPERATOR_VALUES:
-                continue
-            if candidate.operator in {"between", "not_between"} and not candidate.value_to:
-                continue
-        else:
-            if candidate.operator not in TEXT_FILTER_OPERATOR_VALUES:
-                continue
-        parsed.append(candidate)
-    return parsed
 
 
 @router.get(
@@ -86,6 +52,10 @@ async def list_staged_papers(
         None,
         description="Filter by DOI presence: 'with' for rows with DOI, 'without' for rows without DOI",
     ),
+    retraction_status: Optional[str] = Query(
+        None,
+        description="Filter rows that are 'retracted' or 'not_retracted'",
+    ),
     title_values: Optional[List[str]] = Query(None, description="Exact match filters for the title column"),
     author_values: Optional[List[str]] = Query(None, description="Exact match filters for the authors column"),
     venue_values: Optional[List[str]] = Query(None, description="Exact match filters for the venue column"),
@@ -101,22 +71,17 @@ async def list_staged_papers(
     selected_only: bool = Query(False, description="Return only selected rows"),
     sort_by: Optional[str] = Query(None, description="Sort column"),
     sort_dir: str = Query("asc", description="Sort direction asc|desc"),
+    query_parser=Depends(get_staging_query_parser),
     service=Depends(get_staging_service),
 ):
     """Return paginated staged papers for a session."""
-    identifier_filters: List[Dict[str, str]] = []
-    for raw in identifier_values or []:
-        if not raw or "::" not in raw:
-            continue
-        field, value = raw.split("::", 1)
-        clean_field = (field or "").strip().lower()
-        clean_value = (value or "").strip()
-        if not clean_field or not clean_value:
-            continue
-        if clean_field not in {"doi", "url"}:
-            continue
-        identifier_filters.append({"field": clean_field, "value": clean_value})
-    custom_filters = _parse_column_filters(column_filters)
+    identifier_filters = query_parser.parse_identifier_filters(identifier_values)
+    custom_filters = query_parser.parse_column_filters(column_filters)
+
+    try:
+        query_parser.validate_retraction_status(retraction_status)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
     return service.list_rows(
         session_id,
@@ -137,9 +102,22 @@ async def list_staged_papers(
         identifier_filters=identifier_filters,
         custom_filters=custom_filters,
         selected_only=selected_only,
+        retraction_status=retraction_status,
         sort_by=sort_by,
         sort_dir=sort_dir,
     )
+
+
+@router.post(
+    "/seeds/session/{session_id}/staging/retractions/check",
+    response_model=RetractionCheckResponse,
+)
+async def check_retractions(
+    session_id: str,
+    service=Depends(get_retraction_service),
+):
+    """Trigger a Retraction Watch check for all staged papers in a session."""
+    return service.check_session(session_id)
 
 
 @router.post(
@@ -150,10 +128,10 @@ async def add_staged_papers(
     session_id: str,
     payload: List[StagingPaperCreate],
     staging_service=Depends(get_staging_service),
-    seed_selection_service=Depends(get_seed_selection_service),
+    manual_metadata_enricher=Depends(get_manual_metadata_enricher),
 ):
     """Add papers to the staging table."""
-    rows_to_add, invalid_manual_ids = await _enrich_manual_metadata(payload, seed_selection_service)
+    rows_to_add, invalid_manual_ids = await manual_metadata_enricher.enrich(payload)
     if not rows_to_add:
         detail = (
             "No valid manual IDs were found."
@@ -207,7 +185,7 @@ async def match_selected_rows(
     session_id: str,
     payload: MatchSelectedRequest,
     staging_service=Depends(get_staging_service),
-    seed_selection_service=Depends(get_seed_selection_service),
+    match_service=Depends(get_staging_match_service),
 ):
     """Match currently selected staged rows using DOI/title heuristics."""
     try:
@@ -215,12 +193,10 @@ async def match_selected_rows(
         if not selected_rows:
             raise HTTPException(status_code=400, detail="No selected staged papers to match")
 
-        match_rows = await _match_rows_for_items(
+        match_rows = await match_service.match_rows(
             session_id=session_id,
             rows=selected_rows,
             api_provider=payload.api_provider,
-            staging_service=staging_service,
-            seed_selection_service=seed_selection_service,
         )
 
         staging_service.store_match_rows(session_id, match_rows)
@@ -304,17 +280,15 @@ async def rematch_single_row(
     staging_id: int,
     payload: MatchSelectedRequest,
     staging_service=Depends(get_staging_service),
-    seed_selection_service=Depends(get_seed_selection_service),
+    match_service=Depends(get_staging_match_service),
 ):
     """Match a single staged paper after metadata edits."""
     try:
         row = staging_service.get_row(session_id, staging_id)
-        match_rows = await _match_rows_for_items(
+        match_rows = await match_service.match_rows(
             session_id=session_id,
             rows=[row],
             api_provider=payload.api_provider,
-            staging_service=staging_service,
-            seed_selection_service=seed_selection_service,
         )
         if not match_rows:
             raise HTTPException(status_code=400, detail="Unable to match this paper")
@@ -376,197 +350,29 @@ async def clear_staging(
     return {"message": f"Cleared staging for session {session_id}"}
 
 
-async def _match_rows_for_items(
+@router.get("/seeds/session/{session_id}/staging/{staging_id}/file")
+async def download_staged_file(
     session_id: str,
-    rows: List[StagingPaper],
-    api_provider: str,
-    staging_service,
-    seed_selection_service,
-) -> List[StagingMatchRow]:
-    identifiers: Dict[int, str] = {}
-    match_methods: Dict[int, str] = {}
-    confidences: Dict[int, float] = {}
-    unmatched_reasons: Dict[int, str] = {}
-
-    rows_needing_metadata: List[Tuple[StagingPaper, PDFMetadata]] = []
-    candidate_ids: List[str] = []
-
-    for row in rows:
-        openalex_id = _normalize_openalex_id(row.source_id) or _normalize_openalex_id(row.url)
-        if openalex_id:
-            identifiers[row.staging_id] = openalex_id
-            match_methods[row.staging_id] = "source_id"
-            candidate_ids.append(openalex_id)
-            continue
-
-        doi = (
-            _normalize_doi(row.doi)
-            or _normalize_doi(row.source_id)
-            or _extract_doi_from_url(row.url)
-        )
-        metadata = None
-        if doi or row.title:
-            metadata = PDFMetadata(
-                filename=str(row.source_id or row.title or f"staging-{row.staging_id}"),
-                title=row.title or "",
-                doi=doi,
-                year=str(row.year) if row.year is not None else None,
-                authors=row.authors,
-                venue=row.venue,
-            )
-
-        if metadata and (metadata.doi or metadata.title):
-            rows_needing_metadata.append((row, metadata))
-        else:
-            unmatched_reasons[row.staging_id] = "Missing DOI or title for matching"
-
-    if rows_needing_metadata:
-        api = create_api_provider(api_provider)
-        matcher = APIMetadataMatcher(api, logger=staging_service.logger)
-        metadata_results = matcher.match_metadata([meta for _, meta in rows_needing_metadata])
-
-        for (row, meta), result in zip(rows_needing_metadata, metadata_results):
-            if result.matched and result.paper_id:
-                identifiers[row.staging_id] = result.paper_id
-                match_methods[row.staging_id] = result.match_method or ("doi" if meta.doi else "title_search")
-                confidences[row.staging_id] = result.confidence
-                candidate_ids.append(result.paper_id)
-            else:
-                reason = result.match_method or "DOI/title search"
-                unmatched_reasons[row.staging_id] = f"No match found via {reason.lower()}"
-
-    unique_ids = sorted(set(candidate_ids))
-    matched_seeds_by_id: Dict[str, MatchedSeed] = {}
-    unmatched_errors: Dict[str, str] = {}
-
-    if unique_ids:
-        match_result = seed_selection_service.match_paper_ids(unique_ids, api_provider)
-        matched_seeds_by_id = {seed.paper_id: seed for seed in match_result.matched_seeds}
-        unmatched_errors = {item.input_id: item.error for item in match_result.unmatched_seeds}
-
-    match_rows: List[StagingMatchRow] = []
-    for row in rows:
-        staging_id = row.staging_id
-        target_id = identifiers.get(staging_id)
-
-        if target_id and target_id in matched_seeds_by_id:
-            seed = matched_seeds_by_id[target_id]
-            match_rows.append(
-                StagingMatchRow(
-                    staging_id=staging_id,
-                    staging=row,
-                    matched=True,
-                    matched_seed=seed,
-                    match_method=match_methods.get(staging_id),
-                    confidence=confidences.get(staging_id),
-                )
-            )
-        else:
-            error = unmatched_reasons.get(staging_id)
-            if target_id and not error:
-                error = unmatched_errors.get(target_id, "Paper metadata not found in provider")
-            match_rows.append(
-                StagingMatchRow(
-                    staging_id=staging_id,
-                    staging=row,
-                    matched=False,
-                    match_method=match_methods.get(staging_id),
-                    confidence=confidences.get(staging_id),
-                    error=error or "Unable to match this paper",
-                )
-            )
-
-    return match_rows
-
-
-async def _enrich_manual_metadata(
-    rows: List[StagingPaperCreate], seed_selection_service
-) -> tuple[List[StagingPaperCreate], List[str]]:
-    """Fetch metadata for manual IDs so staged rows are usable."""
-    enriched_rows: List[StagingPaperCreate] = []
-    invalid_manual_ids: List[str] = []
-
-    for row in rows or []:
-        if row.source_type != "manual":
-            enriched_rows.append(row)
-            continue
-
-        label = (row.source or "").strip()
-        if not label or label.lower() in {"manual", "manual ids", "manual id", "manual papers"}:
-            label = "Manual IDs"
-        row.source = label
-
-        identifier = row.doi or row.source_id or row.url
-        identifier_for_error = identifier or row.source_id or "unknown"
-
-        if not identifier:
-            invalid_manual_ids.append(str(identifier_for_error))
-            continue
-
-        try:
-            match_result = seed_selection_service.match_paper_ids([identifier], api_provider="openalex")
-        except Exception:
-            invalid_manual_ids.append(str(identifier_for_error))
-            continue
-
-        if not match_result.matched_seeds:
-            invalid_manual_ids.append(str(identifier_for_error))
-            continue
-
-        seed = match_result.matched_seeds[0]
-        row.title = row.title or seed.title
-        row.authors = row.authors or seed.authors
-        row.year = row.year or seed.year
-        row.venue = row.venue or seed.venue
-        row.doi = row.doi or seed.doi
-        row.url = row.url or seed.url
-        row.abstract = row.abstract or seed.abstract
-        if seed.paper_id and not _normalize_openalex_id(row.source_id or ""):
-            row.source_id = seed.paper_id
-
-        enriched_rows.append(row)
-
-    return enriched_rows, invalid_manual_ids
-
-
-def _normalize_openalex_id(value: Optional[str]) -> Optional[str]:
-    if not value:
-        return None
-    raw = value.strip()
-    if not raw:
-        return None
-    if "openalex.org" in raw:
-        raw = raw.split("/")[-1]
-    raw = raw.strip()
-    if not raw:
-        return None
-    if raw[0].lower() == "w":
-        suffix = raw[1:]
-        if suffix.isdigit():
-            return f"W{suffix}"
-    return None
-
-
-def _normalize_doi(value: Optional[str]) -> Optional[str]:
-    if not value:
-        return None
-    raw = value.strip()
-    if not raw:
-        return None
-    raw = raw.replace("https://doi.org/", "").replace("http://doi.org/", "")
-    raw = raw.replace("DOI:", "").replace("doi:", "")
-    raw = raw.strip()
-    if raw.startswith("10."):
-        return raw
-    return None
-
-
-def _extract_doi_from_url(url: Optional[str]) -> Optional[str]:
-    if not url:
-        return None
-    if "doi.org/" in url:
-        parts = url.split("doi.org/")
-        if len(parts) > 1:
-            doi = parts[1].split("?")[0]
-            return doi.strip()
-    return None
+    staging_id: int,
+    staging_service=Depends(get_staging_service),
+    source_file_service=Depends(get_source_file_service),
+):
+    """Return the original uploaded file for a staged row."""
+    row = staging_service.get_row(session_id, staging_id)
+    if not row.source_file_id:
+        raise HTTPException(status_code=404, detail="No file stored for this staged paper")
+    try:
+        file_path = source_file_service.get_file_path(row.source_file_id)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Stored file could not be found")
+    filename = row.source_file_name or file_path.name
+    mime_type, _ = mimetypes.guess_type(filename)
+    headers = {
+        "Content-Disposition": f'inline; filename="{filename}"'
+    }
+    return FileResponse(
+        path=file_path,
+        media_type=mime_type or "application/octet-stream",
+        filename=filename,
+        headers=headers,
+    )

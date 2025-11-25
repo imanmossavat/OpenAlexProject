@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     LOG_FORMAT: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     
     REQUEST_TIMEOUT_SECONDS: int = 1800
+    STAGED_FILES_DIR: str = "uploaded_dumps"
+    STAGED_FILES_TTL_HOURS: int = 48
+    RETRACTION_CACHE_DIR: str = "retraction_cache"
     
     class Config:
         env_file = ".env"

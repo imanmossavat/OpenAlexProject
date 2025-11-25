@@ -29,6 +29,7 @@ from app.core.storage.file_storage import (
     LocalTempFileStorage,
 )
 from app.models.pdf_upload_session import PDFUploadSession
+from app.services.source_file_service import SourceFileService
 
 
 class PDFSeedService:
@@ -42,10 +43,12 @@ class PDFSeedService:
         logger: logging.Logger,
         upload_store: Optional[PdfUploadStore] = None,
         file_storage: Optional[FileStorageAdapter] = None,
+        source_file_service: Optional[SourceFileService] = None,
     ):
         self.logger = logger
         self._store = upload_store or InMemoryPdfUploadStore()
         self._storage = file_storage or LocalTempFileStorage()
+        self._source_file_service = source_file_service
         
         self.docker_manager = DockerManager(logger=logger)
         self.metadata_dispatcher = MetadataDispatcher(logger=logger)
@@ -91,6 +94,7 @@ class PDFSeedService:
             pdf_path = self._storage.save_upload(temp_dir, safe_name, file)
             
             session.pdf_paths.append(pdf_path)
+            session.file_lookup[safe_name] = pdf_path
             filenames.append(safe_name)
         
         self._store.create(session)
@@ -430,6 +434,30 @@ class PDFSeedService:
         """Return reviewed metadata for a session."""
         session = self._get_session(upload_id)
         return session.reviewed_metadata
+
+    def persist_source_files(self, upload_id: str, session_id: str, filenames: List[str]) -> Dict[str, str]:
+        """Copy reviewed source files into persistent storage."""
+        if not filenames or not self._source_file_service:
+            return {}
+
+        session = self._get_session(upload_id)
+        stored: Dict[str, str] = {}
+
+        for name in filenames:
+            if not name:
+                continue
+            file_path = session.file_lookup.get(name)
+            if not file_path:
+                continue
+            try:
+                if not file_path.exists():
+                    continue
+            except OSError:
+                continue
+            file_id = self._source_file_service.persist_file(session_id, name, file_path)
+            if file_id:
+                stored[name] = file_id
+        return stored
     
     def _get_session(self, upload_id: str) -> PDFUploadSession:
         """Get session or raise exception."""

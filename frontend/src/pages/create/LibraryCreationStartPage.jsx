@@ -35,9 +35,9 @@ export default function LibraryCreationStartPage() {
       <div className="max-w-6xl mx-auto px-6 py-10">
         <div className="max-w-3xl mb-10">
           <p className="text-sm uppercase tracking-[0.3em] text-gray-500 mb-3">Library creation</p>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Choose how you want to kick things off</h1>
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Choose how you want to build your library</h1>
           <p className="text-lg text-gray-600">
-            Start adding seed papers or dive straight into an author topic exploration.
+            Either start collecting seed papers for a library or explore how an individual author’s topics evolved.
           </p>
         </div>
 
@@ -55,32 +55,31 @@ export default function LibraryCreationStartPage() {
           >
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-2xl font-semibold text-gray-900">Seeds</h2>
-                <p className="text-sm text-gray-500">Create a library by staging papers from your favorite sources.</p>
+                <h2 className="text-2xl font-semibold text-gray-900">Seed staging</h2>
+                <p className="text-sm text-gray-500">Collect and prepare papers before creating your library.</p>
               </div>
             </div>
-
-            <div className="mb-5 text-sm text-gray-600 leading-relaxed">
-              Pull seed papers from Zotero collections, dump files, or manual IDs, refine them in a unified staging table,
-              and then run matching in one place.
-            </div>
-
-            <Stepper currentStep={1} steps={workflowSteps} />
 
             <div className="mt-4 space-y-3 text-sm">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-purple-500" />
-                <span>Sources: Zotero, Dump Files, Manual IDs</span>
+                <span>Sources: Zotero collections, uploaded files, manual OpenAlex IDs</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-purple-500" />
-                <span>One staging table for adding, editing, filtering, and selecting</span>
+                <span>Clean up metadata, filter, and check retraction flags in staging</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-purple-500" />
-                <span>Trigger matching only when you’re ready</span>
+                <span>Run OpenAlex matching only when the seed list looks right</span>
               </div>
             </div>
+            <div className="mb-5 mt-5 text-sm text-gray-600 leading-relaxed">
+              Upload document files, connect to Zotero, or paste OpenAlex IDs, then review, filter, spot retracted papers,
+              and decide which seeds move forward before running matching.
+            </div>
+
+            <Stepper currentStep={1} steps={workflowSteps} />
 
             <div className="mt-auto pt-6">
               <Button
@@ -92,7 +91,7 @@ export default function LibraryCreationStartPage() {
                 onClick={startSeedsFlow}
                 disabled={!sessionId}
               >
-                Go to unified staging
+                Start staging seeds
               </Button>
             </div>
           </div>
@@ -108,8 +107,8 @@ export default function LibraryCreationStartPage() {
             "
           >
             <div className="mb-4">
-              <h2 className="text-2xl font-semibold text-gray-900">Author topic</h2>
-              <p className="text-sm text-gray-500">Explore an author’s topic evolution.</p>
+              <h2 className="text-2xl font-semibold text-gray-900">Author evolution</h2>
+              <p className="text-sm text-gray-500">See how a researcher’s focus changed over time.</p>
             </div>
 
             <label className="text-sm font-medium text-gray-700 mb-2" htmlFor="author-name">
@@ -124,8 +123,7 @@ export default function LibraryCreationStartPage() {
             />
 
             <p className="text-sm text-gray-500 mb-6">
-              We’ll take you to the topic evolution flow where you can configure your desired settings and see how a
-              author's research topics evolved over time.
+              Enter an author to open the topic evolution flow, configure the filters, and track how their work shifted across years.
             </p>
 
             <Button
@@ -138,7 +136,7 @@ export default function LibraryCreationStartPage() {
               onClick={goToAuthorTopic}
               disabled={!authorName.trim()}
             >
-              Continue with author topic
+              Explore author topics
             </Button>
           </div>
 

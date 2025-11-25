@@ -29,10 +29,50 @@ async def get_staging_service(
 
 
 @inject
+async def get_staging_query_parser(
+    service=Depends(Provide[Container.staging_query_parser])
+):
+    """Get the staging query parser."""
+    return service
+
+
+@inject
+async def get_manual_metadata_enricher(
+    service=Depends(Provide[Container.manual_metadata_enricher])
+):
+    """Get the manual metadata enricher."""
+    return service
+
+
+@inject
+async def get_staging_match_service(
+    service=Depends(Provide[Container.staging_match_service])
+):
+    """Get the staging match service."""
+    return service
+
+
+@inject
+async def get_retraction_service(
+    service=Depends(Provide[Container.retraction_service])
+):
+    """Get the retraction watch service."""
+    return service
+
+
+@inject
 async def get_pdf_seed_service(
     service=Depends(Provide[Container.pdf_seed_service])
 ):
     """Get the PDF seed service."""
+    return service
+
+
+@inject
+async def get_pdf_seed_workflow_service(
+    service=Depends(Provide[Container.pdf_seed_workflow_service])
+):
+    """Get the PDF seed workflow service."""
     return service
 
 
@@ -105,4 +145,12 @@ async def get_author_topic_evolution_service(
     service=Depends(Provide[Container.author_topic_evolution_service])
 ):
     """Get the author topic evolution service."""
+    return service
+
+
+@inject
+async def get_source_file_service(
+    service=Depends(Provide[Container.source_file_service])
+):
+    """Get the persisted source file service."""
     return service

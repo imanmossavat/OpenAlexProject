@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from typing import Optional
 from pathlib import Path
 
+from ..normalization import normalize_venue
+
 
 @dataclass
 class PDFMetadata:
@@ -12,7 +14,17 @@ class PDFMetadata:
     year: Optional[str] = None
     authors: Optional[str] = None
     venue: Optional[str] = None
-    
+    venue_raw: Optional[str] = None
+
+    def __post_init__(self) -> None:
+        if self.venue_raw is None:
+            self.venue_raw = self.venue
+        normalized = normalize_venue(self.venue_raw)
+        if normalized:
+            self.venue = normalized
+        elif self.venue_raw:
+            self.venue = self.venue_raw.strip()
+
     def is_valid(self) -> bool:
         return bool(self.title)
     
@@ -24,6 +36,7 @@ class PDFMetadata:
             'year': self.year,
             'authors': self.authors,
             'venue': self.venue,
+            'venue_raw': self.venue_raw,
         }
     
     def __str__(self) -> str:

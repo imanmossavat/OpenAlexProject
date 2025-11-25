@@ -1,6 +1,8 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
 
+from ..normalization import normalize_venue
+
 
 @dataclass
 class PaperMetadata:
@@ -12,10 +14,18 @@ class PaperMetadata:
     year: Optional[str] = None
     doi: Optional[str] = None
     venue: Optional[str] = None
+    venue_raw: Optional[str] = None
 
     def __post_init__(self) -> None:
         if self.authors is None:
             self.authors = []
+        if self.venue_raw is None:
+            self.venue_raw = self.venue
+        normalized = normalize_venue(self.venue_raw)
+        if normalized:
+            self.venue = normalized
+        elif self.venue_raw:
+            self.venue = self.venue_raw.strip()
 
     def is_complete(self) -> bool:
         """Return True when core fields are populated."""
