@@ -17,6 +17,9 @@ class ExperimentConfig(BaseModel):
     
     # Core settings
     name: str = Field(..., description="Experiment name")
+    display_name: Optional[str] = Field(
+        default=None, description="Optional user-specified name for display"
+    )
     seeds: List[str] = Field(..., description="List of seed paper IDs")
     keywords: List[str] = Field(default_factory=list, description="Keyword filters")
     

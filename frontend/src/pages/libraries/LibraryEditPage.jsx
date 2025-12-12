@@ -1,34 +1,18 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 
-import { setSessionId } from '@/shared/lib/session'
-import { Button } from '@/components/ui/button'
-import apiClient from '@/shared/api/client'
-import { endpoints } from '@/shared/api/endpoints'
-
+import { deriveNameFromPath, isAbsolutePath } from './utils'
 import useLibraryDiscovery from './hooks/useLibraryDiscovery'
 import useLibraryRootPreference from './hooks/useLibraryRootPreference'
+import useLibraryEditWorkflow from './hooks/useLibraryEditWorkflow'
 import LibrarySearchBar from './components/LibrarySearchBar'
 import LibraryGridSection from './components/LibraryGridSection'
 import DefaultRootPanel from './components/DefaultRootPanel'
 import CustomPathPanel from './components/CustomPathPanel'
-import UseCaseDialog from './components/UseCaseDialog'
-import LatestSelectionAlert from './components/LatestSelectionAlert'
 import ActionErrorAlert from './components/ActionErrorAlert'
-import { deriveNameFromPath, isAbsolutePath } from './utils'
+import { Button } from '@/components/ui/button'
 
-const USE_CASES = [
-  {
-    id: 'crawler_wizard',
-    title: 'Crawler workflow',
-    description: 'Attach this library to the crawler workflow to collect related papers.',
-    nextPath: '/crawler/keywords',
-  },
-]
-
-export default function LibraryLoadPage() {
-  const navigate = useNavigate()
+export default function LibraryEditPage() {
   const {
     libraries,
     loading,
@@ -57,20 +41,23 @@ export default function LibraryLoadPage() {
     resetRoot,
     clearRootError,
   } = useLibraryRootPreference()
+
+  const { startEditing, loading: editing, error: actionError, clearError } = useLibraryEditWorkflow()
+
   const [manualPath, setManualPath] = useState('')
   const [manualError, setManualError] = useState(null)
-  const [pendingLibrary, setPendingLibrary] = useState(null)
-  const [useCaseDialogOpen, setUseCaseDialogOpen] = useState(false)
-  const [actionError, setActionError] = useState(null)
-  const [selecting, setSelecting] = useState(false)
-  const [latestSelection, setLatestSelection] = useState(null)
 
   const absolutePathValid = useMemo(() => isAbsolutePath(manualPath), [manualPath])
 
-  const handleUseCaseRequest = (libraryInfo) => {
-    setPendingLibrary(libraryInfo)
-    setUseCaseDialogOpen(true)
-    setActionError(null)
+  const handleSelectLibrary = (libraryInfo) => {
+    if (!libraryInfo) return
+    clearError()
+    const payload = {
+      path: libraryInfo.path,
+      name: libraryInfo.name || deriveNameFromPath(libraryInfo.path),
+      description: libraryInfo.description,
+    }
+    startEditing(payload)
   }
 
   const handleManualSubmit = () => {
@@ -79,61 +66,24 @@ export default function LibraryLoadPage() {
       return
     }
     setManualError(null)
-    handleUseCaseRequest({
-      name: deriveNameFromPath(manualPath),
+    clearError()
+    startEditing({
       path: manualPath.trim(),
-      description: '',
+      name: deriveNameFromPath(manualPath),
     })
-  }
-
-  const handleUseCaseSelection = async (useCase) => {
-    if (!pendingLibrary) return
-    setSelecting(true)
-    setActionError(null)
-    try {
-      const startRes = await apiClient('POST', `${endpoints.seedsSession}/start`, { use_case: useCase.id })
-      if (startRes.error || !startRes.data?.session_id) throw new Error(startRes.error || 'Unable to start session')
-
-      const sessionId = startRes.data.session_id
-      setSessionId(sessionId, { useCase: useCase.id })
-
-      const payload = {
-        path: pendingLibrary.path,
-        name: pendingLibrary.name,
-      }
-      const selectRes = await apiClient('POST', `${endpoints.library}/${sessionId}/select`, payload)
-      if (selectRes.error || !selectRes.data) throw new Error(selectRes.error || 'Failed to attach library')
-
-      setLatestSelection({
-        sessionId,
-        libraryName: selectRes.data.name || pendingLibrary.name,
-        libraryPath: selectRes.data.path || pendingLibrary.path,
-        paperCount: selectRes.data.paper_count ?? null,
-        useCase,
-        nextPath: useCase.nextPath || null,
-      })
-      setUseCaseDialogOpen(false)
-      setPendingLibrary(null)
-      if (useCase.nextPath) {
-        navigate(useCase.nextPath)
-      }
-    } catch (err) {
-      setActionError(err.message || 'Something went wrong.')
-    } finally {
-      setSelecting(false)
-    }
   }
 
   return (
     <div className="min-h-[calc(100vh-160px)] bg-white">
       <div className="max-w-6xl mx-auto px-6 py-12 space-y-10">
         <section>
-          <p className="text-xs uppercase tracking-[0.4em] text-gray-500 mb-3">Load library</p>
+          <p className="text-xs uppercase tracking-[0.4em] text-gray-500 mb-3">Edit library</p>
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-3">Browse your saved libraries</h1>
+              <h1 className="text-4xl font-bold text-gray-900 mb-3">Pick a library to edit</h1>
               <p className="text-gray-600 text-lg max-w-3xl">
-                Pick one of the discovered libraries or point to a custom folder. Use the search field to narrow down results.
+                Choose a library to open its papers directly in the staging workspace. From there you can filter,
+                add new sources, and decide which papers to keep.
               </p>
             </div>
             <Button variant="outline" className="rounded-full" onClick={reload} disabled={loading}>
@@ -149,7 +99,6 @@ export default function LibraryLoadPage() {
           </div>
         </section>
 
-        <LatestSelectionAlert latestSelection={latestSelection} onContinue={navigate} />
         <ActionErrorAlert message={actionError} />
 
         <div className="grid gap-8 lg:grid-cols-3">
@@ -165,13 +114,20 @@ export default function LibraryLoadPage() {
               loading={loading}
               error={fetchError}
               onRetry={reload}
-              onSelectLibrary={handleUseCaseRequest}
+              onSelectLibrary={handleSelectLibrary}
               page={page}
               pageSize={pageSize}
               totalLibraries={totalLibraries}
               onPageChange={goToNextPage}
               hasNextPage={hasNextPage}
+              disabled={editing}
             />
+            {editing && (
+              <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Loading library into staging…
+              </div>
+            )}
           </div>
 
           <div className="space-y-6">
@@ -191,23 +147,18 @@ export default function LibraryLoadPage() {
             />
             <CustomPathPanel
               manualPath={manualPath}
-              onChange={setManualPath}
+              onChange={(value) => {
+                setManualPath(value)
+                setManualError(null)
+              }}
               manualError={manualError}
               onSubmit={handleManualSubmit}
               isValidPath={absolutePathValid}
+              disabled={editing}
             />
           </div>
         </div>
       </div>
-
-      <UseCaseDialog
-        open={useCaseDialogOpen}
-        pendingLibrary={pendingLibrary}
-        useCases={USE_CASES}
-        onSelect={handleUseCaseSelection}
-        selecting={selecting}
-        onOpenChange={(open) => !selecting && setUseCaseDialogOpen(open)}
-      />
     </div>
   )
 }

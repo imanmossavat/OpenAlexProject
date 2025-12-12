@@ -8,6 +8,7 @@ export default function CustomPathPanel({
   manualError,
   onSubmit,
   isValidPath,
+  disabled = false,
 }) {
   return (
     <div className="rounded-2xl border border-gray-200 p-6 bg-white shadow-sm">
@@ -24,13 +25,14 @@ export default function CustomPathPanel({
             value={manualPath}
             onChange={(event) => onChange(event.target.value)}
             className="mt-1 font-mono rounded-full placeholder:text-gray-400"
+            disabled={disabled}
           />
           <p className="text-xs text-gray-500 mt-2">
             We will validate the folder after you choose a workflow.
           </p>
         </div>
         {manualError ? <p className="text-sm text-red-600">{manualError}</p> : null}
-        <Button className="w-full rounded-full" onClick={onSubmit} disabled={!isValidPath}>
+        <Button className="w-full rounded-full" onClick={onSubmit} disabled={!isValidPath || disabled}>
           Use this path
         </Button>
       </div>

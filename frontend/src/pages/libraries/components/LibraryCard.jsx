@@ -4,10 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 import { deriveNameFromPath } from '../utils'
 
-export default function LibraryCard({ library, onSelect }) {
+export default function LibraryCard({ library, onSelect, disabled = false }) {
   const { name, path, description, paper_count: paperCount, api_provider: provider } = library
   const handleSelect = () => {
-    if (onSelect) onSelect(library)
+    if (!disabled && onSelect) onSelect(library)
   }
 
   return (
@@ -16,20 +16,25 @@ export default function LibraryCard({ library, onSelect }) {
       tabIndex={0}
       onClick={handleSelect}
       onKeyPress={(event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
+        if (!disabled && (event.key === 'Enter' || event.key === ' ')) {
           event.preventDefault()
           handleSelect()
         }
       }}
-      className="h-full flex flex-col border-gray-200 bg-white shadow-sm hover:shadow-lg hover:bg-gray-50 transition duration-200 rounded-3xl cursor-pointer"
+      className={`h-full flex flex-col border-gray-200 bg-white shadow-sm rounded-3xl ${
+        disabled
+          ? 'opacity-60 cursor-not-allowed'
+          : 'hover:shadow-lg hover:bg-gray-50 transition duration-200 cursor-pointer'
+      }`}
+      aria-disabled={disabled}
     >
       <CardHeader className="space-y-3 rounded-t-3xl pointer-events-none">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
             <FolderOpen className="w-5 h-5 text-gray-600" />
           </div>
-          <div>
-            <CardTitle className="text-xl leading-tight">
+          <div className="min-w-0">
+            <CardTitle className="text-xl leading-tight break-words line-clamp-2">
               {name || deriveNameFromPath(path)}
             </CardTitle>
             <CardDescription className="text-xs uppercase tracking-wide text-gray-500">
@@ -38,7 +43,7 @@ export default function LibraryCard({ library, onSelect }) {
           </div>
         </div>
         {description ? (
-          <p className="text-sm text-gray-600">{description}</p>
+          <p className="text-sm text-gray-600 line-clamp-3">{description}</p>
         ) : (
           <p className="text-sm text-gray-400 italic">No description provided.</p>
         )}

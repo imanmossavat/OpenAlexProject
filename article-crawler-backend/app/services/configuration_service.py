@@ -28,6 +28,7 @@ class ConfigurationService:
             self._config_storage[session_id] = {
                 'basic_config': None,
                 'advanced_config': None,
+                'experiment_name': None,
                 'created_at': datetime.now(),
                 'updated_at': datetime.now()
             }
@@ -134,6 +135,20 @@ class ConfigurationService:
             config_dict["ignored_venues"].extend(advanced.additional_ignored_venues)
         
         return config_dict
+
+    def set_experiment_name(self, session_id: str, experiment_name: Optional[str]) -> None:
+        """Persist the user-entered experiment name for later use."""
+        self.initialize_storage(session_id)
+        normalized = (experiment_name or "").strip() or None
+        self._config_storage[session_id]['experiment_name'] = normalized
+        self._config_storage[session_id]['updated_at'] = datetime.now()
+        if normalized:
+            self.logger.info("Stored experiment name '%s' for session %s", normalized, session_id)
+
+    def get_experiment_name(self, session_id: str) -> Optional[str]:
+        """Return the previously stored experiment name, if any."""
+        self.initialize_storage(session_id)
+        return self._config_storage[session_id].get('experiment_name')
     
     def clear_configuration(self, session_id: str):
 

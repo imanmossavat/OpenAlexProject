@@ -76,6 +76,7 @@ class CrawlerExecutionService:
             "started_at": datetime.utcnow(),
             "completed_at": None,
             "error_message": None,
+            "experiment_name": session_data.get("experiment_name"),
         }
         self._job_store.create_job(job_id, job_data)
 

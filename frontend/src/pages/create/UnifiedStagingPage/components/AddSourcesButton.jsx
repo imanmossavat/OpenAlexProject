@@ -5,8 +5,9 @@ export default function AddSourcesButton({ open, onToggle, onManual, onZotero, o
   return (
     <div className="relative">
       <Button
-        variant="default"
-        className="rounded-full bg-gray-700 text-white hover:bg-gray-600"
+        variant="ghost"
+        className="rounded-full text-white hover:opacity-90"
+        style={{ backgroundColor: 'oklch(37.3% 0.034 259.733)' }}
         onClick={onToggle}
       >
         Add more sources

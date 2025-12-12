@@ -9,6 +9,7 @@ from app.api.dependencies import (
     get_topic_modeling_service,
     get_source_file_service,
     get_library_route_helper,
+    get_library_edit_workflow_helper,
 )
 from app.schemas.library import (
     LibraryDetailsRequest,
@@ -18,6 +19,9 @@ from app.schemas.library import (
     LibraryListResponse,
     LibrarySelectRequest,
     LibrarySelectionResponse,
+    LibraryEditSelectionResponse,
+    LibraryEditCommitRequest,
+    LibraryEditCommitResponse,
     AddLibrarySeedsRequest,
     AddLibrarySeedsResponse,
     RemoveLibrarySeedsRequest,
@@ -177,6 +181,15 @@ async def add_library_seeds(
     return helper.add_library_seeds(session_id, request)
 
 
+@router.post("/{session_id}/edit/stage", response_model=LibraryEditSelectionResponse)
+async def stage_library_for_editing(
+    session_id: str = Path(..., description="Session ID"),
+    helper=Depends(get_library_edit_workflow_helper),
+):
+    """Load an existing library into the staging/session workflow."""
+    return helper.stage_library(session_id)
+
+
 @router.post("/{session_id}/edit/remove", response_model=RemoveLibrarySeedsResponse)
 async def remove_library_seeds(
     session_id: str = Path(..., description="Session ID"),
@@ -223,3 +236,15 @@ async def add_library_seeds_from_session(
     Add all current session seeds (collected via Zotero/PDF/IDs) into the selected library.
     """
     return helper.add_session_seeds(session_id, request)
+
+
+@router.post("/{session_id}/edit/commit", response_model=LibraryEditCommitResponse)
+async def commit_library_edits(
+    session_id: str = Path(..., description="Session ID"),
+    request: LibraryEditCommitRequest = Body(default=LibraryEditCommitRequest()),
+    helper=Depends(get_library_edit_workflow_helper),
+):
+    """
+    Apply the current session selections to the selected library or duplicate it elsewhere.
+    """
+    return helper.commit(session_id, request)

@@ -34,6 +34,10 @@ from app.services.staging.row_manager import StagingRowManager
 from app.services.integration_settings_service import IntegrationSettingsService
 from app.services.keyword.service import KeywordService
 from app.services.library.edit_service import LibraryEditService
+from app.services.library.edit_workflow_service import (
+    LibraryEditWorkflowService,
+    LibraryEditStateStore,
+)
 from app.services.library.service import LibraryService
 from app.services.pdf.service import PDFSeedService
 from app.services.pdf.adapters import (
@@ -109,6 +113,7 @@ from app.services.zotero.helpers import (
 from app.api.routes_helpers.library import LibraryRouteHelper
 from app.api.routes_helpers.staging import StagingRouteHelper
 from app.api.routes_helpers.seeds import SeedRouteHelper
+from app.api.routes_helpers.edit_workflow import LibraryEditWorkflowRouteHelper
 
 
 class Container(containers.DeclarativeContainer):
@@ -404,6 +409,20 @@ class Container(containers.DeclarativeContainer):
         path_resolver=library_path_resolver,
     )
 
+    library_edit_state_store = providers.Singleton(LibraryEditStateStore)
+
+    library_edit_workflow_service = providers.Singleton(
+        LibraryEditWorkflowService,
+        logger=logger,
+        library_service=library_service,
+        library_edit_service=library_edit_service,
+        seed_session_service=seed_session_service,
+        staging_service=staging_service,
+        workflow_runner=library_workflow_runner,
+        path_resolver=library_path_resolver,
+        state_store=library_edit_state_store,
+    )
+
     topic_label_builder = providers.Singleton(TopicLabelBuilder)
     topic_result_formatter = providers.Singleton(
         TopicResultFormatter,
@@ -480,6 +499,13 @@ class Container(containers.DeclarativeContainer):
         library_edit_service=library_edit_service,
         seed_selection_service=seed_selection_service,
         seed_session_service=seed_session_service,
+    )
+
+    library_edit_workflow_helper = providers.Factory(
+        LibraryEditWorkflowRouteHelper,
+        library_service=library_service,
+        seed_session_service=seed_session_service,
+        workflow_service=library_edit_workflow_service,
     )
 
     staging_route_helper = providers.Factory(

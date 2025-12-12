@@ -181,6 +181,14 @@ async def get_library_route_helper(
 
 
 @inject
+async def get_library_edit_workflow_helper(
+    helper=Depends(Provide[Container.library_edit_workflow_helper])
+):
+    """Get the helper that orchestrates the edit workflow."""
+    return helper
+
+
+@inject
 async def get_staging_route_helper(
     helper=Depends(Provide[Container.staging_route_helper])
 ):

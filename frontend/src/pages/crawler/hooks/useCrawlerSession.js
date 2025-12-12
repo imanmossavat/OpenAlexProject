@@ -18,7 +18,7 @@ export default function useCrawlerSession() {
       return null
     }
     const newSessionId = res.data.session_id
-    setSessionId(newSessionId)
+    setSessionId(newSessionId, { useCase: 'crawler_wizard' })
     setLocalSessionId(newSessionId)
     setLoading(false)
     return newSessionId

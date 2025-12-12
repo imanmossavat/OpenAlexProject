@@ -21,7 +21,7 @@ export default function HomePage() {
       return
     }
     const sid = res.data?.session_id
-    if (sid) setSessionId(sid)
+    if (sid) setSessionId(sid, { useCase: 'library_creation' })
     navigate('/create/library-start')
   }
 

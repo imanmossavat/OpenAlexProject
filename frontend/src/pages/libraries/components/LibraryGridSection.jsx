@@ -14,6 +14,7 @@ export default function LibraryGridSection({
   totalLibraries,
   onPageChange,
   hasNextPage,
+  disabled = false,
 }) {
   const hasLibraries = libraries.length > 0
   return (
@@ -39,6 +40,7 @@ export default function LibraryGridSection({
                 key={`${library.path}-${library.name || 'library'}`}
                 library={library}
                 onSelect={onSelectLibrary}
+                disabled={disabled}
               />
             ))}
           </div>
