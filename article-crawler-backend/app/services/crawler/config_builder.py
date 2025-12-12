@@ -42,6 +42,8 @@ class CrawlerConfigBuilder:
             raise ValueError("No valid seeds provided for crawler execution")
 
         root_folder = self._root / "experiments" / f"job_{job_id}"
+        metadata_library_path = self._metadata_library_path(session_data)
+        display_name = self._resolve_display_name(session_data)
         experiment_config = ExperimentConfig(
             name=f"crawler_{job_id}",
             seeds=seeds,
@@ -78,8 +80,9 @@ class CrawlerConfigBuilder:
             root_folder=root_folder,
             log_level=config_dict.get("log_level", "INFO"),
             open_vault_folder=False,
-            library_path=self._resolve_library_path(session_data),
+            library_path=metadata_library_path,
             library_name=session_data.get("library_name"),
+            display_name=display_name,
         )
 
         crawl_params = CrawlerParameters(seed_paperid=seeds, keywords=keywords)
@@ -97,6 +100,23 @@ class CrawlerConfigBuilder:
             return None
         path = Path(raw)
         return path if path.exists() else None
+
+    def _metadata_library_path(self, session_data: Dict[str, Any]) -> Optional[Path]:
+        raw = session_data.get("library_path")
+        if not raw:
+            return None
+        try:
+            return Path(raw)
+        except Exception:
+            self._logger.debug("Unable to normalize library path metadata: %s", raw)
+            return None
+
+    def _resolve_display_name(self, session_data: Dict[str, Any]) -> Optional[str]:
+        value = session_data.get("experiment_name")
+        if not isinstance(value, str):
+            return None
+        normalized = value.strip()
+        return normalized or None
 
     def _resolve_seeds(
         self,

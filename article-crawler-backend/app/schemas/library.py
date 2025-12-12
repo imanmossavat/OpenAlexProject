@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, field_validator
-from typing import Optional, List
+from typing import Optional, List, Literal
 from app.schemas.seeds import MatchedSeed
 
 
@@ -83,6 +83,41 @@ class LibrarySelectionResponse(BaseModel):
     path: str
     description: Optional[str] = None
     paper_count: int
+
+
+class LibraryEditSelectionResponse(BaseModel):
+    session_id: str
+    name: str
+    path: str
+    staged_count: int
+    seed_count: int
+
+
+class LibraryEditCommitRequest(BaseModel):
+    mode: Literal["update", "duplicate"] = Field(default="update")
+    duplicate_path: Optional[str] = Field(
+        default=None,
+        description="Absolute path for the duplicated library when mode=duplicate",
+    )
+    duplicate_name: Optional[str] = Field(
+        default=None,
+        description="Override library name for duplication",
+    )
+    duplicate_description: Optional[str] = Field(
+        default=None,
+        description="Optional description for duplicated library",
+    )
+
+
+class LibraryEditCommitResponse(BaseModel):
+    session_id: str
+    mode: Literal["update", "duplicate"]
+    total_selected: int
+    library_path: str
+    added_ids: List[str] = Field(default_factory=list)
+    removed_ids: List[str] = Field(default_factory=list)
+    duplicate_library_path: Optional[str] = None
+    duplicate_library_name: Optional[str] = None
 
 
 class AddLibrarySeedsRequest(BaseModel):

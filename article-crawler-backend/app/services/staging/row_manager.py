@@ -95,6 +95,7 @@ class StagingRowManager:
             "staging_id": session.get("next_id", 1),
             "source": payload.source,
             "source_type": payload.source_type,
+            "is_library_seed": bool(payload.is_library_seed),
             "title": payload.title,
             "authors": payload.authors,
             "year": payload.year,

@@ -62,6 +62,9 @@ def _flatten_config(nested_dict: dict) -> dict:
     
     if 'experiment' in nested_dict and isinstance(nested_dict['experiment'], dict):
         flat['name'] = nested_dict['experiment'].get('name')
+        display_name = nested_dict['experiment'].get('display_name')
+        if display_name:
+            flat['display_name'] = display_name
     
     if 'seeds' in nested_dict:
         if isinstance(nested_dict['seeds'], dict) and 'ids' in nested_dict['seeds']:
@@ -71,6 +74,13 @@ def _flatten_config(nested_dict: dict) -> dict:
     
     if 'keywords' in nested_dict:
         flat['keywords'] = nested_dict['keywords']
+
+    if 'library' in nested_dict and isinstance(nested_dict['library'], dict):
+        lib_block = nested_dict['library']
+        if 'path' in lib_block and lib_block['path']:
+            flat['library_path'] = Path(lib_block['path'])
+        if 'name' in lib_block and lib_block['name']:
+            flat['library_name'] = lib_block['name']
     
     if 'crawling' in nested_dict and isinstance(nested_dict['crawling'], dict):
         crawl = nested_dict['crawling']
@@ -161,5 +171,18 @@ def _structure_config(flat_dict: dict) -> dict:
             'open_vault_folder': flat_dict.get('open_vault_folder', True)
         }
     }
+
+    display_name = flat_dict.get('display_name')
+    if display_name:
+        structured['experiment']['display_name'] = display_name
+
+    library_path = flat_dict.get('library_path')
+    library_name = flat_dict.get('library_name')
+    if library_path or library_name:
+        structured['library'] = {}
+        if library_path:
+            structured['library']['path'] = str(library_path)
+        if library_name:
+            structured['library']['name'] = library_name
     
     return structured

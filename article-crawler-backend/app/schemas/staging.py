@@ -57,6 +57,7 @@ class StagingPaper(BaseModel):
     staging_id: int = Field(..., description="Unique staging row id")
     source: str = Field(..., description="Human readable source label")
     source_type: SourceType = Field(..., description="Machine friendly source type")
+    is_library_seed: bool = Field(False, description="True when row originated from a loaded library")
     title: Optional[str] = Field(None, description="Paper title")
     authors: Optional[str] = Field(None, description="Comma separated authors")
     year: Optional[int] = Field(None, description="Publication year")
@@ -99,6 +100,7 @@ class StagingPaperCreate(BaseModel):
 
     source: str
     source_type: SourceType
+    is_library_seed: bool = Field(False, description="True when row originated from a loaded library")
     title: Optional[str] = None
     authors: Optional[str] = None
     year: Optional[int] = None

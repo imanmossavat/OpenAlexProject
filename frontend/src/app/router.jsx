@@ -15,6 +15,7 @@ import GrobidSetupPage from '@/pages/help/GrobidSetupPage'
 import AboutPage from '@/pages/about/AboutPage'
 import WorkflowPage from '@/pages/workflow/WorkflowPage'
 import LibraryLoadPage from '@/pages/libraries/LibraryLoadPage'
+import LibraryEditPage from '@/pages/libraries/LibraryEditPage'
 import CrawlerKeywordsPage from '@/pages/crawler/keywords/CrawlerKeywordsPage'
 import CrawlerConfigurationPage from '@/pages/crawler/configuration/CrawlerConfigurationPage'
 import CrawlerRunPage from '@/pages/crawler/run/CrawlerRunPage'
@@ -36,6 +37,7 @@ export const router = createBrowserRouter([
       { path: 'create/details', element: <LibraryDetailsPage /> },
       { path: 'create/review', element: <ReviewCreatePage /> },
       { path: 'libraries', element: <LibraryLoadPage /> },
+      { path: 'libraries/edit', element: <LibraryEditPage /> },
       { path: 'crawler/keywords', element: <CrawlerKeywordsPage /> },
       { path: 'crawler/configuration', element: <CrawlerConfigurationPage /> },
       { path: 'crawler/run', element: <CrawlerRunPage /> },

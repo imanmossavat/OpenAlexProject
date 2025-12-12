@@ -77,6 +77,8 @@ async def start_crawler(
                 detail="Session must have at least one seed paper or a library_path must be provided"
             )
 
+    experiment_name = config_service.get_experiment_name(session_id)
+
     session_data = {
         "session_id": session.session_id,
         "use_case": session.use_case,
@@ -84,8 +86,10 @@ async def start_crawler(
         "keywords": keyword_service.get_keywords(session_id),
         "configuration": config_service.get_final_config_dict(session_id),
         "created_at": session.created_at,
-        "updated_at": session.updated_at
+        "updated_at": session.updated_at,
     }
+    if experiment_name:
+        session_data["experiment_name"] = experiment_name
 
     if using_library:
         library_path = req_library_path or (selected_details.get("path") if selected_details else None)

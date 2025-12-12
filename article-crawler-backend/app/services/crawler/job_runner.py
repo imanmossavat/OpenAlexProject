@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 
 from ArticleCrawler.DataManagement.markdown_writer import MarkdownFileGenerator
 from ArticleCrawler.crawler import Crawler
+from ArticleCrawler.cli.utils.config_loader import save_config
 
 from .config_builder import CrawlerRunInputs
 
@@ -36,6 +38,11 @@ class CrawlerJobRunner:
         stopping_config = crawler_configs["stopping_config"]
 
         storage_config.root_folder.mkdir(parents=True, exist_ok=True)
+        self._persist_configuration(
+            job_id,
+            storage_config.root_folder,
+            inputs.experiment_config,
+        )
 
         generator = MarkdownFileGenerator(
             storage_and_logging_options=storage_config,
@@ -78,3 +85,23 @@ class CrawlerJobRunner:
         )
 
         return CrawlerRunResult(crawler=crawler, papers_collected=papers_collected)
+
+    def _persist_configuration(
+        self,
+        job_id: str,
+        root_folder: Path,
+        experiment_config,
+    ) -> None:
+        """Write the experiment configuration to disk for reproducibility."""
+        try:
+            config_path = root_folder / "config.yaml"
+            save_config(experiment_config, config_path)
+            self._logger.info(
+                "Job %s: Saved experiment configuration to %s",
+                job_id,
+                config_path,
+            )
+        except Exception:
+            self._logger.warning(
+                "Job %s: Failed to save experiment configuration", job_id, exc_info=True
+            )

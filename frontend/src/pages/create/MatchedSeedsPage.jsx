@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import apiClient from '@/shared/api/client'
 import { endpoints } from '@/shared/api/endpoints'
-import { getSessionId, hydrateSessionFromQuery } from '@/shared/lib/session'
+import { getSessionId, getSessionUseCase, hydrateSessionFromQuery } from '@/shared/lib/session'
 import PaperDetailModal from '@/components/PaperDetailModal'
 import Stepper from '@/components/Stepper'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -82,7 +82,8 @@ export default function MatchedSeedsPage() {
     if (res.error) {
       setError(res.error)
     } else {
-      navigate('/create/details')
+      const useCase = getSessionUseCase()
+      navigate(useCase === 'library_edit' ? '/create/review' : '/create/details')
     }
   }
 

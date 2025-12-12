@@ -173,8 +173,9 @@ export default function StagingTable({
           {stats.totalRows > 0 && (
             <Button
               type="button"
-              variant="default"
-              className="rounded-full text-xs bg-gray-700 text-white hover:bg-gray-600"
+              variant="ghost"
+              className="rounded-full text-xs text-white hover:opacity-85"
+              style={{ backgroundColor: 'oklch(37.3% 0.034 259.733)' }}
               disabled={checkingRetractions}
               onClick={onCheckRetractions}
             >

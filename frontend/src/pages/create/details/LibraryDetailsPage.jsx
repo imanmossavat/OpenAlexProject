@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import Stepper from '@/components/Stepper'
 import apiClient from '@/shared/api/client'
 import { endpoints } from '@/shared/api/endpoints'
-import { getSessionId, hydrateSessionFromQuery } from '@/shared/lib/session'
+import { getSessionId, getSessionUseCase, hydrateSessionFromQuery } from '@/shared/lib/session'
 
 export default function LibraryDetailsPage() {
   const navigate = useNavigate()
@@ -16,6 +16,7 @@ export default function LibraryDetailsPage() {
   const [seedCount, setSeedCount] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [sessionUseCase] = useState(() => getSessionUseCase())
 
   useEffect(() => {
     const sid = getSessionId() || hydrateSessionFromQuery()
@@ -29,6 +30,12 @@ export default function LibraryDetailsPage() {
       }
     })()
   }, [navigate])
+
+  useEffect(() => {
+    if (sessionUseCase === 'library_edit') {
+      navigate('/create/review', { replace: true })
+    }
+  }, [sessionUseCase, navigate])
 
   const handleContinue = async () => {
     if (!sessionId || !form.name.trim()) {

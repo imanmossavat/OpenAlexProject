@@ -125,6 +125,7 @@ async def finalize_configuration(
 
     # Get configuration (validates basic config is set)
     config_dict = config_service.get_final_config_dict(session_id)
+    config_service.set_experiment_name(session_id, request.experiment_name)
 
     total_seeds = 0
     api_provider = "openalex"
