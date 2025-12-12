@@ -181,6 +181,22 @@ class OpenAlexAPIProvider(BaseAPIProvider):
         self.logger.info(f"Total fetched: {len(all_works)}/{len(paper_ids)} papers")
         return all_works
     
+    def get_papers_batch_as_paper_data(self, paper_ids: List[str]) -> Dict[str, 'PaperData']:
+        """Fetch a batch of papers and return PaperData objects keyed by normalized ID."""
+        works = self.get_papers_batch(paper_ids)
+        paper_data_map: Dict[str, 'PaperData'] = {}
+        for work in works:
+            try:
+                paper_data = self._convert_work_to_paper_data(work)
+                if not paper_data:
+                    continue
+                normalized = self._clean_id(paper_data.paper_id)
+                if normalized:
+                    paper_data_map[normalized] = paper_data
+            except Exception as exc:
+                self.logger.warning("Failed to convert work %s to PaperData: %s", work.get('id'), exc)
+        return paper_data_map
+    
 
 
     def get_paper_as_paper_data(self, paper_id: str) -> Optional['PaperData']:

@@ -1,6 +1,9 @@
 
+import json
 from pathlib import Path
 import os
+
+import numpy as np
 import pandas as pd
 from ArticleCrawler.utils.url_builder import PaperURLBuilder
 from ArticleCrawler.library.models import PaperData
@@ -24,6 +27,11 @@ class MarkdownFileGenerator:
         self.metadata_folder = storage_and_logging_options.metadata_folder
         self.summary_folder = storage_and_logging_options.summary_folder
         self.open_vault_folder = storage_and_logging_options.open_vault_folder
+        self.summary_structured_folder = getattr(
+            storage_and_logging_options,
+            'summary_structured_folder',
+            self.summary_folder / 'structured'
+        )
         self.api_provider_type = api_provider_type.lower()
         self.url_builder = PaperURLBuilder()
 
@@ -37,6 +45,7 @@ class MarkdownFileGenerator:
         self.figure_folder.mkdir(parents=True, exist_ok=True)
         self.metadata_folder.mkdir(parents=True, exist_ok=True)
         self.summary_folder.mkdir(parents=True, exist_ok=True)
+        self.summary_structured_folder.mkdir(parents=True, exist_ok=True)
         
 
     def _get_references(self, paper_id, df_paper_references):
@@ -209,6 +218,56 @@ class MarkdownFileGenerator:
             markdown_content += f"- Being Cited by Others: {row['being_cited_by_others']}\n\n"
 
         return markdown_content
+
+    def _convert_scalar_for_json(self, value):
+        if value is None:
+            return None
+        if isinstance(value, (np.integer, np.int64, np.int32)):
+            return int(value)
+        if isinstance(value, (np.floating, np.float64, np.float32)):
+            return float(value)
+        if isinstance(value, (np.bool_,)):
+            return bool(value)
+        if pd.isna(value):
+            return None
+        return value
+
+    def _prepare_top_authors_payload(self, top_authors):
+        payload = []
+        for _, row in top_authors.iterrows():
+            payload.append({
+                "author_id": self._convert_scalar_for_json(row.get('authorId')),
+                "author_name": row.get('authorName'),
+                "max_citations": self._convert_scalar_for_json(row.get('max_citations')),
+                "avg_citations": self._convert_scalar_for_json(row.get('avg_citations')),
+                "num_citations": self._convert_scalar_for_json(row.get('num_citations')),
+                "paper_count": self._convert_scalar_for_json(row.get('num_papers')),
+            })
+        return payload
+
+    def _prepare_top_venues_payload(self, top_venues):
+        payload = []
+        for _, row in top_venues.iterrows():
+            payload.append({
+                "venue": row.get('venue'),
+                "total_papers": self._convert_scalar_for_json(row.get('total_papers')),
+                "self_citations": self._convert_scalar_for_json(row.get('self_citations')),
+                "citing_others": self._convert_scalar_for_json(row.get('citing_others')),
+                "being_cited_by_others": self._convert_scalar_for_json(row.get('being_cited_by_others')),
+            })
+        return payload
+
+    def _write_structured_summary(self, payload, base_name):
+        if payload is None:
+            return
+        self.summary_structured_folder.mkdir(parents=True, exist_ok=True)
+        json_path = self.summary_structured_folder / f"{base_name}.json"
+        jsonl_path = self.summary_structured_folder / f"{base_name}.jsonl"
+        with open(json_path, 'w', encoding='utf-8') as json_file:
+            json.dump(payload, json_file, ensure_ascii=False, indent=2)
+        with open(jsonl_path, 'w', encoding='utf-8') as jsonl_file:
+            for entry in payload:
+                jsonl_file.write(json.dumps(entry, ensure_ascii=False) + '\n')
     
     def generate_markdown_files(self, df_abstract, df_meta, df_paper_references, 
                                 df_paper_author, df_author, df_additional_abstract, df_venue_features):
@@ -228,6 +287,8 @@ class MarkdownFileGenerator:
         # 1. Get Top Authors and Top Venues
         top_authors = self._get_top_authors(df_author, df_paper_author)
         top_venues = self._get_top_venues(df_venue_features)
+        authors_payload = self._prepare_top_authors_payload(top_authors)
+        venues_payload = self._prepare_top_venues_payload(top_venues)
         
         # 2. Create markdown content for Top Authors and Top Venues
         top_authors_markdown = self._create_top_authors_markdown(top_authors)
@@ -242,6 +303,9 @@ class MarkdownFileGenerator:
         
         with open(top_venues_file, 'w', encoding='utf-8') as file:
             file.write(top_venues_markdown)
+        
+        self._write_structured_summary(authors_payload, 'top_authors')
+        self._write_structured_summary(venues_payload, 'top_venues')
 
         # 4. Process the individual papers (as before)
         for index, row in df_abstract.iterrows():

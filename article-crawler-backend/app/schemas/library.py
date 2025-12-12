@@ -67,6 +67,9 @@ class LibraryInfo(BaseModel):
 
 class LibraryListResponse(BaseModel):
     libraries: List[LibraryInfo] = Field(default_factory=list)
+    total: int = Field(..., description="Total libraries that match the current query")
+    page: int = Field(..., description="Current page number (1-indexed)")
+    page_size: int = Field(..., description="Number of items per page")
 
 
 class LibrarySelectRequest(BaseModel):

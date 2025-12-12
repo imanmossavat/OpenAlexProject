@@ -2,8 +2,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Path, Body
 from typing import List
 
-from app.services.zotero_seed_service import ZoteroSeedService
-from app.services.seed_session_service import SeedSessionService
+from app.services.zotero.service import ZoteroSeedService
+from app.services.seeds.session_service import SeedSessionService
 from app.api.dependencies import get_zotero_seed_service, get_seed_session_service, get_staging_service
 
 from app.schemas.zotero_seeds import (
@@ -305,12 +305,8 @@ async def review_manual_matches(
     
 
     selections = [sel.model_dump() for sel in manual_selections]
-    
-    if not hasattr(zotero_service, '_manual_selections_storage'):
-        zotero_service._manual_selections_storage = {}
-    
-    zotero_service._manual_selections_storage[session_id] = selections
-    
+    zotero_service.store_manual_selections(session_id, selections)
+
     selected_count = sum(1 for s in selections if s.get('action') == 'select')
     skipped_count = sum(1 for s in selections if s.get('action') == 'skip')
     
@@ -355,10 +351,10 @@ async def confirm_matches(
     session = session_service.get_session(session_id)
     
     manual_selections = [sel.model_dump() for sel in (request.manual_selections or [])]
-    
-    if not manual_selections and hasattr(zotero_service, '_manual_selections_storage'):
-        manual_selections = zotero_service._manual_selections_storage.get(session_id, [])
-    
+    if not manual_selections:
+        manual_selections = zotero_service.get_manual_selections(session_id)
+
+    match_results = zotero_service.get_match_results(session_id)
     seeds = zotero_service.get_confirmed_seeds(
         session_id,
         request.action,
@@ -383,17 +379,15 @@ async def confirm_matches(
     ]
     staged = staging_service.add_rows(session_id, staging_rows) if staging_rows else []
     
-    zotero_service.clear_staging(session_id)
-    if hasattr(zotero_service, '_manual_selections_storage') and session_id in zotero_service._manual_selections_storage:
-        del zotero_service._manual_selections_storage[session_id]
-    
-    stats = staging_service.list_rows(session_id, page=1, page_size=1)
-    
     accepted_count = len(staged)
-    match_results = zotero_service._match_results_storage.get(session_id, [])
     total_matched = len([r for r in match_results if r.matched])
     total_manual = len(manual_selections)
     skipped_count = 0 if request.action == "accept_all" else (total_matched + total_manual)
+
+    zotero_service.clear_staging(session_id)
+    zotero_service.clear_manual_selections(session_id)
+
+    stats = staging_service.list_rows(session_id, page=1, page_size=1)
     
     return ZoteroConfirmResponse(
         accepted_count=accepted_count,
@@ -418,6 +412,7 @@ async def clear_staging(
     session_service.get_session(session_id)
     
     zotero_service.clear_staging(session_id)
+    zotero_service.clear_manual_selections(session_id)
     
     return {
         "message": "Successfully cleared staging area"

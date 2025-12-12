@@ -173,8 +173,8 @@ export default function StagingTable({
           {stats.totalRows > 0 && (
             <Button
               type="button"
-              variant="outline"
-              className="rounded-full text-xs"
+              variant="default"
+              className="rounded-full text-xs bg-gray-700 text-white hover:bg-gray-600"
               disabled={checkingRetractions}
               onClick={onCheckRetractions}
             >

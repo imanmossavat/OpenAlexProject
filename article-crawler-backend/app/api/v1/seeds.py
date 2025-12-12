@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from app.schemas.seeds import PaperIDsRequest, PaperIDsResponse
-from app.api.dependencies import get_seed_selection_service
+from app.api.dependencies import get_seed_route_helper
 
 router = APIRouter()
 
@@ -8,7 +8,7 @@ router = APIRouter()
 @router.post("/paper-ids", response_model=PaperIDsResponse)
 async def match_paper_ids(
     request: PaperIDsRequest,
-    service = Depends(get_seed_selection_service)
+    helper = Depends(get_seed_route_helper)
 ):
     """
     Match paper IDs against an API provider.
@@ -25,8 +25,4 @@ async def match_paper_ids(
     - List of successfully matched seeds with metadata
     - List of seeds that could not be matched with error messages
     """
-    result = service.match_paper_ids(
-        paper_ids=request.paper_ids,
-        api_provider=request.api_provider
-    )
-    return PaperIDsResponse(result=result)
+    return helper.match_paper_ids(request)

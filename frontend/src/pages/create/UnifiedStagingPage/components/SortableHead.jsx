@@ -1,4 +1,4 @@
-import ColumnFilterButton from './ColumnFilterButton'
+import ColumnFilterButton from '@/components/column-filters/ColumnFilterButton'
 
 export default function SortableHead({
   label,

@@ -1,61 +1,51 @@
+from __future__ import annotations
+
 import logging
 import os
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional
-
-from dotenv import dotenv_values, set_key
+from typing import Dict, Iterable, Optional
 
 from app.schemas.settings import (
     IntegrationSettingsResponse,
+    LibraryRootSettings,
     OpenAlexSettings,
+    UpdateLibraryRootRequest,
     UpdateOpenAlexSettingsRequest,
     UpdateZoteroSettingsRequest,
     ZoteroSettings,
 )
 from app.core.exceptions import InvalidInputException
+from app.services.settings.helpers import (
+    IntegrationSettingsRepository,
+    IntegrationSettingsValidator,
+)
 
 
 class IntegrationSettingsService:
     """Manage external integration credentials stored in project .env files."""
 
+    LIBRARY_ROOT_KEY = "ARTICLECRAWLER_LIBRARY_ROOT"
+
     def __init__(
         self,
         logger: logging.Logger,
-        primary_env_path: Optional[str] = None,
-        replica_env_paths: Optional[Iterable[str]] = None,
+        repository: Optional[IntegrationSettingsRepository] = None,
+        validator: Optional[IntegrationSettingsValidator] = None,
+        primary_env_path: Optional[str | Path] = None,
+        replica_env_paths: Optional[Iterable[str | Path]] = None,
     ):
         self.logger = logger
-
-        project_root = Path(__file__).resolve().parents[2]
-        default_primary = project_root / ".env"
-        default_replica = project_root.parent / "fakenewscitationnetwork" / ".env"
-
-        candidate_paths: List[Path] = [Path(primary_env_path) if primary_env_path else default_primary]
-        if replica_env_paths:
-            candidate_paths.extend(Path(path) for path in replica_env_paths)
-        else:
-            if default_replica != candidate_paths[0]:
-                candidate_paths.append(default_replica)
-
-        seen = set()
-        self.env_paths: List[Path] = []
-        for path in candidate_paths:
-            resolved = path.resolve()
-            if resolved in seen:
-                continue
-            seen.add(resolved)
-            resolved.parent.mkdir(parents=True, exist_ok=True)
-            resolved.touch(exist_ok=True)
-            self.env_paths.append(resolved)
-
-        if not self.env_paths:
-            raise InvalidInputException("No configuration files available for integration settings.")
-
-        self.primary_env_path = self.env_paths[0]
+        self._repository = repository or IntegrationSettingsRepository(
+            logger=logger,
+            primary_env_path=primary_env_path,
+            replica_env_paths=replica_env_paths,
+        )
+        self._validator = validator or IntegrationSettingsValidator()
+        self.primary_env_path = self._repository.primary_env_path
 
     def get_settings(self) -> IntegrationSettingsResponse:
         """Return the current integration configuration state."""
-        values = self._load_env(self.primary_env_path)
+        values = self._repository.load_values()
         return IntegrationSettingsResponse(
             openalex=self._build_openalex_settings(values),
             zotero=self._build_zotero_settings(values),
@@ -63,83 +53,49 @@ class IntegrationSettingsService:
 
     def update_openalex(self, payload: UpdateOpenAlexSettingsRequest) -> IntegrationSettingsResponse:
         """Persist the OpenAlex polite email."""
-        email = payload.email.strip()
-        self._set_env_value("OPENALEX_EMAIL", email)
+        email = self._validator.normalize_openalex(payload.email)
+        self._repository.set_value("OPENALEX_EMAIL", email)
         self.logger.info("Updated OpenAlex contact email for polite API usage.")
         return self.get_settings()
 
     def update_zotero(self, payload: UpdateZoteroSettingsRequest) -> IntegrationSettingsResponse:
         """Persist Zotero credentials."""
-        library_id = payload.library_id.strip()
-        if not library_id:
-            raise InvalidInputException("Zotero library id cannot be empty.")
+        normalized = self._validator.normalize_zotero(
+            payload.library_id,
+            payload.library_type,
+            payload.api_key,
+        )
 
-        library_type = (payload.library_type or "user").strip().lower()
-        if library_type not in {"user", "group"}:
-            raise InvalidInputException("Zotero library type must be 'user' or 'group'.")
-
-        self._set_env_value("ZOTERO_LIBRARY_ID", library_id)
-        self._set_env_value("ZOTERO_LIBRARY_TYPE", library_type)
-
-        if payload.api_key is not None:
-            cleaned_key = payload.api_key.strip()
-            if cleaned_key:
-                self._set_env_value("ZOTERO_API_KEY", cleaned_key)
-            else:
-                self._remove_env_key("ZOTERO_API_KEY")
+        self._repository.set_value("ZOTERO_LIBRARY_ID", normalized["library_id"])
+        self._repository.set_value("ZOTERO_LIBRARY_TYPE", normalized["library_type"])
+        api_key = normalized.get("api_key")
+        if api_key:
+            self._repository.set_value("ZOTERO_API_KEY", api_key)
+        else:
+            self._repository.remove_key("ZOTERO_API_KEY")
 
         self.logger.info("Updated Zotero credentials.")
         return self.get_settings()
 
-    def _load_env(self, path: Path) -> Dict[str, str]:
-        """Load environment values from the primary .env file."""
-        try:
-            return dotenv_values(path)
-        except Exception as exc:
-            self.logger.error(f"Failed to read environment file {path}: {exc}")
-            raise InvalidInputException("Unable to read configuration file.")
+    def get_library_root(self) -> LibraryRootSettings:
+        """Return the currently configured library discovery root (if any)."""
+        values = self._repository.load_values()
+        raw_path = values.get(self.LIBRARY_ROOT_KEY) or os.environ.get(self.LIBRARY_ROOT_KEY)
+        path = raw_path.strip() if isinstance(raw_path, str) else None
+        return LibraryRootSettings(path=path or None)
 
-    def _set_env_value(self, key: str, value: str) -> None:
-        """Set (or overwrite) an environment key."""
-        for path in self.env_paths:
-            set_key(str(path), key, value, quote_mode="never")
-        os.environ[key] = value
+    def update_library_root(self, payload: UpdateLibraryRootRequest) -> LibraryRootSettings:
+        """Persist a new library discovery root or reset to defaults."""
+        normalized = self._validator.normalize_library_root(payload.path)
+        if normalized is None:
+            self._repository.remove_key(self.LIBRARY_ROOT_KEY)
+            self.logger.info("Cleared configured library discovery root. Using built-in defaults.")
+            return self.get_library_root()
 
-    def _remove_env_key(self, key: str) -> None:
-        """Remove a key from the env file and current process."""
-        for path in self.env_paths:
-            if not path.exists():
-                continue
-            try:
-                lines = path.read_text().splitlines()
-            except Exception as exc:
-                self.logger.error(f"Failed to read env file for removal: {exc}")
-                raise InvalidInputException("Unable to update configuration file.")
-
-            updated = []
-            removed = False
-            for line in lines:
-                stripped = line.strip()
-                if not stripped or stripped.startswith("#"):
-                    updated.append(line)
-                    continue
-                key_part = line.split("=", 1)[0].strip()
-                if key_part == key:
-                    removed = True
-                    continue
-                updated.append(line)
-
-            if removed:
-                try:
-                    content = "\n".join(updated)
-                    if content and not content.endswith("\n"):
-                        content += "\n"
-                    path.write_text(content)
-                except Exception as exc:
-                    self.logger.error(f"Failed to write env file when removing key: {exc}")
-                    raise InvalidInputException("Unable to update configuration file.")
-
-        os.environ.pop(key, None)
+        normalized_str = str(normalized)
+        self._repository.set_value(self.LIBRARY_ROOT_KEY, normalized_str)
+        self.logger.info("Set library discovery root to %s", normalized_str)
+        return self.get_library_root()
 
     def _build_openalex_settings(self, values: Dict[str, str]) -> OpenAlexSettings:
         email = values.get("OPENALEX_EMAIL") or os.environ.get("OPENALEX_EMAIL")

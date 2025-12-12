@@ -107,6 +107,7 @@ class PaperMetadata(BaseModel):
     """Paper metadata with centrality score."""
     paper_id: str = Field(..., description="Paper ID")
     title: str = Field(..., description="Paper title")
+    abstract: Optional[str] = Field(None, description="Paper abstract")
     authors: List[str] = Field(default_factory=list, description="List of authors")
     year: Optional[int] = Field(None, description="Publication year")
     venue: Optional[str] = Field(None, description="Publication venue")
@@ -175,6 +176,26 @@ class AuthorInfluence(BaseModel):
         }
 
 
+class VenueStatistics(BaseModel):
+    """Venue aggregated metrics."""
+    venue: str = Field(..., description="Venue name")
+    total_papers: int = Field(..., description="Total papers attributed to this venue")
+    self_citations: int = Field(0, description="Self-citation count")
+    citing_others: int = Field(0, description="Outgoing citations to other venues")
+    being_cited_by_others: int = Field(0, description="Incoming citations from other venues")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "venue": "Nature",
+                "total_papers": 12,
+                "self_citations": 1,
+                "citing_others": 30,
+                "being_cited_by_others": 44
+            }
+        }
+
+
 class CrawlerResults(BaseModel):
     """Complete results from a crawler run."""
     job_id: str = Field(..., description="Job identifier")
@@ -194,6 +215,10 @@ class CrawlerResults(BaseModel):
     top_authors: List[AuthorInfluence] = Field(
         default_factory=list,
         description="Most influential authors"
+    )
+    top_venues: List[VenueStatistics] = Field(
+        default_factory=list,
+        description="Venues with the strongest activity"
     )
     
     class Config:
@@ -215,24 +240,29 @@ class CrawlerResults(BaseModel):
                 ],
                 "top_papers": [],
                 "topics": [],
-                "top_authors": []
+                "top_authors": [],
+                "top_venues": []
             }
         }
 
 
 class TopicPapersResponse(BaseModel):
-    """Papers belonging to a specific topic."""
+    """Paginated papers belonging to a specific topic."""
     topic_id: int = Field(..., description="Topic ID")
     topic_label: str = Field(..., description="Topic label")
-    papers: List[PaperMetadata] = Field(..., description="Papers in this topic")
-    total_count: int = Field(..., description="Total papers in topic")
+    page: int = Field(..., description="Current page number")
+    page_size: int = Field(..., description="Items per page")
+    total: int = Field(..., description="Total papers in topic")
+    papers: List[PaperMetadata] = Field(default_factory=list, description="Papers in this topic")
     
     class Config:
         json_schema_extra = {
             "example": {
                 "topic_id": 5,
                 "topic_label": "Machine Learning in Medicine",
-                "papers": [],
-                "total_count": 45
+                "page": 1,
+                "page_size": 20,
+                "total": 45,
+                "papers": []
             }
         }

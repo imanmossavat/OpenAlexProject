@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { X, ExternalLink } from 'lucide-react'
+import { AlertCircle, ExternalLink, Loader2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
-export default function PaperDetailModal({ paper, isOpen, onClose }) {
+export default function PaperDetailModal({ paper, isOpen, onClose, loading = false, error = null }) {
   const [shouldRender, setShouldRender] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
   const [displayPaper, setDisplayPaper] = useState(null)
@@ -70,10 +70,15 @@ export default function PaperDetailModal({ paper, isOpen, onClose }) {
     ? `https://openalex.org/${displayPaper.paper_id}`
     : (displayPaper.url || null)
 
+  const handleOverlayClick = (event) => {
+    event.stopPropagation()
+    onClose?.()
+  }
+
   return (
     <div
-      className="fixed inset-0 z-50"
-      onClick={onClose}
+      className="fixed inset-0 z-[2000]"
+      onClick={handleOverlayClick}
     >
       <div className={`absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ease-out ${isAnimating ? 'opacity-100' : 'opacity-0'}`} />
 
@@ -105,6 +110,20 @@ export default function PaperDetailModal({ paper, isOpen, onClose }) {
             </Button>
           </div>
         )}
+
+        {loading ? (
+          <div className="mb-4 flex items-center gap-2 text-sm text-gray-500">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Loading the latest metadata…
+          </div>
+        ) : null}
+
+        {error ? (
+          <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4" />
+            {error}
+          </div>
+        ) : null}
 
         {displayPaper.abstract && (
           <div className="mb-6">

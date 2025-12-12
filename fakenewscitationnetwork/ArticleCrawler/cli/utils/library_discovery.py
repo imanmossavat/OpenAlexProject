@@ -4,23 +4,36 @@ Library Discovery Utility
 Provides functions to find existing libraries in common locations.
 """
 
-from pathlib import Path
-from typing import List, Dict, Optional
-import yaml
 import logging
+import os
+from pathlib import Path
+from typing import Dict, Iterable, List, Optional
+
+import yaml
 
 
 class LibraryDiscovery:
     """Discover existing libraries in the file system."""
-    
-    def __init__(self, logger: Optional[logging.Logger] = None):
+
+    ENV_LIBRARY_ROOT = "ARTICLECRAWLER_LIBRARY_ROOT"
+
+    def __init__(
+        self,
+        logger: Optional[logging.Logger] = None,
+        default_paths: Optional[Iterable[Path]] = None,
+        env_key: str = ENV_LIBRARY_ROOT,
+    ):
         """
         Initialize library discovery.
-        
+
         Args:
             logger: Optional logger instance
+            default_paths: Optional explicit search paths
+            env_key: Environment variable for overriding search paths
         """
         self.logger = logger or logging.getLogger(__name__)
+        self._configured_paths = self._normalize_paths(default_paths) if default_paths else None
+        self._env_key = env_key
     
     def find_libraries(self, search_paths: Optional[List[Path]] = None) -> List[Dict[str, any]]:
         """
@@ -58,11 +71,49 @@ class LibraryDiscovery:
         Returns:
             List of default paths to search
         """
-        return [
+        configured = self._configured_paths or self._get_env_configured_paths()
+        legacy_defaults = [
             Path.cwd() / "libraries",
             Path.cwd() / "data" / "libraries",
             Path.home() / "libraries",
         ]
+
+        if configured:
+            merged = configured + legacy_defaults
+            unique: List[Path] = []
+            seen = set()
+            for path in merged:
+                normalized = path.expanduser()
+                key = normalized.resolve() if normalized.is_absolute() else normalized
+                if key in seen:
+                    continue
+                seen.add(key)
+                unique.append(normalized)
+            return unique
+
+        return legacy_defaults
+
+    def _get_env_configured_paths(self) -> Optional[List[Path]]:
+        """Return paths configured via environment variable when available."""
+        raw_value = os.getenv(self._env_key)
+        if not raw_value:
+            return None
+        parts = [segment.strip() for segment in raw_value.split(os.pathsep) if segment.strip()]
+        if not parts:
+            return None
+        return self._normalize_paths(Path(part) for part in parts)
+
+    @staticmethod
+    def _normalize_paths(paths: Optional[Iterable[Path]]) -> List[Path]:
+        """Normalize a collection of inputs into concrete Path objects."""
+        if not paths:
+            return []
+        normalized: List[Path] = []
+        for path in paths:
+            if path is None:
+                continue
+            normalized.append(Path(path).expanduser())
+        return normalized
     
     def _scan_directory(self, directory: Path, max_depth: int = 3) -> List[Dict[str, any]]:
         """

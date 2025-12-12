@@ -9,9 +9,12 @@ from datetime import datetime
 
 from app.main import app
 from app.api.dependencies import (
+    get_crawler_execution_service,
     get_integration_settings_service,
     get_library_service,
     get_pdf_seed_service,
+    get_paper_catalog_service,
+    get_paper_metadata_service,
     get_seed_selection_service,
     get_seed_session_service,
     get_staging_service,
@@ -19,7 +22,19 @@ from app.api.dependencies import (
 )
 from app.core.container import Container
 from app.schemas.seeds import MatchedSeed, SeedMatchResult, UnmatchedSeed
-from app.schemas.staging import StagingPaper, StagingPaperCreate, StagingListResponse
+from app.schemas.papers import (
+    PaginatedPaperSummaries,
+    PaperSummary,
+    PaperMarkResponse,
+    ColumnOptionsPage,
+    PaperDetail,
+)
+from app.schemas.staging import (
+    ColumnFilterOption,
+    StagingPaper,
+    StagingPaperCreate,
+    StagingListResponse,
+)
 
 
 @pytest.fixture(scope="function")
@@ -31,6 +46,9 @@ def app_client(
     mock_pdf_service,
     mock_zotero_service,
     mock_integration_settings_service,
+    mock_crawler_execution_service,
+    mock_paper_catalog_service,
+    mock_paper_metadata_service,
 ):
     """Create a FastAPI test client with dependency overrides."""
     overrides = {
@@ -41,6 +59,9 @@ def app_client(
         get_pdf_seed_service: lambda: mock_pdf_service,
         get_zotero_seed_service: lambda: mock_zotero_service,
         get_integration_settings_service: lambda: mock_integration_settings_service,
+        get_crawler_execution_service: lambda: mock_crawler_execution_service,
+        get_paper_catalog_service: lambda: mock_paper_catalog_service,
+        get_paper_metadata_service: lambda: mock_paper_metadata_service,
     }
     app.dependency_overrides.update(overrides)
     try:
@@ -494,6 +515,84 @@ def mock_pdf_service():
         }
     ])
     
+    return mock_service
+
+
+@pytest.fixture
+def mock_crawler_execution_service():
+    """Mock crawler execution service."""
+    mock_service = Mock()
+    mock_service.get_job_status = Mock(return_value={"status": "completed"})
+    mock_service.start_crawler = Mock(return_value="job_mock")
+    mock_service.get_results = Mock(return_value=None)
+    return mock_service
+
+
+@pytest.fixture
+def mock_paper_catalog_service():
+    """Mock paper catalog service."""
+    mock_service = Mock()
+    default_summary = PaperSummary(
+        paper_id="W1",
+        title="Sample Paper",
+        authors=["Alice"],
+        venue="TestConf",
+        year=2021,
+        doi="10.1000/sample",
+        url="https://example.org/W1",
+        citation_count=5,
+        centrality_in=0.1,
+        centrality_out=0.2,
+        is_seed=True,
+        is_retracted=False,
+        selected=False,
+        mark="standard",
+        nmf_topic=1,
+        lda_topic=None,
+    )
+    default_response = PaginatedPaperSummaries(
+        page=1,
+        page_size=25,
+        total=1,
+        papers=[default_summary],
+        column_options={
+            "title": [ColumnFilterOption(value="Sample Paper", label="Sample Paper", count=1)]
+        },
+    )
+    mock_service.list_papers = Mock(return_value=default_response)
+    column_page = ColumnOptionsPage(
+        column="title",
+        page=1,
+        page_size=50,
+        total=1,
+        options=[ColumnFilterOption(value="Sample Paper", label="Sample Paper", count=1)],
+    )
+    mock_service.list_column_options = Mock(return_value=column_page)
+    mock_service.export_catalog = Mock(return_value=b"excel-bytes")
+    mock_service.update_mark = Mock(
+        return_value=PaperMarkResponse(paper_id="W1", mark="good")
+    )
+    return mock_service
+
+
+@pytest.fixture
+def mock_paper_metadata_service():
+    """Mock paper metadata service."""
+    mock_service = Mock()
+    detail = PaperDetail(
+        paper_id="W1",
+        title="Sample Paper",
+        abstract="Example abstract",
+        authors=["Alice"],
+        institutions=["Example University"],
+        year=2021,
+        venue="TestConf",
+        doi="10.1000/sample",
+        url="https://example.org/W1",
+        cited_by_count=5,
+        references_count=10,
+    )
+    mock_service.get_paper_details = Mock(return_value=detail)
     return mock_service
 
 

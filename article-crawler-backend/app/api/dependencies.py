@@ -154,3 +154,43 @@ async def get_source_file_service(
 ):
     """Get the persisted source file service."""
     return service
+
+
+@inject
+async def get_paper_metadata_service(
+    service=Depends(Provide[Container.paper_metadata_service])
+):
+    """Get the paper metadata service."""
+    return service
+
+
+@inject
+async def get_paper_catalog_service(
+    service=Depends(Provide[Container.paper_catalog_service])
+):
+    """Get the paper catalog service."""
+    return service
+
+
+@inject
+async def get_library_route_helper(
+    helper=Depends(Provide[Container.library_route_helper])
+):
+    """Get the helper that encapsulates library route logic."""
+    return helper
+
+
+@inject
+async def get_staging_route_helper(
+    helper=Depends(Provide[Container.staging_route_helper])
+):
+    """Get the helper that encapsulates staging route logic."""
+    return helper
+
+
+@inject
+async def get_seed_route_helper(
+    helper=Depends(Provide[Container.seed_route_helper])
+):
+    """Get the helper that encapsulates seed route logic."""
+    return helper
