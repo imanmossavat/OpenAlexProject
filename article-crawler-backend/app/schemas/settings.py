@@ -26,6 +26,15 @@ class IntegrationSettingsResponse(BaseModel):
     zotero: ZoteroSettings
 
 
+class LibraryRootSettings(BaseModel):
+    """Configuration for the default library discovery path."""
+
+    path: Optional[str] = Field(
+        default=None,
+        description="Absolute path used as the primary library discovery root. None = use built-in defaults.",
+    )
+
+
 class UpdateOpenAlexSettingsRequest(BaseModel):
     """Payload for updating OpenAlex polite email."""
 
@@ -42,4 +51,13 @@ class UpdateZoteroSettingsRequest(BaseModel):
     api_key: Optional[str] = Field(
         default=None,
         description="Optional API key. Omit to keep existing, empty string to clear.",
+    )
+
+
+class UpdateLibraryRootRequest(BaseModel):
+    """Payload for updating the default library discovery root."""
+
+    path: Optional[str] = Field(
+        default=None,
+        description="Absolute path to use for discovery. Empty/None resets to default search paths.",
     )

@@ -1,6 +1,7 @@
 import { createWorkflow } from '@/shared/workflows/createWorkflow'
+import { crawlerWorkflow } from '@/shared/workflows/crawlerWorkflow'
 
-export const WORKFLOW_LIST = [createWorkflow]
+export const WORKFLOW_LIST = [createWorkflow, crawlerWorkflow]
 export const DEFAULT_WORKFLOW = WORKFLOW_LIST[0]
 
 const routeToWorkflow = (() => {

@@ -3,6 +3,8 @@ from fastapi import APIRouter, Depends
 from app.api.dependencies import get_integration_settings_service
 from app.schemas.settings import (
     IntegrationSettingsResponse,
+    LibraryRootSettings,
+    UpdateLibraryRootRequest,
     UpdateOpenAlexSettingsRequest,
     UpdateZoteroSettingsRequest,
 )
@@ -32,3 +34,18 @@ async def update_zotero_settings(
 ):
     """Update Zotero API credentials."""
     return service.update_zotero(payload)
+
+
+@router.get("/library-root", response_model=LibraryRootSettings)
+async def get_library_root(service=Depends(get_integration_settings_service)):
+    """Return the configured default library discovery root (if any)."""
+    return service.get_library_root()
+
+
+@router.put("/library-root", response_model=LibraryRootSettings)
+async def update_library_root(
+    payload: UpdateLibraryRootRequest,
+    service=Depends(get_integration_settings_service),
+):
+    """Update or reset the default library discovery root."""
+    return service.update_library_root(payload)

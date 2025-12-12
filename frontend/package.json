@@ -20,6 +20,7 @@
     "markmap-common": "^0.15.6",
     "markmap-lib": "^0.15.6",
     "markmap-view": "^0.15.6",
+    "recharts": "^2.12.7",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.9.5",

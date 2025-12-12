@@ -85,6 +85,10 @@ class StorageAndLoggingConfig:
         self.summary_folder = self.vault_folder / 'summary'
         self.recommendation_folder = self.vault_folder / 'recommendation'
 
+        # Structured summary exports
+        self.jsonl_folder = self.experiment_folder / 'JSONL'
+        self.summary_structured_folder = self.jsonl_folder / 'summary'
+
         # Retraction watch files
         self.retraction_watch_csv_path = self.root_folder / "retraction_watch.csv"
         self.retraction_watch_version_file_path = self.root_folder / "retraction_watch_version.txt"
@@ -100,7 +104,9 @@ class StorageAndLoggingConfig:
             'metadata_folder': self.metadata_folder,
             'summary_folder': self.summary_folder,
             'xlsx_folder': self.xlsx_folder,
-            'recommendation_folder': self.recommendation_folder
+            'recommendation_folder': self.recommendation_folder,
+            'jsonl_folder': self.jsonl_folder,
+            'summary_structured_folder': self.summary_structured_folder
         }
 
     def create_directories(self):

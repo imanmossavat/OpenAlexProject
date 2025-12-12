@@ -48,74 +48,75 @@ export default function WorkflowModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] bg-white overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center justify-between gap-3">
-            <span>{modalTitle}</span>
-            <Button variant="outline" size="sm" onClick={handleOpenPage} className="rounded-full shadow-sm" disabled={!activeWorkflow}>
-              Open in new tab
-            </Button>
-          </DialogTitle>
-          <p className="text-sm text-gray-500">
-            Choose a workflow to explore its steps. When you open this from inside a flow, we highlight your current step and keep adjacent nodes expanded.
-          </p>
-        </DialogHeader>
+      <DialogContent className="max-w-5xl max-h-[90vh] bg-white overflow-hidden">
+        <div className="max-h-[calc(90vh-3rem)] overflow-y-auto pr-3">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between gap-3">
+              <span>{modalTitle}</span>
+              <Button variant="outline" size="sm" onClick={handleOpenPage} className="rounded-full shadow-sm" disabled={!activeWorkflow}>
+                Open in new tab
+              </Button>
+            </DialogTitle>
+            <p className="text-sm text-gray-500">
+              Choose a workflow to explore its steps. When you open this from inside a flow, we highlight your current step and keep adjacent nodes expanded.
+            </p>
+          </DialogHeader>
 
-        {!activeWorkflow && availableWorkflows.length ? (
-          <div className="space-y-4">
-            <p className="text-xs uppercase tracking-[0.3em] text-gray-500">Available workflows</p>
+          {!activeWorkflow && availableWorkflows.length ? (
             <div className="space-y-4">
-              {availableWorkflows.map((flow) => (
-                <div
-                  key={flow.id}
-                  className="rounded-3xl border border-gray-200 px-5 py-4 shadow-sm bg-gradient-to-br from-white to-slate-50 flex items-center justify-between gap-4"
-                >
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{flow.title}</h3>
-                    <p className="text-sm text-gray-500">{flow.description}</p>
-                  </div>
-                  <Button className="rounded-full" onClick={() => setSelectedWorkflowId(flow.id)}>
-                    Open workflow
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : null}
-
-        {activeWorkflow ? (
-          <>
-            {availableWorkflows.length > 1 ? (
-              <div className="mb-6 space-y-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs uppercase tracking-[0.3em] text-gray-500">Workflow</p>
-                  <button
-                    type="button"
-                    className="text-xs text-gray-500 underline"
-                    onClick={() => setSelectedWorkflowId(null)}
+              <p className="text-xs uppercase tracking-[0.3em] text-gray-500">Available workflows</p>
+              <div className="space-y-4">
+                {availableWorkflows.map((flow) => (
+                  <div
+                    key={flow.id}
+                    className="rounded-3xl border border-gray-200 px-5 py-4 shadow-sm bg-gradient-to-br from-white to-slate-50 flex items-center justify-between gap-4"
                   >
-                    Choose another workflow
-                  </button>
-                </div>
-                <Select value={activeWorkflow.id} onValueChange={setSelectedWorkflowId} disabled={selectDisabled}>
-                  <SelectTrigger className="w-full rounded-full border-gray-300">
-                    <SelectValue placeholder="Select workflow" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableWorkflows.map((flow) => (
-                      <SelectItem key={flow.id} value={flow.id}>
-                        {flow.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">{flow.title}</h3>
+                      <p className="text-sm text-gray-500">{flow.description}</p>
+                    </div>
+                    <Button className="rounded-full" onClick={() => setSelectedWorkflowId(flow.id)}>
+                      Open workflow
+                    </Button>
+                  </div>
+                ))}
               </div>
-            ) : null}
+            </div>
+          ) : null}
 
-            <WorkflowExplorer workflow={activeWorkflow} currentStepId={displayStepId} />
-          </>
-        ) : null}
+          {activeWorkflow ? (
+            <>
+              {availableWorkflows.length > 1 ? (
+                <div className="mb-6 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs uppercase tracking-[0.3em] text-gray-500">Workflow</p>
+                    <button
+                      type="button"
+                      className="text-xs text-gray-500 underline"
+                      onClick={() => setSelectedWorkflowId(null)}
+                    >
+                      Choose another workflow
+                    </button>
+                  </div>
+                  <Select value={activeWorkflow.id} onValueChange={setSelectedWorkflowId} disabled={selectDisabled}>
+                    <SelectTrigger className="w-full rounded-full border-gray-300">
+                      <SelectValue placeholder="Select workflow" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-2xl border border-gray-200 bg-white shadow-lg">
+                      {availableWorkflows.map((flow) => (
+                        <SelectItem key={flow.id} value={flow.id}>
+                          {flow.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : null}
 
+              <WorkflowExplorer workflow={activeWorkflow} currentStepId={displayStepId} />
+            </>
+          ) : null}
+        </div>
       </DialogContent>
     </Dialog>
   )

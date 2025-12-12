@@ -62,6 +62,42 @@ const libraryWorkflowContent = {
   ],
 }
 
+const libraryLoadContent = {
+  contextLabel: 'Load existing library',
+  title: 'Pick a saved library and launch a workflow',
+  intro:
+    'Browse all discovered libraries or point to a custom folder. After you pick one, choose which workflow should launch with it.',
+  sections: [
+    {
+      title: '1. Discover existing work',
+      description: 'We scan the default directories configured for ArticleCrawler.',
+      bullets: [
+        'Every discovered library shows its name, description, and paper count.',
+        'Use the refresh button if you recently created a new library outside the app.',
+        'If nothing appears, use the custom path option to point to the correct folder.',
+      ],
+    },
+    {
+      title: '2. Validate a path on demand',
+      description: 'Entering a custom path does not trigger any work until you confirm it.',
+      bullets: [
+        'Paths must be absolute (e.g., /Users/me/library or C:\\Libraries\\MyLib).',
+        'We only validate after you pick a workflow and start a session.',
+        'This keeps browsing snappy while still ensuring the folder is real.',
+      ],
+    },
+    {
+      title: '3. Attach to a use case',
+      description: 'Loading a library now requires choosing how you plan to use it.',
+      bullets: [
+        'Pick a workflow (such as the crawler wizard) to create a fresh session.',
+        'We bind the selected library to that session behind the scenes.',
+        'Once ready, jump straight into the workflow that matches your task.',
+      ],
+    },
+  ],
+}
+
 const libraryStartContent = {
   contextLabel: 'Library creation kickoff',
   title: 'Choose the right path before you dive in',
@@ -125,10 +161,50 @@ const stagingContent = {
   ],
 }
 
+const crawlerFlowContent = {
+  contextLabel: 'Crawler workflow',
+  title: 'Gather keywords, configure, and run the crawler',
+  intro:
+    'Follow the same rhythm as the library flow: define inputs, confirm configuration, and let the crawler run before reviewing the outputs.',
+  sections: [
+    {
+      title: '1. Keywords',
+      description: 'Provide boolean expressions to focus the crawl.',
+      bullets: [
+        'Expressions support AND, OR, NOT, and parentheses.',
+        'Clear keywords if you want to crawl broadly.',
+        'Finalize to move into the configuration step.',
+      ],
+    },
+    {
+      title: '2. Configuration',
+      description: 'Set the iteration plan and optional advanced parameters.',
+      bullets: [
+        'Basic settings include iteration count and papers per iteration.',
+        'Advanced options adjust topic modeling, language, and network output.',
+        'Save changes before moving forward.',
+      ],
+    },
+    {
+      title: '3. Run & results',
+      description: 'Finalize, launch the crawl, and monitor results.',
+      bullets: [
+        'Give the experiment a descriptive name so you can reference it later.',
+        'Watch the job status and refresh as needed.',
+        'Review top papers, topics, and authors once the crawl completes.',
+      ],
+    },
+  ],
+}
+
 const helpContentRules = [
   {
     match: (pathname) => pathname === '/' || pathname === '',
     content: homeHelpContent,
+  },
+  {
+    match: (pathname) => pathname.startsWith('/libraries'),
+    content: libraryLoadContent,
   },
   {
     match: (pathname) => pathname.startsWith('/about') || pathname.startsWith('/settings'),
@@ -141,6 +217,10 @@ const helpContentRules = [
   {
     match: (pathname) => pathname.startsWith('/create/staging'),
     content: stagingContent,
+  },
+  {
+    match: (pathname) => pathname.startsWith('/crawler'),
+    content: crawlerFlowContent,
   },
   {
     match: (pathname) => pathname.startsWith('/create'),

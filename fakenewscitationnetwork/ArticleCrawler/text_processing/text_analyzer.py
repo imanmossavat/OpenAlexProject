@@ -1,5 +1,6 @@
 import os
 import logging
+import json
 import pandas as pd
 from .preprocessing import TextPreProcessing
 from .vectorization import TextTransformation
@@ -58,6 +59,8 @@ class TextAnalysisManager:
             df_abstract = data_manager.frames.df_abstract
             df_metadata = data_manager.frames.df_paper_metadata
             df_forbidden_entries = data_manager.frames.df_forbidden_entries
+            df_paper_author = data_manager.frames.df_paper_author
+            df_author = data_manager.frames.df_author
             
             # Update graph and calculate centralities
             data_manager.update_graph()
@@ -70,7 +73,9 @@ class TextAnalysisManager:
             # Extract analysis data using enhanced processing
             df_abstract_extended, df_forbidden_dois_metadata, df_merge_meta_centralities_topics = self.extract_analysis_data(
                 df_abstract=df_abstract,
-                df_metadata=df_metadata, 
+                df_metadata=df_metadata,
+                df_paper_author=df_paper_author,
+                df_author=df_author,
                 forbidden_dois=forbidden_dois,
                 centralities=centralities,
                 model_types=model_types,
@@ -107,9 +112,11 @@ class TextAnalysisManager:
             logger.error(f"An error occurred during analysis and report generation: {e}")
             raise
 
-    def extract_analysis_data(self, 
+    def extract_analysis_data(self,
                               df_abstract,
                               df_metadata,
+                              df_paper_author,
+                              df_author,
                               forbidden_dois,
                               centralities,
                               logger,
@@ -172,6 +179,12 @@ class TextAnalysisManager:
             columns_to_merge.append(f'{model_type.lower()}_topic')
 
         df_meta_merged = pd.merge(df_metadata, df_abstract_extended[columns_to_merge], on='paperId', how='left')
+        df_meta_merged = self._attach_author_names(
+            df_meta_merged,
+            df_paper_author,
+            df_author,
+            logger=logger,
+        )
         df_merge_meta_centralities_topics = pd.merge(df_meta_merged, centralities, on='paperId', how='inner')
 
         return df_abstract_extended, df_forbidden_dois_metadata, df_merge_meta_centralities_topics
@@ -233,7 +246,12 @@ class TextAnalysisManager:
             filename_md_seed = f"{experiment_file_name}_seed_{timestamp_final_pkl}"
             filename_md_forbidden = f"{experiment_file_name}_forbidden_{timestamp_final_pkl}"
 
+            parquet_folder = os.path.join(vault_folder, "parquet")
+            annotations_folder = os.path.join(vault_folder, "annotations")
+
             excel_path = self.save_to_excel(df_merge, xlsx_folder, filename, logger=logger)
+            parquet_path = self.save_to_parquet(df_merge, parquet_folder, logger=logger)
+            annotations_path = self.ensure_annotations_store(annotations_folder, logger=logger)
             markdown_path = self.save_to_markdown(df_merge, vault_folder, filename_md, logger=logger)
             seed_markdown_path = self.save_seed_papers_to_markdown(
                 df_merge, vault_folder, filename_md_seed, logger=logger)
@@ -241,7 +259,13 @@ class TextAnalysisManager:
             forbidden_markdown_path = self.save_forbidden_papers_to_markdown(
                 df_forbidden_dois_metadata, vault_folder, filename_md_forbidden, logger=logger)
 
-            logger.info(f"Report generated successfully:\nExcel: {excel_path}\nMarkdown: {markdown_path}")
+            logger.info(
+                "Report generated successfully:\n"
+                f"Excel: {excel_path}\n"
+                f"Markdown: {markdown_path}\n"
+                f"Parquet: {parquet_path}\n"
+                f"Annotations store: {annotations_path}"
+            )
             return seed_markdown_path, forbidden_markdown_path
         except Exception as e:
             logger.error(f"An error occurred during report generation: {e}")
@@ -319,6 +343,69 @@ class TextAnalysisManager:
         except Exception as e:
             logger.error(f"An error occurred while saving to Markdown: {e}")
             raise
+
+    def save_to_parquet(self, df, folder, filename="papers", logger=None):
+        """Persist the merged catalog to a parquet file for downstream consumption."""
+        try:
+            os.makedirs(folder, exist_ok=True)
+            file_path = os.path.join(folder, f"{filename}.parquet")
+            df_prepared = self._prepare_dataframe_for_parquet(df, logger=logger)
+            df_prepared.to_parquet(file_path, index=False)
+            if logger:
+                logger.info(f"DataFrame saved as a Parquet file at {file_path}")
+            return file_path
+        except Exception as e:
+            if logger:
+                logger.error(f"An error occurred while saving to Parquet: {e}")
+            raise
+
+    def ensure_annotations_store(self, folder, filename="paper_marks.json", logger=None):
+        """Ensure the annotations directory and JSON store exist for paper marks."""
+        try:
+            os.makedirs(folder, exist_ok=True)
+            file_path = os.path.join(folder, filename)
+            if not os.path.exists(file_path):
+                with open(file_path, "w", encoding="utf-8") as f:
+                    json.dump({}, f)
+                if logger:
+                    logger.info(f"Initialized annotations store at {file_path}")
+            return file_path
+        except Exception as e:
+            if logger:
+                logger.error(f"An error occurred while preparing the annotations store: {e}")
+            raise
+
+    def _prepare_dataframe_for_parquet(self, df, logger=None):
+        """Normalize DataFrame columns prior to Parquet export."""
+        df_parquet = df.copy()
+        bool_columns = [
+            "isSeed",
+            "selected",
+            "textProcessing",
+            "isRetracted",
+            "retracted",
+            "is_retracted",
+        ]
+        for column in bool_columns:
+            if column in df_parquet.columns:
+                df_parquet[column] = df_parquet[column].apply(self._coerce_to_bool)
+        return df_parquet
+
+    @staticmethod
+    def _coerce_to_bool(value):
+        """Convert mixed representations into strict booleans."""
+        if isinstance(value, bool):
+            return value
+        if value is None or (isinstance(value, float) and pd.isna(value)):
+            return False
+        if isinstance(value, (int, float)):
+            return value != 0
+        str_value = str(value).strip().lower()
+        if str_value in {"true", "1", "yes", "y", "selected"}:
+            return True
+        if str_value in {"false", "0", "no", "n", "", "none"}:
+            return False
+        return bool(str_value)
 
     def save_seed_papers_to_markdown(self, df, folder, filename, logger=None):
         try:
@@ -430,3 +517,62 @@ class TextAnalysisManager:
             if logger:
                 logger.error(f"An error occurred while saving forbidden papers to Markdown: {e}")
             raise
+
+    def _attach_author_names(self, df_meta, df_paper_author, df_author, logger=None):
+        """
+        Attach aggregated author names to the merged metadata DataFrame.
+
+        Produces a list column `authors_display` for downstream consumers.
+        """
+        df_result = df_meta.copy()
+
+        if (
+            df_paper_author is None
+            or df_author is None
+            or df_paper_author.empty
+            or df_author.empty
+        ):
+            if logger:
+                logger.info("Author metadata missing; defaulting to empty author lists.")
+            df_result["authors_display"] = [[] for _ in range(len(df_result))]
+            return df_result
+
+        try:
+            df_author_subset = df_author[["authorId", "authorName"]].copy()
+        except KeyError:
+            if logger:
+                logger.warning("Author DataFrame missing expected columns; skipping author enrichment.")
+            df_result["authors_display"] = [[] for _ in range(len(df_result))]
+            return df_result
+
+        try:
+            df_paper_author_subset = df_paper_author[["paperId", "authorId"]].copy()
+        except KeyError:
+            if logger:
+                logger.warning("Paper-author DataFrame missing expected columns; skipping author enrichment.")
+            df_result["authors_display"] = [[] for _ in range(len(df_result))]
+            return df_result
+
+        merged = pd.merge(df_paper_author_subset, df_author_subset, on="authorId", how="left")
+        merged = merged.dropna(subset=["authorName"])
+
+        if merged.empty:
+            df_result["authors_display"] = [[] for _ in range(len(df_result))]
+            return df_result
+
+        grouped = (
+            merged.groupby("paperId")["authorName"]
+            .apply(
+                lambda values: [
+                    str(name).strip()
+                    for name in values
+                    if isinstance(name, str) and str(name).strip()
+                ]
+            )
+        )
+
+        df_result["authors_display"] = df_result["paperId"].map(grouped)
+        df_result["authors_display"] = df_result["authors_display"].apply(
+            lambda names: names if isinstance(names, list) else []
+        )
+        return df_result

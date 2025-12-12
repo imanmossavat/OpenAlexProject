@@ -11,6 +11,7 @@ from . import (
     library,
     author_topic_evolution,
     settings,
+    papers,
 )
 
 router = APIRouter()
@@ -74,6 +75,12 @@ router.include_router(
 
 router.include_router(
     settings.router
+)
+
+router.include_router(
+    papers.router,
+    prefix="/papers",
+    tags=["Papers"]
 )
 
 
