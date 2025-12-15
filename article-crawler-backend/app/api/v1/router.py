@@ -8,6 +8,7 @@ from . import (
     keywords,
     configuration,
     crawler_execution,
+    crawler_rerun,
     library,
     author_topic_evolution,
     settings,
@@ -59,6 +60,12 @@ router.include_router(
     crawler_execution.router,
     prefix="/crawler",
     tags=["Crawler Execution"]
+)
+
+router.include_router(
+    crawler_rerun.router,
+    prefix="/crawler/reruns",
+    tags=["Crawler Reruns"]
 )
 
 router.include_router(

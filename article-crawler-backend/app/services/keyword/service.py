@@ -60,6 +60,27 @@ class KeywordService:
         self._repository.save(session_id, record)
         self.logger.info("Cleared %s keywords from session %s", count, session_id)
 
+    def set_keywords(self, session_id: str, expressions: List[str]) -> List[str]:
+        """Replace session keywords with the provided expressions."""
+        record = self._load_record(session_id)
+        normalized: List[str] = []
+        for expression in expressions or []:
+            if expression is None:
+                continue
+            cleaned = str(expression).strip()
+            if not cleaned:
+                continue
+            normalized.append(self._filter_builder.build(cleaned))
+        record["keywords"] = normalized
+        record["updated_at"] = datetime.now()
+        self._repository.save(session_id, record)
+        self.logger.info(
+            "Replaced keywords for session %s with %s expressions",
+            session_id,
+            len(normalized),
+        )
+        return normalized
+
     def finalize_keywords(self, session_id: str) -> List[str]:
         keywords = self.get_keywords(session_id)
         self.logger.info(

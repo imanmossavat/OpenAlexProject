@@ -2,8 +2,10 @@ from fastapi import APIRouter, Depends
 
 from app.api.dependencies import get_integration_settings_service
 from app.schemas.settings import (
+    ExperimentRootSettings,
     IntegrationSettingsResponse,
     LibraryRootSettings,
+    UpdateExperimentRootRequest,
     UpdateLibraryRootRequest,
     UpdateOpenAlexSettingsRequest,
     UpdateZoteroSettingsRequest,
@@ -49,3 +51,18 @@ async def update_library_root(
 ):
     """Update or reset the default library discovery root."""
     return service.update_library_root(payload)
+
+
+@router.get("/experiment-root", response_model=ExperimentRootSettings)
+async def get_experiment_root(service=Depends(get_integration_settings_service)):
+    """Return the configured crawler experiment root."""
+    return service.get_experiment_root()
+
+
+@router.put("/experiment-root", response_model=ExperimentRootSettings)
+async def update_experiment_root(
+    payload: UpdateExperimentRootRequest,
+    service=Depends(get_integration_settings_service),
+):
+    """Update or reset the crawler experiment discovery root."""
+    return service.update_experiment_root(payload)

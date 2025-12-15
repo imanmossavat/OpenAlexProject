@@ -6,9 +6,11 @@ from pathlib import Path
 from typing import Dict, Iterable, Optional
 
 from app.schemas.settings import (
+    ExperimentRootSettings,
     IntegrationSettingsResponse,
     LibraryRootSettings,
     OpenAlexSettings,
+    UpdateExperimentRootRequest,
     UpdateLibraryRootRequest,
     UpdateOpenAlexSettingsRequest,
     UpdateZoteroSettingsRequest,
@@ -25,6 +27,7 @@ class IntegrationSettingsService:
     """Manage external integration credentials stored in project .env files."""
 
     LIBRARY_ROOT_KEY = "ARTICLECRAWLER_LIBRARY_ROOT"
+    EXPERIMENTS_ROOT_KEY = "ARTICLECRAWLER_EXPERIMENTS_ROOT"
 
     def __init__(
         self,
@@ -96,6 +99,26 @@ class IntegrationSettingsService:
         self._repository.set_value(self.LIBRARY_ROOT_KEY, normalized_str)
         self.logger.info("Set library discovery root to %s", normalized_str)
         return self.get_library_root()
+
+    def get_experiment_root(self) -> ExperimentRootSettings:
+        """Return the currently configured experiment discovery root (if any)."""
+        values = self._repository.load_values()
+        raw_path = values.get(self.EXPERIMENTS_ROOT_KEY) or os.environ.get(self.EXPERIMENTS_ROOT_KEY)
+        path = raw_path.strip() if isinstance(raw_path, str) else None
+        return ExperimentRootSettings(path=path or None)
+
+    def update_experiment_root(self, payload: UpdateExperimentRootRequest) -> ExperimentRootSettings:
+        """Persist a new experiment discovery root or reset to defaults."""
+        normalized = self._validator.normalize_library_root(payload.path)
+        if normalized is None:
+            self._repository.remove_key(self.EXPERIMENTS_ROOT_KEY)
+            self.logger.info("Cleared configured experiment root. Using built-in defaults.")
+            return self.get_experiment_root()
+
+        normalized_str = str(normalized)
+        self._repository.set_value(self.EXPERIMENTS_ROOT_KEY, normalized_str)
+        self.logger.info("Set crawler experiment root to %s", normalized_str)
+        return self.get_experiment_root()
 
     def _build_openalex_settings(self, values: Dict[str, str]) -> OpenAlexSettings:
         email = values.get("OPENALEX_EMAIL") or os.environ.get("OPENALEX_EMAIL")

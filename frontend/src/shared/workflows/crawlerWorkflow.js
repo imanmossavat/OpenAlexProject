@@ -56,7 +56,29 @@ export const crawlerWorkflow = {
     {
       id: 'results',
       title: 'Results',
-      summary: 'Explore network metrics, topics, and top papers after the crawl completes.',
+      summary: 'Review the overview dashboard, top papers/authors/venues, topic distribution, and the full paper table.',
+      details: [
+        {
+          id: 'overview',
+          title: 'Overview & highlights',
+          description: 'High-level metrics that summarize the crawl outcome at a glance.',
+        },
+        {
+          id: 'leaderboards',
+          title: 'Top lists',
+          description: 'Inspect top papers, authors, and venues identified during the crawl.',
+        },
+        {
+          id: 'topics',
+          title: 'Topic modeling insights',
+          description: 'Understand how topics were distributed across the discovered papers.',
+        },
+        {
+          id: 'all-papers',
+          title: 'All papers table',
+          description: 'Filter and annotate every paper (Good, Bad, Neutral, Standard) and export the table to Excel.',
+        },
+      ],
       routes: ['/crawler/results'],
     },
   ],

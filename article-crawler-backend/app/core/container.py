@@ -69,6 +69,7 @@ from app.repositories import (
     PaperCatalogRepository,
     PaperAnnotationRepository,
 )
+from app.repositories.experiment_repository import ExperimentConfigRepository
 from app.services.catalog.service import PaperCatalogService
 from app.services.retraction.helpers import (
     RetractionCacheRepository,
@@ -86,6 +87,7 @@ from app.services.settings.helpers import (
     IntegrationSettingsValidator,
 )
 from app.services.keyword.helpers import KeywordRepository, KeywordFilterBuilder
+from app.services.crawler_rerun_service import CrawlerRerunService
 from app.services.topics.helpers import (
     TopicModelingConfigBuilder,
     TopicResultRepository,
@@ -400,6 +402,23 @@ class Container(containers.DeclarativeContainer):
         details_store=library_details_store,
         path_resolver=library_path_resolver,
         workflow_runner=library_workflow_runner,
+    )
+
+    experiment_config_repository = providers.Singleton(
+        ExperimentConfigRepository,
+        articlecrawler_path=settings.ARTICLECRAWLER_PATH,
+        logger=logger,
+    )
+
+    crawler_rerun_service = providers.Singleton(
+        CrawlerRerunService,
+        logger=logger,
+        experiment_repository=experiment_config_repository,
+        keyword_service=keyword_service,
+        configuration_service=configuration_service,
+        seed_session_service=seed_session_service,
+        library_service=library_service,
+        settings_service=integration_settings_service,
     )
 
     library_edit_service = providers.Singleton(
