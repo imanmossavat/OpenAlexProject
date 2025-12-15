@@ -55,6 +55,16 @@ export default function HomePage() {
           />
         </div>
 
+        <div className="mt-6">
+          <button
+            type="button"
+            onClick={() => navigate('/workflow/other')}
+            className="text-sm text-gray-500 hover:text-gray-800 underline underline-offset-4"
+          >
+            Other workflows…
+          </button>
+        </div>
+
         {error && <div className="mt-6 text-red-600 text-sm">Error: {error}</div>}
       </div>
     </div>
@@ -81,8 +91,7 @@ function ActionCard({ title, description, cta, onClick }) {
         className="
           rounded-full bg-gray-900 text-white 
           hover:bg-gray-800 
-          hover:-translate-y-[1px] 
-          transition-all
+          transition-colors
         "
         onClick={onClick}
       >

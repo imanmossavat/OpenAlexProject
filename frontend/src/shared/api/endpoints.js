@@ -7,6 +7,7 @@ export const endpoints = {
   settings: '/api/v1/settings',
   crawler: '/api/v1/crawler',
   crawlerJobs: '/api/v1/crawler/jobs',
+  crawlerReruns: '/api/v1/crawler/reruns',
   library: '/api/v1/library',
   authorTopicEvolution: '/api/v1/author-topic-evolution',
   papers: '/api/v1/papers',

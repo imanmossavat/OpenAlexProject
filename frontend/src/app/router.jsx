@@ -14,12 +14,14 @@ import IntegrationsSettingsPage from '@/pages/settings/IntegrationsSettingsPage'
 import GrobidSetupPage from '@/pages/help/GrobidSetupPage'
 import AboutPage from '@/pages/about/AboutPage'
 import WorkflowPage from '@/pages/workflow/WorkflowPage'
+import OtherWorkflowsPage from '@/pages/workflow/OtherWorkflowsPage'
 import LibraryLoadPage from '@/pages/libraries/LibraryLoadPage'
 import LibraryEditPage from '@/pages/libraries/LibraryEditPage'
 import CrawlerKeywordsPage from '@/pages/crawler/keywords/CrawlerKeywordsPage'
 import CrawlerConfigurationPage from '@/pages/crawler/configuration/CrawlerConfigurationPage'
 import CrawlerRunPage from '@/pages/crawler/run/CrawlerRunPage'
 import CrawlerResultsPage from '@/pages/crawler/results/CrawlerResultsPage'
+import CrawlerRerunPage from '@/pages/crawler/rerun/CrawlerRerunPage'
 
 export const router = createBrowserRouter([
   {
@@ -42,10 +44,12 @@ export const router = createBrowserRouter([
       { path: 'crawler/configuration', element: <CrawlerConfigurationPage /> },
       { path: 'crawler/run', element: <CrawlerRunPage /> },
       { path: 'crawler/results', element: <CrawlerResultsPage /> },
+      { path: 'crawler/reruns', element: <CrawlerRerunPage /> },
       { path: 'settings/integrations', element: <IntegrationsSettingsPage /> },
       { path: 'help/grobid', element: <GrobidSetupPage /> },
       { path: 'about', element: <AboutPage /> },
       { path: 'workflow', element: <WorkflowPage /> },
+      { path: 'workflow/other', element: <OtherWorkflowsPage /> },
     ],
   },
 ])

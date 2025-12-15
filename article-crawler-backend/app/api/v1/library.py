@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Path, Body, Query
+from fastapi import APIRouter, Depends, Path, Body, Query, HTTPException
 from typing import Optional
 from pathlib import Path as FSPath
 
@@ -160,13 +160,19 @@ async def get_library_contents(
     edit_service = Depends(get_library_edit_service)
 ):
     details = library_service.get_details(session_id)
+    library_path = details.get("path")
+    if not library_path:
+        raise HTTPException(
+            status_code=404,
+            detail="No library selected for this session. Select a library before fetching contents.",
+        )
     papers = edit_service.list_papers(details)
     from app.schemas.library import LibraryPaper
     paper_models = [LibraryPaper(**p) for p in papers]
     return LibraryContentsResponse(
         session_id=session_id,
-        name=details.get("name") or FSPath(details.get("path")).name,
-        path=details.get("path"),
+        name=details.get("name") or FSPath(library_path).name,
+        path=library_path,
         papers=paper_models,
         total_papers=len(paper_models)
     )

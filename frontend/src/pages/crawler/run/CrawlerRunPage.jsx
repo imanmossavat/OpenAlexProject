@@ -43,13 +43,19 @@ export default function CrawlerRunPage() {
     if (cfg.error) setError((prev) => prev || cfg.error)
     else setConfig(cfg.data)
 
-    if (lib.error) setError((prev) => prev || lib.error)
-    else
+    if (lib.error) {
+      if (typeof lib.error === 'string' && lib.error.toLowerCase().includes('no library selected')) {
+        setLibraryDetails(null)
+      } else {
+        setError((prev) => prev || lib.error)
+      }
+    } else {
       setLibraryDetails({
         name: lib.data?.name,
         path: lib.data?.path,
         total_papers: lib.data?.total_papers,
       })
+    }
 
     setLoading(false)
   }, [sessionId])

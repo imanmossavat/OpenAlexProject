@@ -35,6 +35,15 @@ class LibraryRootSettings(BaseModel):
     )
 
 
+class ExperimentRootSettings(BaseModel):
+    """Configuration for the default experiment discovery path."""
+
+    path: Optional[str] = Field(
+        default=None,
+        description="Absolute path containing crawler experiment folders. None = use built-in defaults.",
+    )
+
+
 class UpdateOpenAlexSettingsRequest(BaseModel):
     """Payload for updating OpenAlex polite email."""
 
@@ -60,4 +69,13 @@ class UpdateLibraryRootRequest(BaseModel):
     path: Optional[str] = Field(
         default=None,
         description="Absolute path to use for discovery. Empty/None resets to default search paths.",
+    )
+
+
+class UpdateExperimentRootRequest(BaseModel):
+    """Payload for updating the default experiment discovery root."""
+
+    path: Optional[str] = Field(
+        default=None,
+        description="Absolute path containing crawler experiments. Empty/None resets to defaults.",
     )

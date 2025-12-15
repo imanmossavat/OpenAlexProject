@@ -98,6 +98,69 @@ const libraryLoadContent = {
   ],
 }
 
+const libraryEditContent = {
+  contextLabel: 'Edit existing library',
+  title: 'Open a saved library in the staging workspace',
+  intro:
+    'Use this page when you want to reopen a completed library, review its staged papers, and make adjustments before publishing an updated version.',
+  sections: [
+    {
+      title: '1. Locate the library',
+      description: 'Search, filter, or point directly to the folder you want to edit.',
+      bullets: [
+        'Libraries shown here come from your configured default directories.',
+        'Use the search bar or pagination to narrow down the list.',
+        'If the library lives elsewhere, paste its absolute path in the custom path panel.',
+      ],
+    },
+    {
+      title: '2. Load into staging',
+      description: 'Selecting a library opens a fresh staging session for it.',
+      bullets: [
+        'We keep the original metadata, selections, and notes intact.',
+        'You can immediately add new sources or discard older seeds.',
+        'Edits happen in the same staging interface you already know from creation.',
+      ],
+    },
+    {
+      title: '3. Publish updates',
+      description: 'Once satisfied, finish the staging flow to save or export an updated library.',
+      bullets: [
+        'Run matching again if you have added new or updated sources.',
+        'Configure the library details just as you would when creating a new one.',
+        'Create the updated library to save it for downstream use.',
+      ],
+    },
+  ],
+}
+
+const otherWorkflowsContent = {
+  contextLabel: 'Other workflows',
+  title: 'Explore secondary actions beyond the main flows',
+  intro:
+    'This screen lists the utility workflows that sit outside the three primary home cards. Use it to revisit experiments or discover helper tools.',
+  sections: [
+    {
+      title: 'Browse available workflows',
+      description: 'Each card highlights a specialized task you can trigger.',
+      bullets: [
+        'Cards summarize what the workflow does and where it will take you.',
+        'The layout mirrors the homepage so interactions feel familiar.',
+        'Expect this space to grow as we add more secondary tools.',
+      ],
+    },
+    {
+      title: 'Rerun crawler experiments',
+      description: 'Quickly jump into the crawler rerun experience.',
+      bullets: [
+        'Select “Re-run crawler experiment” to list stored experiments.',
+        'Preview saved configurations and launch a new job or edit before rerunning.',
+        'Use this when you need reproducibility or to tweak earlier crawls.',
+      ],
+    },
+  ],
+}
+
 const libraryStartContent = {
   contextLabel: 'Library creation kickoff',
   title: 'Choose the right path before you dive in',
@@ -201,6 +264,14 @@ const helpContentRules = [
   {
     match: (pathname) => pathname === '/' || pathname === '',
     content: homeHelpContent,
+  },
+  {
+    match: (pathname) => pathname.startsWith('/libraries/edit'),
+    content: libraryEditContent,
+  },
+  {
+    match: (pathname) => pathname.startsWith('/workflow/other'),
+    content: otherWorkflowsContent,
   },
   {
     match: (pathname) => pathname.startsWith('/libraries'),

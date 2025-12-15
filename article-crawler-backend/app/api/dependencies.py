@@ -202,3 +202,11 @@ async def get_seed_route_helper(
 ):
     """Get the helper that encapsulates seed route logic."""
     return helper
+
+
+@inject
+async def get_crawler_rerun_service(
+    service=Depends(Provide[Container.crawler_rerun_service])
+):
+    """Get the crawler rerun service."""
+    return service
