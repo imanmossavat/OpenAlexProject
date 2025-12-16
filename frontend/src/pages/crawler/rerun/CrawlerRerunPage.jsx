@@ -32,7 +32,7 @@ export default function CrawlerRerunPage() {
     clearSearch,
     goToNextPage,
     reload,
-  } = useExperimentDiscovery({ pageSize: 9 })
+  } = useExperimentDiscovery({ pageSize: 8 })
   const {
     defaultRoot,
     rootInput,

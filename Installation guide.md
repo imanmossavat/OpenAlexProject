@@ -1,44 +1,50 @@
-# ArticleCrawler - Installation and User Guide
+# ArticleCrawler Full Stack Installation and Runbook
 
 ## Table of Contents
 
-1. What is needed
-2. System Requirements
-3. Installation
-4. Configuration
-5. Getting Started
+1. [Overview](#overview)
+2. [Requirements](#requirements)
+3. [Repository Setup](#repository-setup)
+4. [Environment Configuration](#environment-configuration)
+5. [CLI Installation & Usage](#cli-installation--usage)
+6. [Backend API Setup](#backend-api-setup)
+7. [Frontend Setup](#frontend-setup)
+8. [Running the Stack Together](#running-the-stack-together)
+9. [Troubleshooting](#troubleshooting)
 
 ---
 
-## What is needed
-Email Adress for better rate limits open alex
-OPENALEX_EMAIL=your.email@example.com
- 
-# Zotero Configuration (Optional - only needed for Zotero integration)
-ZOTERO_LIBRARY_ID=your_library_id
-ZOTERO_LIBRARY_TYPE=user
-ZOTERO_API_KEY=your_api_key
+## Overview
 
-## System Requirements
+ArticleCrawler ships as a three-part stack:
 
-### Required Software
+* **CLI + core engine** (`fakenewscitationnetwork/`): the Python package that crawls OpenAlex, manages experiments, and exports libraries.
+* **Backend API** (`article-crawler-backend/`): a FastAPI service that exposes crawler functionality to the UI and orchestrates long-running jobs.
+* **Frontend** (`frontend/`): a Vite + React application that talks to the API and visualizes crawler outputs.
 
-- **Python**: 3.10 or higher
-- **Docker** (required for PDF processing with GROBID)
-- **Git** (for cloning the repository)
-
-### Operating Systems
-
-- Windows 10/11
-
+The CLI can still run stand-alone for scripted experimentation, while the backend and frontend let you operate the crawler through a browser.
 
 ---
 
-## Installation
+## Requirements
 
-### Step 1: Clone the Repository
+* **Software**
 
-Clone the repository and switch to the Bryan branch:
+  * Git
+  * Python 3.10+
+  * Docker Desktop (required for optional GROBID PDF parsing)
+* **Accounts / API keys**
+
+  * OpenAlex email (`OPENALEX_EMAIL`)
+  * Optional Zotero credentials (`ZOTERO_LIBRARY_ID`, `ZOTERO_LIBRARY_TYPE`, `ZOTERO_API_KEY`)
+
+Ensure ports **8000** (API), **5173** (frontend), and **8070** (GROBID) are free.
+
+---
+
+## Repository Setup
+
+Clone the repo and switch to the working branch:
 
 ```bash
 git clone https://github.com/imanmossavat/OpenAlexProject.git
@@ -46,138 +52,71 @@ cd OpenAlexProject
 git checkout Bryan
 ```
 
-### Step 2: Set Up Python Environment
+Project layout:
 
-I highly recommend using a virtual environment to avoid conflicts with your system Python packages.
+* `install.py` – full-stack installer (root)
+* `fakenewscitationnetwork/` – Python package, CLI, data directories
+* `article-crawler-backend/` – FastAPI project
+* `frontend/` – React + Vite application
 
-###  Automatic option: One-Step Setup Script
 
-Instead of manually creating the environment and installing dependencies, you can use the included `install.py` installer.
+---
 
-This script will:
+## Environment Configuration
 
-* Create a virtual environment (`venv`)
-* Install all dependencies
-* Download NLTK data
-* Prompt you for `.env` configuration values
-* Check for Docker installation
+You can either let the installer generate all environment files automatically (**recommended**) or create them manually.
 
-First, navigate to your project directory:
+The installer:
 
-```bash
-cd OpenAlexProject\fakenewscitationnetwork
-```
+* creates **`.venv/` at the repository root**
+* installs **all Python dependencies (CLI + backend)** into that environment
+* writes `.env` files for all components
 
-Run it with:
+### Automated setup (recommended)
+
+From the repository root:
 
 ```bash
 python install.py
 ```
 
-After it completes, activate the environment:
+The script:
 
-* **Windows**
+* prompts for OpenAlex/Zotero configuration
+* writes `.env` files for CLI, backend, and frontend
+* creates `.venv/` and installs all Python dependencies
+* downloads required NLTK data
+* checks Docker
+* optionally runs `npm install` for the frontend
 
-  ```bash
-  articlecrawler\Scripts\activate
-  ```
-
-* **Linux/macOS**
-
-  ```bash
-  source articlecrawler/bin/activate
-  ```
-
-If it was succesful you can then skip directly to the **Getting Started** section.
+You can re-run it safely; it will prompt before overwriting files.
 
 ---
 
+### Manual configuration (optional)
 
-#### Option A: Using venv
+#### 1. CLI (`fakenewscitationnetwork/.env`)
 
-```bash
-# Create virtual environment
-python -m venv venv
-
-# Activate virtual environment
-# On Linux/macOS:
-source venv/bin/activate
-
-# On Windows:
-venv\Scripts\activate
 ```
-
-#### Option B: Using conda
-
-```bash
-# Create conda environment
-conda create -n articlecrawler python=3.10
-conda activate articlecrawler
-```
-
-### Step 3: Install Dependencies
-
-Install the package with all dependencies using pip:
-
-First, navigate to your project directory:
-
-```bash
-cd OpenAlexProject\fakenewscitationnetwork
-```
-
-```bash
-pip install -e ".[cli,dev]"
-```
-
-This installs:
-
-- Core dependencies (pandas, networkx, scikit-learn, etc.)
-- CLI dependencies (typer, rich, questionary)
-- Dev dependencies (pytest, black, flake8)
-
-### Step 4: Download NLTK Data
-
-The system uses NLTK for text processing. Download required data:
-
-```bash
-python -c "import nltk; nltk.download('stopwords'); nltk.download('punkt'); nltk.download('wordnet'); nltk.download('omw-1.4')"
-```
-
-### Step 5: Install Docker (for PDF Processing)
-
-PDF processing requires GROBID, which runs in Docker.
-
-Download and install [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop)
-
-After installation, make sure Docker Desktop is running before processing PDFs.
-
-
----
-
-## Configuration
-
-### Environment Variables
-
-Create a `.env` file in the project root directory:
-
-```bash
-# On Linux/macOS:
-cp _env .env
-
-# On Windows:
-copy _env .env
-```
-
-Edit `.env` with your credentials:
-
-```ini
-# OpenAlex Configuration (Required)
 OPENALEX_EMAIL=your.email@example.com
+ZOTERO_LIBRARY_ID=1234567            # Optional
+ZOTERO_LIBRARY_TYPE=user             # or group
+ZOTERO_API_KEY=your_zotero_key       # Optional
+```
 
-# Zotero Configuration (Optional - only needed for Zotero integration)
-ZOTERO_LIBRARY_ID=your_library_id
+#### 2. Backend (`article-crawler-backend/.env`)
+
+```
+ARTICLECRAWLER_PATH=C:/path/to/OpenAlexProject/fakenewscitationnetwork
+PROJECT_NAME="ArticleCrawler API"
+VERSION="1.0.0"
+DEBUG=true
+LOG_LEVEL=INFO
+BACKEND_CORS_ORIGINS=["http://localhost:5173","http://localhost:3000"]
+OPENALEX_EMAIL=your.email@example.com
+ZOTERO_LIBRARY_ID=1234567
 ZOTERO_LIBRARY_TYPE=user
-ZOTERO_API_KEY=your_api_key
+ZOTERO_API_KEY=your_zotero_key
 ```
 
 #### Getting API Keys
@@ -192,7 +131,61 @@ ZOTERO_API_KEY=your_api_key
 5. Copy the API key to your `.env` file
 6. Find your library ID
 
-### GROBID Docker Setup
+#### 3. Frontend (`frontend/.env`)
+
+```
+VITE_API_URL=http://localhost:8000
+```
+
+
+---
+
+## CLI Installation & Usage
+
+All Python commands assume the **root `.venv` is activated**.
+
+### Option A – full-stack installer (recommended)
+
+```bash
+python install.py
+```
+
+Activate the environment afterward:
+
+* **Windows**
+
+  ```bash
+  .venv\Scripts\activate
+  ```
+* **Linux/macOS**
+
+  ```bash
+  source .venv/bin/activate
+  ```
+
+---
+
+### Option B – manual Python setup
+
+```bash
+python -m venv .venv
+# Windows
+.venv\Scripts\activate
+# Linux/macOS
+source .venv/bin/activate
+
+cd fakenewscitationnetwork
+pip install -e ".[cli,dev]"
+
+cd ../article-crawler-backend
+pip install -r requirements.txt
+
+python -c "import nltk; [nltk.download(p) for p in ('stopwords','punkt','wordnet','omw-1.4')]"
+```
+
+---
+
+### PDF processing (Docker + GROBID)
 
 GROBID is required because of the PDF processing
 
@@ -219,204 +212,63 @@ docker run --rm -p 8070:8070 lfoppiano/grobid:0.8.2
 
 ---
 
-## Getting Started
+### Core CLI commands
 
-**Testing installation**
-To test if the installation was succesfull first navigate to your projet directory
-```bash
-cd OpenAlexProject\fakenewscitationnetwork
-```
-
-then run the test file
-
-```bash
-python test.py
-```
-
-**ArticleCrawler** provides 5 main use cases accessible through the command-line interface.
-
-First, navigate to your project directory:
-
-```bash
-cd OpenAlexProject\fakenewscitationnetwork
-```
-
----
-
-### 1. Interactive Wizard
+cd fakenewscitationnetwork
 
 ```bash
 python -m ArticleCrawler.cli.main wizard
-```
-
-Guides you through setting up and running a new crawl experiment with step-by-step prompts.
-
-**Steps:**
-
-1. **Name:** (e.g., `Testing`)
-    
-2. **Data Source:** `OpenAlex`
-    
-3. **Seed Paper Selection:** Choose from options (if using IDs, use OpenAlex IDs)
-    
-4. **Keywords or Expressions:**  
-    Examples:
-    
-    - `Healthcare`
-        
-    - `(science OR scientific) AND ((summary AND generation) OR summarization)`
-        
-5. **Quick Testing Configuration:**
-    
-    - Iterations: `1`
-        
-    - Papers per iteration: `1`
-        
-6. **Advanced Configuration:**
-    
-    - Choose topic modeling algorithm: `LDA`
-        
-    - Num topics: `20`
-        
-    - Include Author nodes: `n`
-        
-    - Enable retraction watch: `y`
-        
-    - Save figures: `y`
-        
-    - Customize ignored venues:
-        
-        - `No` to keep default ignored (ArXiv, WWW, medRxiv)
-            
-        - Optionally add more
-            
-    - Language: `EN`
-        
-7. **Review and Confirm:**  
-    Start crawling — will open the **Vault** with all markdown files, folders, Excel files, and figures.
-    
-
----
-
-### 2. Edit Configuration
-
-```bash
 python -m ArticleCrawler.cli.main edit
-```
-
-Edit existing experiment configurations.  
-_(You must have run the wizard at least once before using this.)_
-
-**Steps:**
-
-1. Select from existing experiments (choose the one you made with the wizard)
-    
-2. Give the edited experiment a new name
-    
-3. Choose what to modify (e.g., remove or add a seed paper)
-    
-4. Save and run when done
-    
-5. Review and confirm (`Y`)
-    
-
-Will open the **Vault** for review.
-
----
-
-### 3. Library Creation
-
-```bash
 python -m ArticleCrawler.cli.main library-create
-```
-
-Build a comprehensive literature library from seed papers.
-
-**Steps:**
-
-1. **Library Name:** (e.g., `Healthcare`)
-    
-2. **Confirm Location**
-    
-3. _(Optional)_ Add description
-    
-4. Select paper sources and add papers
-    
-5. Review and confirm to create the library
-    
-
-Creates the library at the specified location with markdown files and paper metadata.
-
----
-
-### 4. Topic Modeling
-
-```bash
 python -m ArticleCrawler.cli.main topic-modeling
-```
-
-Discover and analyze topics across a literature collection.
-
-**Steps:**
-
-1. Use an existing library _(or create a new one — it will take you through library creation first)_
-    
-2. **Specify Path** to the library
-    
-3. Select algorithm: `LDA`
-    
-4. Number of topics: `5`
-    
-5. Review and confirm (`Y`)
-    
-
-Creates a **topics** folder inside your library with:
-
-- Papers grouped by topic
-    
-- Topic overview markdown file
-    
-
----
-
-### 5. Author Evolution
-
-```bash
 python -m ArticleCrawler.cli.main author-evolution
 ```
 
-Track how an author’s research interests evolve over time.
+---
 
-**Steps:**
+## Backend API Setup
 
-1. **Select Author:** e.g., `Jason Priem`  
-    (e.g., `Jason Priem - OpenAlex (62 papers, 3,991 citations)`)
-    
-2. **Advanced Configuration**
-    
-3. **Algorithm:** `LDA`
-    
-    - Number of topics: `10`
-        
-    - Year time period: `1`
-        
-    - Visualization type: (e.g., `Line chart`)
-        
-    - Limit papers to analyze: `n`
-        
-    - Save library permanently: `y`
-        
-    - Confirm library path (press enter to use shown location)
-        
-    - Save visualizations to different location: `n`
-        
-4. **Review and Confirm**
-    
+If you used the installer, backend dependencies are already installed.
 
-Outputs will be saved to the specified location, including:
+```bash
+# ensure .venv is active
+cd article-crawler-backend
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
 
-- Papers
-    
-- Topics
-    
-- Visualization files
+Verify:
+
+* [http://localhost:8000/](http://localhost:8000/)
+* [http://localhost:8000/api/v1/docs](http://localhost:8000/api/v1/docs)
+
+---
+
+## Frontend Setup
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Vite defaults to [http://localhost:5173](http://localhost:5173).
+
+---
+
+## Running the Stack Together
+
+1. Activate `.venv/`
+2. Start Docker + GROBID (optional)
+3. Run backend API (`uvicorn …`)
+4. Run frontend (`npm run dev`)
+5. Use separate terminals for each service
+
+---
+
+## Troubleshooting
+
+* **Wrong Python environment**: ensure `.venv` is activated
+* **API import errors**: check `ARTICLECRAWLER_PATH`
+* **CORS issues**: update `BACKEND_CORS_ORIGINS`
+* **PDF parsing failures**: confirm GROBID is running
+

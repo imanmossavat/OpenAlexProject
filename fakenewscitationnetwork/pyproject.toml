@@ -35,7 +35,8 @@ dependencies = [
     "s2==0.1.9",
     "python-docx==1.1.2",
     "beautifulsoup4==4.12.3",
-    "python-magic==0.4.27",
+    "python-magic-bin==0.4.14; platform_system == 'Windows'",
+    "python-magic==0.4.27; platform_system != 'Windows'",
     "pylatexenc==2.10",
 ]
 
