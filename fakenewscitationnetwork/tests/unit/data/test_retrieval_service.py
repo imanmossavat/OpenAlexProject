@@ -20,8 +20,8 @@ class TestPaperRetrievalService:
     
     def test_retrieve_author_papers_calls_api(self, retrieval_service, mock_api_provider):
         author_id = 'A123'
-        retrieval_service.retrieve_author_papers(author_id)
-        mock_api_provider.get_author_papers.assert_called_once_with(author_id)
+        retrieval_service.retrieve_author_papers(author_id, page=2, page_size=10)
+        mock_api_provider.get_author_papers.assert_called_once_with(author_id, page=2, page_size=10)
     
     def test_get_failed_papers_returns_failed_ids(self, retrieval_service, mock_api_provider):
         mock_api_provider.failed_paper_ids = ['W1', 'W2']

@@ -39,7 +39,7 @@ class AuthorInvestigation:
         papers, paper_ids = [], []
         for author_id in author_ids:
             try:
-                papers_, paper_ids_ = self.api.get_author_papers(author_id=author_id)
+                papers_, paper_ids_, _ = self.api.get_author_papers(author_id=author_id)
                 papers.extend(papers_)
                 paper_ids.extend(paper_ids_)
             except Exception as e:

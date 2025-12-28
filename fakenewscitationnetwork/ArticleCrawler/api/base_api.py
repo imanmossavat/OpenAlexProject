@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional, Tuple, Dict
+from typing import Dict, List, Optional, Tuple
 
 class BaseAPIProvider(ABC):
     """Abstract base class for API providers (Semantic Scholar, OpenAlex, etc.)"""
@@ -30,16 +30,45 @@ class BaseAPIProvider(ABC):
         """
         pass
     
-    @abstractmethod 
-    def get_author_papers(self, author_id: str) -> Tuple[List, List[str]]:
+    @abstractmethod
+    def get_author_papers(
+        self,
+        author_id: str,
+        *,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> Tuple[List, List[str], Optional[int]]:
         """
         Retrieve papers for an author.
         
         Args:
             author_id (str): The ID of the author
+            page (int): Page number (1-indexed)
+            page_size (int): Number of papers per page
             
         Returns:
-            Tuple of (paper objects list, paper IDs list)
+            Tuple of (paper objects list, paper IDs list, total available count)
+        """
+        pass
+
+    @abstractmethod
+    def get_venue_papers(
+        self,
+        venue_id: str,
+        *,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> Tuple[List, List[str], Optional[int]]:
+        """
+        Retrieve papers for a venue/journal host.
+
+        Args:
+            venue_id (str): The OpenAlex venue identifier
+            page (int): Page number (1-indexed)
+            page_size (int): Number of papers per page
+
+        Returns:
+            Tuple of (paper objects list, paper IDs list, total available count)
         """
         pass
     

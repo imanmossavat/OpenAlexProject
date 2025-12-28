@@ -58,18 +58,20 @@ class TestSemanticScholarAPI:
         mock_author.papers = [mock_paper1, mock_paper2]
         mock_get_author.return_value = mock_author
         
-        papers, paper_ids = s2_provider.get_author_papers('author123')
+        papers, paper_ids, total = s2_provider.get_author_papers('author123')
         assert len(papers) == 2
         assert len(paper_ids) == 2
         assert 'paper1' in paper_ids
+        assert total == 2
     
     @patch('ArticleCrawler.api.semantic_scholar_api.s2.api.get_author')
     def test_get_author_papers_failure(self, mock_get_author, s2_provider):
         mock_get_author.side_effect = Exception("Author not found")
         
-        papers, paper_ids = s2_provider.get_author_papers('invalid_author')
+        papers, paper_ids, total = s2_provider.get_author_papers('invalid_author')
         assert papers == []
         assert paper_ids == []
+        assert total is None
     
     def test_get_failed_and_inconsistent_papers(self, s2_provider):
         s2_provider._failed_paper_ids = ['failed1', 'failed2']

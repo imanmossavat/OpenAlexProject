@@ -15,7 +15,8 @@ def mock_api_provider():
     provider = Mock()
     provider.get_paper = Mock(return_value=None)
     provider.get_papers = Mock(return_value=[])
-    provider.get_author_papers = Mock(return_value=([], []))
+    provider.get_author_papers = Mock(return_value=([], [], None))
+    provider.get_venue_papers = Mock(return_value=([], [], None))
     provider.failed_paper_ids = []
     provider.inconsistent_api_response_paper_ids = []
     return provider

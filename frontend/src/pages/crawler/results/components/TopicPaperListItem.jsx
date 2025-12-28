@@ -3,7 +3,7 @@ import { ExternalLink } from 'lucide-react'
 
 import { formatCentrality } from '../utils'
 
-export default function TopicPaperListItem({ paper, index, onSelect }) {
+export default function TopicPaperListItem({ paper, index, onSelect, showCentrality = true }) {
   const authors =
     paper.authors && paper.authors.length ? paper.authors.join(', ') : 'Unknown authors'
   const metaParts = [
@@ -47,17 +47,19 @@ export default function TopicPaperListItem({ paper, index, onSelect }) {
           <div className="text-xs text-gray-500 mb-1">{authors}</div>
           {meta ? <div className="text-xs text-gray-500">{meta}</div> : null}
 
-          <div className="flex items-center gap-3 mt-3">
-            <div className="w-1/2 bg-gray-200 rounded-full h-1.5 overflow-hidden">
-              <div
-                className="h-full bg-black rounded-full transition-all"
-                style={{ width: `${(normalizedCentrality ?? 0) * 100}%` }}
-              />
+          {showCentrality ? (
+            <div className="flex items-center gap-3 mt-3">
+              <div className="w-1/2 bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                <div
+                  className="h-full bg-black rounded-full transition-all"
+                  style={{ width: `${(normalizedCentrality ?? 0) * 100}%` }}
+                />
+              </div>
+              <span className="text-xs font-semibold text-gray-700">
+                {centralityScore != null ? formatCentrality(centralityScore) : 'N/A'}
+              </span>
             </div>
-            <span className="text-xs font-semibold text-gray-700">
-              {centralityScore != null ? formatCentrality(centralityScore) : 'N/A'}
-            </span>
-          </div>
+          ) : null}
         </div>
 
         {paper.url ? (

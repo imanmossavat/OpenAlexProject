@@ -12,6 +12,7 @@ from ArticleCrawler.api.base_api import BaseAPIProvider
 from ArticleCrawler.crawler import Crawler
 from ArticleCrawler.library.models import PaperData
 from ArticleCrawler.utils.url_builder import PaperURLBuilder
+from app.services.crawler.entity_papers_builder import RemoteEntityPapersBuilder
 
 
 class CrawlerResultAssembler:
@@ -20,6 +21,10 @@ class CrawlerResultAssembler:
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         self.logger = logger or logging.getLogger(__name__)
         self._api_clients: Dict[str, BaseAPIProvider] = {}
+        self._entity_papers_builder = RemoteEntityPapersBuilder(
+            self.logger,
+            self._get_api_client,
+        )
 
     def assemble(
         self,
@@ -223,6 +228,38 @@ class CrawlerResultAssembler:
             "total": int(total),
             "papers": papers,
         }
+
+    def build_author_papers(
+        self,
+        crawler: Crawler,
+        author_id: str,
+        *,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> Optional[Dict]:
+        return self._entity_papers_builder.build_author_papers(
+            crawler,
+            author_id,
+            page=page,
+            page_size=page_size,
+            entry_builder=self._build_remote_paper_entry,
+        )
+
+    def build_venue_papers(
+        self,
+        crawler: Crawler,
+        venue_id: str,
+        *,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> Optional[Dict]:
+        return self._entity_papers_builder.build_venue_papers(
+            crawler,
+            venue_id,
+            page=page,
+            page_size=page_size,
+            entry_builder=self._build_remote_paper_entry,
+        )
 
     def _select_centrality_column(self, df: pd.DataFrame) -> Optional[str]:
         candidates = [
@@ -635,6 +672,25 @@ class CrawlerResultAssembler:
             "is_retracted": is_retracted,
             "url": url,
         }
+
+    def _build_remote_paper_entry(
+        self,
+        paper_id: str,
+        fallback: Dict,
+        provider_type: str,
+        url_builder: PaperURLBuilder,
+    ) -> Dict:
+        return self._build_topic_paper_entry(
+            paper_id,
+            None,
+            fallback,
+            provider_type,
+            url_builder,
+            None,
+        )
+
+
+
 
     def _get_topics_overview(
         self,

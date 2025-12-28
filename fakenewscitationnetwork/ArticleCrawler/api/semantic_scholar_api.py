@@ -1,6 +1,6 @@
 import s2  # https://github.com/mirandrom/PyS2 
 import logging
-from typing import List, Tuple, Dict
+from typing import Dict, List, Optional, Tuple
 from .base_api import BaseAPIProvider
 
 class SemanticScholarAPIProvider(BaseAPIProvider):
@@ -123,7 +123,13 @@ class SemanticScholarAPIProvider(BaseAPIProvider):
             'inconsistent': self._inconsistent_api_response_paper_ids
         }
 
-    def get_author_papers(self, author_id: str) -> Tuple[List, List[str]]:
+    def get_author_papers(
+        self,
+        author_id: str,
+        *,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> Tuple[List, List[str], Optional[int]]:
         """
         Retrieves all papers for a given author ID using the Semantic Scholar API.
 
@@ -141,17 +147,32 @@ class SemanticScholarAPIProvider(BaseAPIProvider):
             
             if author is None:
                 self.logger.error(f"Failed to retrieve author with ID {author_id}.")
-                return [], []
+                return [], [], None
 
             # Extract the list of papers
             papers = author.papers if hasattr(author, 'papers') else []
-            
-            # Extract paper IDs
             paper_ids = [paper.paperId for paper in papers if hasattr(paper, 'paperId')]
+            total = len(papers)
 
-            self.logger.info(f"Successfully retrieved {len(papers)} papers for author ID {author_id}.")
-            return papers, paper_ids
+            normalized_page = max(1, int(page or 1))
+            normalized_page_size = max(1, int(page_size or 25))
+            start = (normalized_page - 1) * normalized_page_size
+            end = start + normalized_page_size
+            paged_papers = papers[start:end]
+            paged_ids = paper_ids[start:end]
+
+            self.logger.info(f"Successfully retrieved {len(paged_papers)} papers for author ID {author_id}.")
+            return paged_papers, paged_ids, total
 
         except Exception as e:
             self.logger.error(f"Error retrieving papers for author ID {author_id}: {str(e)}")
-            return [], []
+            return [], [], None
+
+    def get_venue_papers(
+        self,
+        venue_id: str,
+        *,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> Tuple[List, List[str], Optional[int]]:
+        raise NotImplementedError("Semantic Scholar provider does not support venue-based retrieval.")

@@ -155,3 +155,49 @@ class CrawlerExecutionService:
             page=page,
             page_size=page_size,
         )
+
+    def get_author_papers(
+        self,
+        job_id: str,
+        author_id: str,
+        *,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> Optional[Dict]:
+        job = self._job_store.get_job(job_id)
+        if not job or job.get("status") != "completed":
+            return None
+
+        crawler = self._job_store.get_crawler(job_id)
+        if not crawler:
+            return None
+
+        return self._result_assembler.build_author_papers(
+            crawler,
+            author_id,
+            page=page,
+            page_size=page_size,
+        )
+
+    def get_venue_papers(
+        self,
+        job_id: str,
+        venue_id: str,
+        *,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> Optional[Dict]:
+        job = self._job_store.get_job(job_id)
+        if not job or job.get("status") != "completed":
+            return None
+
+        crawler = self._job_store.get_crawler(job_id)
+        if not crawler:
+            return None
+
+        return self._result_assembler.build_venue_papers(
+            crawler,
+            venue_id,
+            page=page,
+            page_size=page_size,
+        )
