@@ -1,10 +1,13 @@
-import pyalex
-from pyalex import Works, Authors
-import time
-import os
-from dotenv import load_dotenv
 import logging
-from typing import List, Dict, Optional, Tuple
+import os
+import time
+from typing import Dict, List, Optional, Tuple
+
+import pyalex
+import requests
+from dotenv import load_dotenv
+from pyalex import Authors, Works, Sources
+
 from ..library.models import PaperData, AuthorInfo
 from .base_api import BaseAPIProvider
 
@@ -26,7 +29,10 @@ class OpenAlexAPIProvider(BaseAPIProvider):
         self._failed_paper_ids = []
         self._inconsistent_api_response_paper_ids = []
         self.logger = logger or logging.getLogger(__name__)
-        
+        self._api_base_url = "https://api.openalex.org"
+        self._mailto = email
+        self._venue_lookup_cache: Dict[str, Optional[str]] = {}
+
         self.logger.info("OpenAlex API initialized with rate limiting at 2 req/sec")
 
     @property
@@ -61,6 +67,112 @@ class OpenAlexAPIProvider(BaseAPIProvider):
             return f"https://openalex.org/{author_id}"
         else:
             return f"https://openalex.org/A{author_id}"
+
+    def _normalize_venue_id(self, venue_id: str) -> str:
+        venue_id = venue_id.strip()
+        if not venue_id:
+            return venue_id
+        if venue_id.startswith("https://openalex.org/"):
+            return venue_id
+        upper = venue_id.upper()
+        if upper.startswith("S"):
+            return f"https://openalex.org/{upper}"
+        resolved = self._resolve_venue_id_by_name(venue_id)
+        if resolved:
+            return resolved
+        clean = venue_id.lstrip("S").lstrip("s")
+        if clean:
+            return f"https://openalex.org/S{clean}"
+        return venue_id
+
+    def _resolve_venue_id_by_name(self, venue_name: str) -> Optional[str]:
+        key = venue_name.strip().lower()
+        if not key:
+            return None
+        if key in self._venue_lookup_cache:
+            return self._venue_lookup_cache[key]
+        try:
+            self._rate_limit()
+            results = Sources().search(venue_name).get()
+            if results:
+                first = results[0]
+                venue_id = first.get("id")
+                if venue_id:
+                    self._venue_lookup_cache[key] = venue_id
+                    return venue_id
+        except Exception as exc:
+            self.logger.warning("Unable to resolve venue id for %s: %s", venue_name, exc)
+        self._venue_lookup_cache[key] = None
+        return None
+
+    def _fetch_paginated_works(
+        self,
+        filter_query: str,
+        page: int,
+        page_size: int,
+    ) -> Tuple[List[Dict], Optional[int]]:
+        normalized_page = max(1, int(page or 1))
+        normalized_page_size = max(1, min(int(page_size or 25), 200))
+        params = {
+            "filter": filter_query,
+            "page": normalized_page,
+            "per-page": normalized_page_size,
+        }
+        if self._mailto:
+            params["mailto"] = self._mailto
+
+        for attempt in range(self.retries + 1):
+            try:
+                self._rate_limit()
+                response = requests.get(
+                    f"{self._api_base_url}/works",
+                    params=params,
+                    timeout=60,
+                )
+                response.raise_for_status()
+                payload = response.json()
+                results = payload.get("results", [])
+                total = payload.get("meta", {}).get("count")
+                return results, total
+            except Exception as exc:
+                if attempt == self.retries:
+                    self.logger.error(
+                        "Failed to retrieve paginated works filter=%s page=%s: %s",
+                        filter_query,
+                        normalized_page,
+                        exc,
+                    )
+                    return [], None
+                wait_time = 2 ** attempt
+                self.logger.warning(
+                    "Error retrieving paginated works (attempt %s/%s): %s",
+                    attempt + 1,
+                    self.retries + 1,
+                    exc,
+                )
+                time.sleep(wait_time)
+        return [], None
+
+    def _get_paginated_entity_papers(
+        self,
+        filter_query: str,
+        *,
+        page: int,
+        page_size: int,
+    ) -> Tuple[List, List[str], Optional[int]]:
+        works, total = self._fetch_paginated_works(filter_query, page, page_size)
+        papers: List = []
+        paper_ids: List[str] = []
+        for work in works:
+            try:
+                paper_dict = self._convert_openalex_to_s2_format(work)
+                papers.append(self._dict_to_object(paper_dict))
+                pid = self._clean_id(work.get("id", ""))
+                if pid:
+                    paper_ids.append(pid)
+            except Exception as exc:
+                self.logger.warning("Failed to convert work to paper: %s", exc)
+        return papers, paper_ids, total
 
     def _clean_id(self, full_id: str) -> str:
         return full_id.split('/')[-1] if '/' in full_id else full_id
@@ -460,21 +572,27 @@ class OpenAlexAPIProvider(BaseAPIProvider):
         
         return []
 
-    def get_author_papers(self, author_id: str) -> Tuple[List, List[str]]:
-        try:
-            self._rate_limit()
-            normalized_id = self._normalize_author_id(author_id)
-            
-            works = Works().filter(**{"authorships.author.id": normalized_id}).get()
-            papers = [self._dict_to_object(self._convert_openalex_to_s2_format(work)) for work in works]
-            paper_ids = [self._clean_id(work['id']) for work in works]
-            
-            self.logger.info(f"Retrieved {len(papers)} papers for author {author_id}")
-            return papers, paper_ids
-            
-        except Exception as e:
-            self.logger.error(f"Error retrieving papers for author {author_id}: {e}")
-            return [], []
+    def get_author_papers(
+        self,
+        author_id: str,
+        *,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> Tuple[List, List[str], Optional[int]]:
+        normalized_id = self._normalize_author_id(author_id)
+        filter_query = f"authorships.author.id:{normalized_id}"
+        return self._get_paginated_entity_papers(filter_query, page=page, page_size=page_size)
+
+    def get_venue_papers(
+        self,
+        venue_id: str,
+        *,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> Tuple[List, List[str], Optional[int]]:
+        normalized_id = self._normalize_venue_id(venue_id)
+        filter_query = f"primary_location.source.id:{normalized_id}"
+        return self._get_paginated_entity_papers(filter_query, page=page, page_size=page_size)
 
     def _convert_openalex_to_s2_format(self, openalex_work: Dict) -> Dict:
         paper_id = self._clean_id(openalex_work['id'])

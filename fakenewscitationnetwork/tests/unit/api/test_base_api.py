@@ -25,8 +25,11 @@ class TestBaseAPIProvider:
             def get_papers(self, paper_ids):
                 return []
             
-            def get_author_papers(self, author_id: str):
-                return [], []
+            def get_author_papers(self, author_id: str, *, page: int = 1, page_size: int = 25):
+                return [], [], 0
+
+            def get_venue_papers(self, venue_id: str, *, page: int = 1, page_size: int = 25):
+                return [], [], 0
             
             def get_failed_and_inconsistent_papers(self):
                 return {'failed': [], 'inconsistent': []}

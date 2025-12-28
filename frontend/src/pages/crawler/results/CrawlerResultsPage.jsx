@@ -19,12 +19,14 @@ import AuthorsTab from './components/AuthorsTab'
 import VenuesTab from './components/VenuesTab'
 import CatalogSection from './components/CatalogSection'
 import TopicDrawer from './components/TopicDrawer'
+import EntityDrawer from './components/EntityDrawer'
 import { clearSession } from '@/shared/lib/session'
 
 const steps = ['Keywords', 'Configuration', 'Run', 'Results']
 const JOB_STORAGE_KEY = 'crawler_last_job_id'
 const TOP_PAPERS_PAGE_SIZE = 6
 const TOPIC_PAPERS_PAGE_SIZE = 20
+const ENTITY_PAPERS_PAGE_SIZE = 20
 const tabs = [
   { id: 'overview', label: 'Overview' },
   { id: 'top_papers', label: 'Top Papers' },
@@ -59,6 +61,14 @@ export default function CrawlerResultsPage() {
   const [topicTotal, setTopicTotal] = useState(0)
   const [topicLoading, setTopicLoading] = useState(false)
   const [topicError, setTopicError] = useState(null)
+  const [entityViewer, setEntityViewer] = useState({ open: false, type: null, id: null, label: '' })
+  const [entityDrawerVisible, setEntityDrawerVisible] = useState(false)
+  const [entityDrawerAnimating, setEntityDrawerAnimating] = useState(false)
+  const [entityPapers, setEntityPapers] = useState([])
+  const [entityPage, setEntityPage] = useState(1)
+  const [entityTotal, setEntityTotal] = useState(0)
+  const [entityLoading, setEntityLoading] = useState(false)
+  const [entityError, setEntityError] = useState(null)
   const catalogEnabled = Boolean(jobId && status?.status === 'completed')
   const {
     papers: catalogPapers,
@@ -219,6 +229,7 @@ export default function CrawlerResultsPage() {
   const topicMaxPage = topicTotal > 0 ? Math.ceil(topicTotal / TOPIC_PAPERS_PAGE_SIZE) : 1
   const topAuthors = results?.top_authors ?? []
   const topVenues = results?.top_venues ?? []
+  const entityMaxPage = entityTotal > 0 ? Math.ceil(entityTotal / ENTITY_PAPERS_PAGE_SIZE) : 1
   const totalTopPaperPages = Math.max(1, Math.ceil(topPapers.length / TOP_PAPERS_PAGE_SIZE))
 
   const openPaperDetails = async (paper, options = {}) => {
@@ -301,6 +312,39 @@ export default function CrawlerResultsPage() {
     [jobId]
   )
 
+  const fetchEntityPapers = useCallback(
+    async (entityType, entityId, requestedPage = 1) => {
+      if (!jobId || !entityType || !entityId) return
+      setEntityLoading(true)
+      setEntityError(null)
+      const resource = entityType === 'author' ? 'authors' : 'venues'
+      const res = await apiClient(
+        'GET',
+        `${endpoints.crawler}/jobs/${jobId}/${resource}/${encodeURIComponent(entityId)}/papers`,
+        undefined,
+        {
+          query: {
+            page: requestedPage,
+            page_size: ENTITY_PAPERS_PAGE_SIZE,
+          },
+        }
+      )
+      if (res.error) {
+        setEntityError(res.error)
+        setEntityPapers([])
+        setEntityTotal(0)
+        setEntityLoading(false)
+        return
+      }
+      const payload = res.data || {}
+      setEntityPapers(Array.isArray(payload.papers) ? payload.papers : [])
+      setEntityPage(payload.page || requestedPage)
+      setEntityTotal(payload.total ?? 0)
+      setEntityLoading(false)
+    },
+    [jobId]
+  )
+
   const openTopicModal = (topic) => {
     if (!jobId || !topic) return
     setTopicViewer({ open: true, topic })
@@ -334,6 +378,29 @@ export default function CrawlerResultsPage() {
     }
   }, [topicViewer.open, topicDrawerVisible])
 
+  useEffect(() => {
+    let timeoutId
+    if (entityViewer.open) {
+      setEntityDrawerVisible(true)
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setEntityDrawerAnimating(true))
+      })
+    } else if (entityDrawerVisible) {
+      setEntityDrawerAnimating(false)
+      timeoutId = setTimeout(() => {
+        setEntityDrawerVisible(false)
+        setEntityViewer({ open: false, type: null, id: null, label: '' })
+        setEntityPapers([])
+        setEntityPage(1)
+        setEntityTotal(0)
+        setEntityError(null)
+      }, 300)
+    }
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId)
+    }
+  }, [entityViewer.open, entityDrawerVisible])
+
   const handleTopicPageChange = (direction) => {
     if (!topicViewer.topic) return
     const nextPage = topicPage + direction
@@ -341,6 +408,40 @@ export default function CrawlerResultsPage() {
     const maxPage = topicTotal > 0 ? Math.ceil(topicTotal / TOPIC_PAPERS_PAGE_SIZE) : 1
     if (nextPage > maxPage) return
     fetchTopicPapers(topicViewer.topic.topic_id, nextPage)
+  }
+
+  const openAuthorDrawer = (author) => {
+    if (!jobId || !author?.author_id) return
+    setEntityViewer({
+      open: true,
+      type: 'author',
+      id: author.author_id,
+      label: author.author_name || author.author_id,
+    })
+    fetchEntityPapers('author', author.author_id, 1)
+  }
+
+  const openVenueDrawer = (venue) => {
+    if (!jobId || !venue?.venue) return
+    setEntityViewer({
+      open: true,
+      type: 'venue',
+      id: venue.venue,
+      label: venue.venue || 'Venue',
+    })
+    fetchEntityPapers('venue', venue.venue, 1)
+  }
+
+  const closeEntityDrawer = () => {
+    setEntityViewer((prev) => ({ ...prev, open: false }))
+  }
+
+  const handleEntityPageChange = (direction) => {
+    if (!entityViewer.type || !entityViewer.id) return
+    const nextPage = entityPage + direction
+    if (nextPage < 1) return
+    if (entityTotal > 0 && nextPage > entityMaxPage) return
+    fetchEntityPapers(entityViewer.type, entityViewer.id, nextPage)
   }
   return (
     <div className="min-h-[calc(100vh-160px)] bg-white">
@@ -453,9 +554,9 @@ export default function CrawlerResultsPage() {
                 <TopicsTab topics={topics} onOpenTopic={openTopicModal} jobId={jobId} />
               )}
 
-              {activeTab === 'authors' && <AuthorsTab authors={topAuthors} />}
+              {activeTab === 'authors' && <AuthorsTab authors={topAuthors} onOpenAuthor={openAuthorDrawer} />}
 
-              {activeTab === 'venues' && <VenuesTab venues={topVenues} />}
+              {activeTab === 'venues' && <VenuesTab venues={topVenues} onOpenVenue={openVenueDrawer} />}
 
               {activeTab === 'all_papers' && (
                 <CatalogSection
@@ -511,6 +612,25 @@ export default function CrawlerResultsPage() {
         onSelectPaper={(paper) => openPaperDetails(paper, { skipFetch: true })}
         canGoPrevious={!topicLoading && topicPage > 1}
         canGoNext={!topicLoading && topicTotal > 0 && topicPage < topicMaxPage}
+      />
+
+      <EntityDrawer
+        visible={entityDrawerVisible}
+        animating={entityDrawerAnimating}
+        title={entityViewer.type === 'venue' ? 'Venue' : 'Author'}
+        subtitle={entityViewer.label || entityViewer.id || ''}
+        error={entityError}
+        loading={entityLoading}
+        papers={entityPapers}
+        page={entityPage}
+        total={entityTotal}
+        pageSize={ENTITY_PAPERS_PAGE_SIZE}
+        onClose={closeEntityDrawer}
+        onPreviousPage={() => handleEntityPageChange(-1)}
+        onNextPage={() => handleEntityPageChange(1)}
+        onSelectPaper={(paper) => openPaperDetails(paper, { skipFetch: true })}
+        canGoPrevious={!entityLoading && entityPage > 1}
+        canGoNext={!entityLoading && entityTotal > 0 && entityPage < entityMaxPage}
       />
 
       <PaperDetailModal

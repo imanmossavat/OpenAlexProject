@@ -1,4 +1,4 @@
-export default function VenuesTab({ venues }) {
+export default function VenuesTab({ venues, onOpenVenue }) {
   return (
     <section className="space-y-6">
       <div className="rounded-3xl border border-gray-200 shadow-sm p-6">
@@ -17,7 +17,13 @@ export default function VenuesTab({ venues }) {
               </thead>
               <tbody>
                 {venues.slice(0, 10).map((venue) => (
-                  <tr key={venue.venue} className="border-b last:border-0">
+                  <tr
+                    key={venue.venue}
+                    className={`border-b last:border-0 ${
+                      onOpenVenue ? 'cursor-pointer hover:bg-gray-50 transition-colors' : ''
+                    }`}
+                    onClick={() => onOpenVenue?.(venue)}
+                  >
                     <td className="py-3 pr-4 font-semibold text-gray-900">{venue.venue || '—'}</td>
                     <td className="py-3 pr-4 text-gray-700">{venue.total_papers}</td>
                     <td className="py-3 pr-4 text-gray-700">{venue.self_citations}</td>

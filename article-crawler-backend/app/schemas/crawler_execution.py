@@ -3,7 +3,8 @@ Pydantic schemas for crawler execution and results.
 """
 
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict
+from typing import Dict, List, Optional
+from typing import Literal
 from datetime import datetime
 
 
@@ -264,5 +265,48 @@ class TopicPapersResponse(BaseModel):
                 "page_size": 20,
                 "total": 45,
                 "papers": []
+            }
+        }
+
+
+class EntityPapersResponse(BaseModel):
+    """Paginated papers belonging to an author or venue."""
+
+    entity_type: Literal["author", "venue"] = Field(
+        ..., description="Type of entity represented in the response"
+    )
+    entity_id: str = Field(..., description="Entity identifier (OpenAlex ID or equivalent)")
+    entity_label: str = Field(..., description="Display label for the entity")
+    author_id: Optional[str] = Field(
+        None, description="Author identifier when entity_type is author"
+    )
+    author_label: Optional[str] = Field(
+        None, description="Author display label when entity_type is author"
+    )
+    venue_id: Optional[str] = Field(
+        None, description="Venue identifier when entity_type is venue"
+    )
+    venue_label: Optional[str] = Field(
+        None, description="Venue display label when entity_type is venue"
+    )
+    page: int = Field(..., description="Current page number")
+    page_size: int = Field(..., description="Number of items per page")
+    total: int = Field(..., description="Total number of papers available")
+    papers: List[PaperMetadata] = Field(
+        default_factory=list, description="Papers associated with the entity"
+    )
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "entity_type": "author",
+                "entity_id": "A123456789",
+                "entity_label": "Jane Doe",
+                "author_id": "A123456789",
+                "author_label": "Jane Doe",
+                "page": 1,
+                "page_size": 20,
+                "total": 120,
+                "papers": [],
             }
         }

@@ -47,17 +47,19 @@ class PaperRetrievalService:
             
         return papers
     
-    def retrieve_author_papers(self, author_id: str):
+    def retrieve_author_papers(self, author_id: str, *, page: int = 1, page_size: int = 20):
         """
         Retrieve papers for a specific author.
         
         Args:
             author_id (str): The author ID to retrieve papers for
-            
+            page (int): Page number
+            page_size (int): Page size
+
         Returns:
-            Tuple: (papers list, paper_ids list)
+            Tuple: (papers list, paper_ids list, total count)
         """
-        return self.api.get_author_papers(author_id)
+        return self.api.get_author_papers(author_id, page=page, page_size=page_size)
     
     def get_failed_papers(self) -> List[str]:
         """

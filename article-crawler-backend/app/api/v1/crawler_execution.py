@@ -13,8 +13,12 @@ from app.api.dependencies import (
     get_paper_catalog_service,
 )
 from app.schemas.crawler_execution import (
-    StartCrawlerRequest, StartCrawlerResponse, CrawlerStatus,
-    CrawlerResults, TopicPapersResponse
+    StartCrawlerRequest,
+    StartCrawlerResponse,
+    CrawlerStatus,
+    CrawlerResults,
+    TopicPapersResponse,
+    EntityPapersResponse,
 )
 from app.schemas.papers import (
     PaginatedPaperSummaries,
@@ -564,3 +568,75 @@ async def get_topic_papers(
         )
     
     return topic_data
+
+
+@router.get(
+    "/jobs/{job_id}/authors/{author_id}/papers",
+    response_model=EntityPapersResponse,
+)
+async def get_author_papers(
+    job_id: str = PathParam(..., description="Job ID"),
+    author_id: str = PathParam(..., description="Author ID"),
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(20, ge=1, le=50, description="Number of papers per page"),
+    crawler_service = Depends(get_crawler_execution_service),
+):
+    """
+    Paginated list of papers belonging to a specific author retrieved from the API provider.
+    """
+    status = crawler_service.get_job_status(job_id)
+    if not status:
+        raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
+
+    if status["status"] != "completed":
+        raise HTTPException(
+            status_code=400,
+            detail=f"Job {job_id} is {status['status']}, author data only available for completed jobs",
+        )
+
+    author_data = crawler_service.get_author_papers(
+        job_id, author_id, page=page, page_size=page_size
+    )
+    if not author_data:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Author {author_id} not available for job {job_id}",
+        )
+
+    return author_data
+
+
+@router.get(
+    "/jobs/{job_id}/venues/{venue_id}/papers",
+    response_model=EntityPapersResponse,
+)
+async def get_venue_papers(
+    job_id: str = PathParam(..., description="Job ID"),
+    venue_id: str = PathParam(..., description="Venue ID"),
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(20, ge=1, le=50, description="Number of papers per page"),
+    crawler_service = Depends(get_crawler_execution_service),
+):
+    """
+    Paginated list of papers published in a specific venue retrieved from the API provider.
+    """
+    status = crawler_service.get_job_status(job_id)
+    if not status:
+        raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
+
+    if status["status"] != "completed":
+        raise HTTPException(
+            status_code=400,
+            detail=f"Job {job_id} is {status['status']}, venue data only available for completed jobs",
+        )
+
+    venue_data = crawler_service.get_venue_papers(
+        job_id, venue_id, page=page, page_size=page_size
+    )
+    if not venue_data:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Venue {venue_id} not available for job {job_id}",
+        )
+
+    return venue_data
