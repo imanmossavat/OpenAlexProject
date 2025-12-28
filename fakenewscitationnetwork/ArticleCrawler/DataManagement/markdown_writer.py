@@ -1,10 +1,12 @@
 
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 import os
 
 import numpy as np
 import pandas as pd
+import yaml
 from ArticleCrawler.utils.url_builder import PaperURLBuilder
 from ArticleCrawler.library.models import PaperData
 class MarkdownFileGenerator:
@@ -14,7 +16,7 @@ class MarkdownFileGenerator:
     Attributes:
     - vault_path (str or Path): The base path of the vault.
     - experiment_file_name (str): The name of the experiment or project.
-    - abstracts_folder (Path): The path to the folder where abstracts will be stored.
+    - abstracts_folder (Path): Path to the folder where paper notes will be stored.
     """
     
     def __init__(self, 
@@ -34,6 +36,14 @@ class MarkdownFileGenerator:
         )
         self.api_provider_type = api_provider_type.lower()
         self.url_builder = PaperURLBuilder()
+        self.job_id = self.experiment_file_name
+        self._run_file_reference = "../run.md"
+        self.manifest_folder = getattr(storage_and_logging_options, 'manifest_folder', self.vault_folder)
+        self.manifest_writer = VaultManifestWriter(
+            manifest_folder=self.manifest_folder,
+            experiment_name=self.experiment_file_name,
+            storage_options=storage_and_logging_options,
+        )
 
 
 
@@ -64,47 +74,86 @@ class MarkdownFileGenerator:
 
     def _get_metadata(self, paper_id, df_meta, df_paper_author, df_author):
         """
-        Retrieves metadata including Semantic Scholar link and author name for a specific paper ID from the metadata dataframe.
-
-        Args:
-        - paper_id (str): The ID of the paper.
-        - df_meta (DataFrame): DataFrame containing paper metadata.
-        - df_paper_author (DataFrame): DataFrame linking paper ID to author ID.
-        - df_author (DataFrame): DataFrame linking author ID to author name.
-
-        Returns:
-        - DataFrame: Metadata for the paper including Semantic Scholar link and author name.
+        Retrieve normalized metadata for the specified paper.
         """
-        paper_metadata = df_meta[df_meta['paperId'] == paper_id][['paperId', 'venue', 'year', 'title']]
-        
-        # Adding Semantic Scholar link
-        paper_metadata['semantic_scholar_link'] = 'https://www.semanticscholar.org/paper/' + paper_metadata['paperId']
-        
-        # Fetching and adding author names
-        author_ids = df_paper_author[df_paper_author['paperId'] == paper_id]['authorId'].tolist()
-        author_names = df_author[df_author['authorId'].isin(author_ids)]['authorName'].tolist()
-        paper_metadata['authors'] = ', '.join(author_names) if author_names else "Unknown Author(s)"
-        
-        return paper_metadata
+        metadata_row = df_meta[df_meta['paperId'] == paper_id]
+        if metadata_row.empty:
+            metadata = {
+                'paper_id': paper_id,
+                'title': None,
+                'venue': None,
+                'year': None,
+                'doi': None,
+                'abstract': None,
+                'isSeed': False,
+                'selected': False,
+                'isKeyAuthor': False,
+                'processed': False,
+                'retracted': False,
+            }
+        else:
+            row = metadata_row.iloc[0]
+            metadata = {
+                'paper_id': row.get('paperId'),
+                'title': row.get('title'),
+                'venue': row.get('venue'),
+                'year': row.get('year'),
+                'doi': row.get('doi'),
+                'abstract': row.get('abstract'),
+                'isSeed': bool(row.get('isSeed', False)),
+                'selected': bool(row.get('selected', False)),
+                'isKeyAuthor': bool(row.get('isKeyAuthor', False)),
+                'processed': bool(row.get('processed', False)),
+                'retracted': bool(row.get('retracted', row.get('is_retracted', False))),
+            }
+        metadata['url'] = row.get('url') or self._get_paper_url(paper_id)
+        metadata['authors'] = self._resolve_author_metadata(paper_id, df_paper_author, df_author)
+        metadata['concepts'] = self._extract_structured_list(row.get('concepts'), ['id', 'display_name', 'level', 'score'])
+        metadata['topics'] = self._extract_structured_list(row.get('topics'), ['id', 'display_name', 'score'])
+        metadata['subfields'] = self._extract_structured_list(row.get('subfields'), ['id', 'display_name', 'score'])
+        metadata['fields'] = self._extract_structured_list(row.get('fields'), ['id', 'display_name', 'score'])
+        metadata['domains'] = self._extract_structured_list(row.get('domains'), ['id', 'display_name', 'score'])
+        return metadata
     
     def _get_paper_url(self, paper_id: str) -> str:
         return self.url_builder.build_url(paper_id, self.api_provider_type)
 
-    def _get_author_names(self, paper_id, df_paper_author, df_author):
+    def _resolve_author_metadata(self, paper_id, df_paper_author, df_author):
         """
-        Retrieves author names for a specific paper ID.
-
-        Args:
-        - paper_id (str): The ID of the paper.
-        - df_paper_author (DataFrame): DataFrame linking paper ID to author ID.
-        - df_author (DataFrame): DataFrame linking author ID to author name.
-
-        Returns:
-        - str: Author names for the paper.
+        Resolve author identifiers and names for the paper.
         """
-        author_ids = df_paper_author[df_paper_author['paperId'] == paper_id]['authorId'].tolist()
-        author_names = df_author[df_author['authorId'].isin(author_ids)]['authorName'].tolist()
-        return ', '.join(author_names) if author_names else "Unknown Author(s)"
+        author_entries = df_paper_author[df_paper_author['paperId'] == paper_id]
+        if author_entries.empty:
+            return []
+        merged = author_entries.merge(df_author, on='authorId', how='left')
+        authors = []
+        for _, row in merged.iterrows():
+            authors.append({
+                'id': row.get('authorId'),
+                'name': row.get('authorName'),
+            })
+        return authors
+
+    def _extract_structured_list(self, items, keys):
+        """
+        Normalize stored structured metadata into a list of dictionaries.
+        """
+        if not items or (isinstance(items, float) and pd.isna(items)):
+            return []
+        normalized = []
+        for item in items:
+            entry = {}
+            for key in keys:
+                value = None
+                if isinstance(item, dict):
+                    value = item.get(key)
+                elif hasattr(item, key):
+                    value = getattr(item, key, None)
+                if value not in (None, ''):
+                    entry[key] = value
+            if entry:
+                normalized.append(entry)
+        return normalized
 
     def _get_top_authors(self, df_author, df_paper_author):
         """
@@ -169,25 +218,188 @@ class MarkdownFileGenerator:
 
     def _create_markdown_content_abstractOnly(self, abstract, paper_metadata):
         """
-        Constructs markdown content for a specific paper.
-
-        Args:
-        - paper_id (str): The ID of the paper.
-        - abstract (str): The abstract of the paper.
-        - paper_metadata (DataFrame): Metadata for the paper.
-        - references (list): List of reference paper IDs.
-        - df_abstract (DataFrame): DataFrame containing abstracts data.
-
-        Returns:
-        - str: Constructed markdown content for the paper.
+        Compose markdown content for a paper with a rich YAML frontmatter.
         """
-        paper_url = self._get_paper_url(paper_metadata['paperId'].values[0])
-        title = paper_metadata['title'].values[0]
-        
-        markdown_content = f"# [{title}]({paper_url})\n\n"
-        markdown_content += f"## Abstract\n\n{abstract}\n\n"
-                
-        return markdown_content
+        metadata_with_abstract = dict(paper_metadata)
+        metadata_with_abstract['abstract'] = abstract
+        frontmatter = self._build_paper_frontmatter(metadata_with_abstract)
+        body = self._build_paper_body(abstract, metadata_with_abstract)
+        return f"---\n{frontmatter}---\n\n{body}"
+
+    def _build_paper_frontmatter(self, paper_metadata):
+        """
+        Build YAML frontmatter for the paper note.
+        """
+        payload = {
+            'paper_id': paper_metadata.get('paper_id'),
+            'openalex_id': paper_metadata.get('paper_id'),
+            'title': paper_metadata.get('title'),
+            'doi': paper_metadata.get('doi'),
+            'venue': paper_metadata.get('venue'),
+            'year': paper_metadata.get('year'),
+            'abstract': paper_metadata.get('abstract'),
+            'authors': paper_metadata.get('authors') or [],
+            'url': paper_metadata.get('url'),
+            'concepts': paper_metadata.get('concepts') or [],
+            'topics': paper_metadata.get('topics') or [],
+            'subfields': paper_metadata.get('subfields') or [],
+            'fields': paper_metadata.get('fields') or [],
+            'domains': paper_metadata.get('domains') or [],
+            'job': {
+                'id': self.job_id,
+                'experiment': self.experiment_file_name,
+            },
+            'is_seed': bool(paper_metadata.get('isSeed')),
+            'is_selected': bool(paper_metadata.get('selected')),
+            'is_key_author': bool(paper_metadata.get('isKeyAuthor')),
+            'processed': bool(paper_metadata.get('processed')),
+            'retracted': bool(paper_metadata.get('retracted')),
+            'annotation': {
+                'status': 'standard',
+                'updated_at': None,
+            },
+            'notes': [],
+            'run_file': self._run_file_reference,
+            'generated_at': self._current_timestamp(),
+        }
+        return yaml.safe_dump(
+            self._normalize_for_yaml(payload),
+            sort_keys=False,
+            allow_unicode=True,
+        )
+
+    def _build_paper_body(self, abstract, paper_metadata):
+        """
+        Construct the markdown body including annotation placeholders.
+        """
+        paper_id = paper_metadata.get('paper_id')
+        title = paper_metadata.get('title') or paper_id or 'Unknown title'
+        paper_url = paper_metadata.get('url') or (self._get_paper_url(paper_id) if paper_id else '')
+        body_parts = []
+        if paper_url:
+            body_parts.append(f"# [{title}]({paper_url})\n\n")
+        else:
+            body_parts.append(f"# {title}\n\n")
+
+        authors = [a.get('name') for a in paper_metadata.get('authors') or [] if a.get('name')]
+        venue = paper_metadata.get('venue')
+        year = paper_metadata.get('year')
+        doi = paper_metadata.get('doi')
+        info_lines = ["> [!info] Paper Info"]
+        if authors:
+            info_lines.append(f"> **Authors:** {', '.join(authors)}  ")
+        info_tokens = []
+        if year:
+            info_tokens.append(f"**Year:** {year}")
+        if venue:
+            info_tokens.append(f"**Venue:** {venue}")
+        if info_tokens:
+            info_lines.append("> " + " | ".join(info_tokens) + "  ")
+        if doi:
+            info_lines.append(f"> **DOI:** [{doi}](https://doi.org/{doi})  ")
+        if paper_url:
+            info_lines.append(f"> **OpenAlex:** [{paper_metadata.get('paper_id')}]({paper_url})")
+        body_parts.append("\n".join(info_lines) + "\n\n")
+
+        body_parts.append("## Abstract\n\n")
+        body_parts.append(f"{abstract}\n\n" if abstract else "*No abstract available*\n\n")
+        body_parts.append("---\n\n")
+
+        body_parts.append(self._build_research_context_block(paper_metadata))
+
+        body_parts.append("## Annotation\n\n")
+        body_parts.append("*Status:* standard\n\n")
+
+        body_parts.append("## Notes\n\n")
+        body_parts.append("> [!note] My Notes\n")
+        if paper_id:
+            body_parts.append(f"> This paper's note can be found here:  \n> [[notes/{paper_id}_Notes]]\n")
+        else:
+            body_parts.append("> No notes recorded yet.\n")
+
+        return ''.join(body_parts)
+
+    def _current_timestamp(self):
+        return datetime.now(timezone.utc).isoformat()
+
+    def _build_research_context_block(self, metadata):
+        """
+        Construct the research context callout using structured metadata.
+        """
+        lines = ["> [!abstract] Research Context"]
+        added = False
+
+        top_concepts = self._format_name_list(metadata.get('concepts'), limit=6, separator=' • ')
+        if top_concepts:
+            lines.append(f"> **Top Concepts:** {top_concepts}")
+            added = True
+
+        fields = self._format_name_list(metadata.get('fields'), limit=5)
+        if fields:
+            lines.append(f"> **Fields:** {fields}")
+            added = True
+
+        subfields = self._format_name_list(metadata.get('subfields'), limit=5)
+        if subfields:
+            lines.append(f"> **Subfields:** {subfields}")
+            added = True
+
+        domains = self._format_name_list(metadata.get('domains'), limit=5)
+        if domains:
+            lines.append(f"> **Domains:** {domains}")
+            added = True
+
+        if not added:
+            lines.append("> Structured metadata not available.")
+
+        lines.append("")
+        return "\n".join(lines)
+
+    def _format_name_list(self, items, limit=5, separator=', '):
+        """
+        Format the display_name field from a structured metadata list.
+        """
+        if items is None or (isinstance(items, float) and pd.isna(items)):
+            return ""
+        names = []
+        for item in items[:limit]:
+            if isinstance(item, dict):
+                name = item.get('display_name')
+            elif hasattr(item, 'display_name'):
+                name = getattr(item, 'display_name', None)
+            else:
+                name = str(item)
+            if name:
+                names.append(name)
+        return separator.join(names)
+
+    def _with_summary_frontmatter(self, markdown_body: str, summary_type: str) -> str:
+        metadata = {
+            "job_id": self.job_id,
+            "generated_at": self._current_timestamp(),
+            "type": summary_type,
+            "run_file": self._run_file_reference,
+        }
+        frontmatter = yaml.safe_dump(metadata, sort_keys=False, allow_unicode=True).strip()
+        return f"---\n{frontmatter}\n---\n\n{markdown_body}"
+
+    def _normalize_for_yaml(self, value):
+        """
+        Recursively convert numpy/pandas scalars to native Python types for YAML.
+        """
+        if isinstance(value, dict):
+            return {k: self._normalize_for_yaml(v) for k, v in value.items()}
+        if isinstance(value, (list, tuple, set)):
+            return [self._normalize_for_yaml(v) for v in value]
+        if isinstance(value, (np.integer, np.int64, np.int32)):
+            return int(value)
+        if isinstance(value, (np.floating, np.float64, np.float32)):
+            return float(value)
+        if isinstance(value, (np.bool_,)):
+            return bool(value)
+        if pd.isna(value):
+            return None
+        return value
 
 
     def _create_top_authors_markdown(self, top_authors):
@@ -299,10 +511,10 @@ class MarkdownFileGenerator:
         top_venues_file = self.summary_folder / 'top_venues.md'
         
         with open(top_authors_file, 'w', encoding='utf-8') as file:
-            file.write(top_authors_markdown)
+            file.write(self._with_summary_frontmatter(top_authors_markdown, summary_type="top_authors"))
         
         with open(top_venues_file, 'w', encoding='utf-8') as file:
-            file.write(top_venues_markdown)
+            file.write(self._with_summary_frontmatter(top_venues_markdown, summary_type="top_venues"))
         
         self._write_structured_summary(authors_payload, 'top_authors')
         self._write_structured_summary(venues_payload, 'top_venues')
@@ -356,6 +568,7 @@ class MarkdownFileGenerator:
 
         # Create folders if they don't exist
         self.create_folders()
+        self.manifest_writer.write_manifests()
 
 
         self.generate_markdown_files(df_abstract, df_meta, df_paper_references, df_paper_author, df_author, df_abstract, df_venue_features)
@@ -531,3 +744,58 @@ class MarkdownFileGenerator:
         return ''.join(body_parts)
 
 
+class VaultManifestWriter:
+    """Handles writing README and run metadata files into the vault."""
+
+    def __init__(self, manifest_folder, experiment_name, storage_options):
+        self.manifest_folder = manifest_folder
+        self.experiment_name = experiment_name
+        self.storage_options = storage_options
+
+    def write_manifests(self):
+        self.manifest_folder.mkdir(parents=True, exist_ok=True)
+        self._write_readme()
+        self._write_run_description()
+
+    def _write_readme(self):
+        readme_path = self.manifest_folder / "README.md"
+        content = f"""# {self.experiment_name} Vault
+
+This vault contains crawler output for **{self.experiment_name}**.
+
+## Structure
+- `papers/`: One Markdown note per paper with metadata, abstract, annotations, notes
+- `summary/`: Top authors, venues, and other aggregate insights
+- `annotations/`: JSON store of user marks (`paper_marks.json`)
+- `JSONL/summary/`: Structured exports of summary data
+- `figures/`, `meta_data/`, `recommendation/`: Ancillary artifacts
+
+## Notes
+- Each Markdown note includes YAML front matter with provenance (`run_file` points to `run.md`)
+- Annotations are synchronized between JSON and Markdown
+
+"""
+        readme_path.write_text(content, encoding="utf-8")
+
+    def _write_run_description(self):
+        run_path = self.manifest_folder / "run.md"
+        config_summary = self._collect_run_metadata()
+        lines = ["# Crawl Configuration\n"]
+        for section, values in config_summary.items():
+            lines.append(f"## {section}")
+            for key, value in values.items():
+                lines.append(f"- **{key}**: {value}")
+            lines.append("")
+        run_path.write_text("\n".join(lines), encoding="utf-8")
+
+    def _collect_run_metadata(self):
+        summary = {
+            "Storage": {
+                "Experiment": self.experiment_name,
+                "Root": getattr(self.storage_options, "root_folder", "N/A"),
+            }
+        }
+        config_path = getattr(self.storage_options, "config_path", None)
+        if config_path:
+            summary["Storage"]["Configuration File"] = str(config_path)
+        return summary

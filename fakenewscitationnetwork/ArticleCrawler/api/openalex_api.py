@@ -487,6 +487,15 @@ class OpenAlexAPIProvider(BaseAPIProvider):
         
         venue = self._extract_venue_with_fallbacks(openalex_work)
         authors = self._convert_authorships_to_s2_authors(openalex_work.get('authorships', []))
+        concepts = []
+        for concept in openalex_work.get('concepts', []):
+            concepts.append({
+                'id': concept.get('id', ''),
+                'display_name': concept.get('display_name', ''),
+                'level': concept.get('level', 0),
+                'score': concept.get('score', 0.0)
+            })
+        hierarchy = self._extract_hierarchy_from_concepts(concepts)
         
         return {
             'paperId': paper_id,
@@ -495,6 +504,12 @@ class OpenAlexAPIProvider(BaseAPIProvider):
             'venue': venue,
             'year': openalex_work.get('publication_year'),
             'doi': self._clean_doi(openalex_work.get('doi', '')),
+            'url': f"https://openalex.org/{paper_id}",
+            'concepts': concepts,
+            'topics': hierarchy.get('topics', []),
+            'subfields': hierarchy.get('subfields', []),
+            'fields': hierarchy.get('fields', []),
+            'domains': hierarchy.get('domains', []),
             'authors': authors,
             'references': [],
             'citations': []

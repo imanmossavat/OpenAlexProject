@@ -243,8 +243,18 @@ def paper2dict(paper, processed, columns):
     Returns:
         Dictionary with paper data
     """
-    paper_dict = paper.__dict__
-    
+    paper_dict = dict(paper.__dict__)
     paper_dict['processed'] = processed
     
-    return {col: paper_dict.get(col, '') for col in columns}
+    return {col: _normalize_paper_value(paper_dict.get(col, '')) for col in columns}
+
+
+def _normalize_paper_value(value):
+    """
+    Convert nested PaperObject/list structures into plain Python types.
+    """
+    if isinstance(value, list):
+        return [_normalize_paper_value(item) for item in value]
+    if hasattr(value, '__dict__'):
+        return {key: _normalize_paper_value(val) for key, val in value.__dict__.items()}
+    return value

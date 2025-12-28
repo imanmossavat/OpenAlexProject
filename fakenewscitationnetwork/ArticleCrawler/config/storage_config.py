@@ -46,6 +46,7 @@ class StorageAndLoggingConfig:
         caller_file = Path(caller_frame.filename).resolve()
         self.caller_file_path = caller_file
         self.caller_file_dir = caller_file.parent
+        self.config_path = None
 
         if not root_folder.is_absolute():
             self.root_folder = (self.caller_file_dir / root_folder).resolve()
@@ -79,11 +80,12 @@ class StorageAndLoggingConfig:
         
         # Vault folders for outputs
         self.vault_folder = self.experiment_folder / 'vault'
-        self.abstracts_folder = self.vault_folder / 'abstracts'
+        self.abstracts_folder = self.vault_folder / 'papers'
         self.figure_folder = self.vault_folder / 'figures'
         self.metadata_folder = self.vault_folder / 'meta_data'
         self.summary_folder = self.vault_folder / 'summary'
         self.recommendation_folder = self.vault_folder / 'recommendation'
+        self.manifest_folder = self.vault_folder
 
         # Structured summary exports
         self.jsonl_folder = self.experiment_folder / 'JSONL'
@@ -106,7 +108,8 @@ class StorageAndLoggingConfig:
             'xlsx_folder': self.xlsx_folder,
             'recommendation_folder': self.recommendation_folder,
             'jsonl_folder': self.jsonl_folder,
-            'summary_structured_folder': self.summary_structured_folder
+            'summary_structured_folder': self.summary_structured_folder,
+            'manifest_folder': self.manifest_folder,
         }
 
     def create_directories(self):

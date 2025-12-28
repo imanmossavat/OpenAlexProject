@@ -478,6 +478,7 @@ class Container(containers.DeclarativeContainer):
         PaperAnnotationRepository,
         articlecrawler_path=settings.ARTICLECRAWLER_PATH,
         logger=logger,
+        metadata_service=paper_metadata_service,
     )
 
     catalog_query_builder = providers.Singleton(
