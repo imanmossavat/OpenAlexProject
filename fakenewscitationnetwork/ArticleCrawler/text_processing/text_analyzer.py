@@ -1,11 +1,16 @@
 import os
 import logging
 import json
+from datetime import datetime, timezone
+from pathlib import Path
+
 import pandas as pd
+import yaml
+
 from .preprocessing import TextPreProcessing
 from .vectorization import TextTransformation
 from .topic_modeling import TopicModeling
-from pathlib import Path
+from .topic_companion_writer import TopicCompanionWriter
 from ArticleCrawler.utils.url_builder import PaperURLBuilder
 
 
@@ -56,6 +61,16 @@ class TextAnalysisManager:
         
         try:
             # Extract the relevant data
+            companion_writer = None
+            if vault_folder and experiment_file_name:
+                topics_dir = Path(vault_folder) / "topics"
+                companion_writer = TopicCompanionWriter(
+                    topics_folder=topics_dir,
+                    job_id=experiment_file_name,
+                    run_file="../run.md",
+                )
+                self.topicmodeling.set_companion_writer(companion_writer)
+
             df_abstract = data_manager.frames.df_abstract
             df_metadata = data_manager.frames.df_paper_metadata
             df_forbidden_entries = data_manager.frames.df_forbidden_entries
@@ -252,12 +267,28 @@ class TextAnalysisManager:
             excel_path = self.save_to_excel(df_merge, xlsx_folder, filename, logger=logger)
             parquet_path = self.save_to_parquet(df_merge, parquet_folder, logger=logger)
             annotations_path = self.ensure_annotations_store(annotations_folder, logger=logger)
-            markdown_path = self.save_to_markdown(df_merge, vault_folder, filename_md, logger=logger)
+            markdown_path = self.save_to_markdown(
+                df_merge,
+                vault_folder,
+                filename_md,
+                logger=logger,
+                job_id=experiment_file_name,
+            )
             seed_markdown_path = self.save_seed_papers_to_markdown(
-                df_merge, vault_folder, filename_md_seed, logger=logger)
-            
+                df_merge,
+                vault_folder,
+                filename_md_seed,
+                logger=logger,
+                job_id=experiment_file_name,
+            )
+
             forbidden_markdown_path = self.save_forbidden_papers_to_markdown(
-                df_forbidden_dois_metadata, vault_folder, filename_md_forbidden, logger=logger)
+                df_forbidden_dois_metadata,
+                vault_folder,
+                filename_md_forbidden,
+                logger=logger,
+                job_id=experiment_file_name,
+            )
 
             logger.info(
                 "Report generated successfully:\n"
@@ -284,7 +315,7 @@ class TextAnalysisManager:
             logger.error(f"An error occurred while saving to Excel: {e}")
             raise
 
-    def save_to_markdown(self, df, folder, filename, logger=None):
+    def save_to_markdown(self, df, folder, filename, logger=None, job_id=None, run_file="../run.md"):
         try:
             from tabulate import tabulate
             os.makedirs(folder, exist_ok=True)
@@ -333,9 +364,19 @@ class TextAnalysisManager:
 
             sections.append("\nFor more, please refer to the Excel file and view it as a table.\n")
 
+            content = "# Analysis Results\n\n" + "\n\n".join(sections)
+            metadata_yaml = yaml.safe_dump(
+                {
+                    "job_id": job_id or "unknown",
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "type": "analysis_table",
+                    "run_file": run_file,
+                },
+                sort_keys=False,
+                allow_unicode=True,
+            ).strip()
             with open(file_path, 'w', encoding='utf-8') as md_file:
-                md_file.write("# Analysis Results\n\n")
-                md_file.write("\n\n".join(sections))
+                md_file.write(f"---\n{metadata_yaml}\n---\n\n{content}")
 
             logger.info(f"Markdown file saved at {file_path}")
             return file_path
@@ -407,7 +448,7 @@ class TextAnalysisManager:
             return False
         return bool(str_value)
 
-    def save_seed_papers_to_markdown(self, df, folder, filename, logger=None):
+    def save_seed_papers_to_markdown(self, df, folder, filename, logger=None, job_id=None, run_file="../run.md"):
         try:
             from tabulate import tabulate
             os.makedirs(folder, exist_ok=True)
@@ -439,9 +480,18 @@ class TextAnalysisManager:
             else:
                 section = "## Section 1: All Seed Papers\n\nNo seed papers found.\n"
 
+            metadata_yaml = yaml.safe_dump(
+                {
+                    "job_id": job_id or "unknown",
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "type": "seed_table",
+                    "run_file": run_file,
+                },
+                sort_keys=False,
+                allow_unicode=True,
+            ).strip()
             with open(file_path, 'w', encoding='utf-8') as md_file:
-                md_file.write("# Seed Papers\n\n")
-                md_file.write(section)
+                md_file.write(f"---\n{metadata_yaml}\n---\n\n# Seed Papers\n\n{section}")
 
             logger.info(f"Seed papers Markdown file saved at {file_path}")
             return file_path
@@ -451,7 +501,7 @@ class TextAnalysisManager:
             raise
 
 
-    def save_forbidden_papers_to_markdown(self, df_forbidden_dois_metadata, folder, filename, logger=None):
+    def save_forbidden_papers_to_markdown(self, df_forbidden_dois_metadata, folder, filename, logger=None, job_id=None, run_file="../run.md"):
         """
         Save forbidden papers to a Markdown file.
         
@@ -503,10 +553,19 @@ class TextAnalysisManager:
                 showindex=False
             )
             
-            # Write to file
+            metadata_yaml = yaml.safe_dump(
+                {
+                    "job_id": job_id or "unknown",
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "type": "forbidden_table",
+                    "run_file": run_file,
+                },
+                sort_keys=False,
+                allow_unicode=True,
+            ).strip()
+
             with open(file_path, 'w', encoding='utf-8') as f:
-                f.write("# Forbidden Papers\n\n")
-                f.write(markdown_table)
+                f.write(f"---\n{metadata_yaml}\n---\n\n# Forbidden Papers\n\n{markdown_table}")
             
             if logger:
                 logger.info(f"Forbidden papers Markdown file saved at {file_path}")

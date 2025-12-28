@@ -2,6 +2,7 @@ from .preprocessing import TextPreProcessing
 from .vectorization import TextTransformation
 from .topic_strategies import TopicModelStrategy, NMFTopicStrategy, LDATopicStrategy, TopicStrategyFactory
 from .topic_modeling import TopicModeling
+from .topic_companion_writer import TopicCompanionWriter, TopicVisualizationMetadata
 from .visualization import TopicVisualization
 from .text_analyzer import TextAnalysisManager
 from .topic_labeler import TopicLabeler
@@ -16,6 +17,8 @@ __all__ = [
     'LDATopicStrategy',
     'TopicStrategyFactory',
     'TopicModeling',
+    'TopicCompanionWriter',
+    'TopicVisualizationMetadata',
     'TopicVisualization',
     'TextAnalysisManager',
     'TopicLabeler',

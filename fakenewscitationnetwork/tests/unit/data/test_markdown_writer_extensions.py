@@ -15,7 +15,7 @@ class TestMarkdownWriterExtensions:
             def __init__(self):
                 self.experiment_file_name = 'library'
                 self.vault_folder = temp_dir
-                self.abstracts_folder = temp_dir / "abstracts"
+                self.abstracts_folder = temp_dir / "papers"
                 self.figure_folder = temp_dir / "figures"
                 self.metadata_folder = temp_dir / "metadata"
                 self.summary_folder = temp_dir / "summary"

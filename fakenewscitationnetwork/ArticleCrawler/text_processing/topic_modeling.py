@@ -1,9 +1,11 @@
 import os
+from math import ceil
+from pathlib import Path
+from typing import List, Dict, Optional
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from math import ceil
-from typing import List, Dict, Optional
 from .topic_strategies import TopicStrategyFactory, TopicModelStrategy
 from .visualization import TopicVisualization
 
@@ -27,6 +29,10 @@ class TopicModeling:
         self.strategies = {}  # Cache for strategy instances
         self.results = {}     # Storage for model results
         self._visualization = TopicVisualization(config=config)
+
+    def set_companion_writer(self, writer):
+        if hasattr(self._visualization, "set_companion_writer"):
+            self._visualization.set_companion_writer(writer)
 
     def apply_topic_modeling(self, transformation_instance, logger, model_type: Optional[str] = None):
         """
@@ -203,16 +209,16 @@ class TopicModeling:
         """Get the directory for saving figures."""
         try:
             if self.config.save_figures and figure_folder and timestamp_final_pkl:
-                save_dir = figure_folder / timestamp_final_pkl
+                save_dir = Path(figure_folder) / timestamp_final_pkl
                 os.makedirs(save_dir, exist_ok=True)
                 return save_dir
             elif figure_folder:
-                return figure_folder
+                return Path(figure_folder)
             else:
                 return None
         except (AttributeError, Exception) as e:
             logger.error(f"Error setting save_dir: {str(e)}")
-            return figure_folder
+            return Path(figure_folder) if figure_folder else None
 
     # Backward compatibility properties
     @property
