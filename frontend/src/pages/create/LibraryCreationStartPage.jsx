@@ -27,7 +27,7 @@ export default function LibraryCreationStartPage() {
 
   const goToAuthorTopic = () => {
     if (!authorName.trim()) return
-    navigate(`/author-topic-evolution?author=${encodeURIComponent(authorName.trim())}`)
+    navigate(`/author-topic-evolution/select?author=${encodeURIComponent(authorName.trim())}`)
   }
 
   return (
@@ -119,7 +119,7 @@ export default function LibraryCreationStartPage() {
               placeholder="Ada Lovelace"
               value={authorName}
               onChange={(e) => setAuthorName(e.target.value)}
-              className="mb-4"
+              className="mb-4 rounded-full border-gray-200 px-4 py-3 shadow-sm"
             />
 
             <p className="text-sm text-gray-500 mb-6">
@@ -127,12 +127,11 @@ export default function LibraryCreationStartPage() {
             </p>
 
             <Button
-              variant="outline"
-              className="
-                rounded-full border-gray-300 text-gray-800 
-                hover:bg-gray-100 hover:-translate-y-[1px]
-                transition-all
-              "
+              className={`rounded-full transition-all ${
+                authorName.trim()
+                  ? 'bg-gray-900 text-white hover:bg-gray-800 hover:-translate-y-[1px]'
+                  : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+              }`}
               onClick={goToAuthorTopic}
               disabled={!authorName.trim()}
             >

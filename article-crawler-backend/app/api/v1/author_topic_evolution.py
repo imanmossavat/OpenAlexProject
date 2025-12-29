@@ -33,6 +33,7 @@ async def start_author_evolution(
 ):
     res = svc.run(
         author_id=request.author_id,
+        author_name=request.author_name,
         model_type=request.model_type,
         num_topics=request.num_topics,
         time_period_years=request.time_period_years,
