@@ -25,6 +25,7 @@ class SearchAuthorsResponse(BaseModel):
 
 class StartAuthorEvolutionRequest(BaseModel):
     author_id: str = Field(..., description="Selected author ID (e.g., OpenAlex A123...)")
+    author_name: Optional[str] = Field(default=None, description="Human-readable author name for search disambiguation")
     model_type: str = Field(default="NMF", description="NMF or LDA")
     num_topics: int = Field(default=5, ge=2, le=50)
     time_period_years: int = Field(default=3, ge=1, le=10)

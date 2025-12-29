@@ -3,6 +3,9 @@ import Layout from '@/components/Layout'
 
 import HomePage from '@/pages/home/HomePage'
 import LibraryCreationStartPage from '@/pages/create/LibraryCreationStartPage'
+import AuthorTopicSelectionPage from '@/pages/author/AuthorTopicSelectionPage'
+import AuthorTopicEvolutionPage from '@/pages/author/AuthorTopicEvolutionPage'
+import AuthorTopicResultsPage from '@/pages/author/AuthorTopicResultsPage'
 import UnifiedStagingPage from '@/pages/create/UnifiedStagingPage'
 import MatchedSeedsPage from '@/pages/create/MatchedSeedsPage'
 import PdfImportPage from '@/pages/create/pdf/PdfImportPage'
@@ -31,6 +34,10 @@ export const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       { path: 'create/seeds', element: <LibraryCreationStartPage /> },
       { path: 'create/library-start', element: <LibraryCreationStartPage /> },
+      { path: 'author-topic-evolution', element: <AuthorTopicSelectionPage /> },
+      { path: 'author-topic-evolution/select', element: <AuthorTopicSelectionPage /> },
+      { path: 'author-topic-evolution/configure', element: <AuthorTopicEvolutionPage /> },
+      { path: 'author-topic-evolution/results', element: <AuthorTopicResultsPage /> },
       { path: 'create/staging', element: <UnifiedStagingPage /> },
       { path: 'create/staging/matched', element: <MatchedSeedsPage /> },
       { path: 'create/seeds/pdf', element: <PdfImportPage /> },

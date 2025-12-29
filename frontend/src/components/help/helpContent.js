@@ -9,18 +9,17 @@ const homeHelpContent = {
       description: 'Everything starts from the homepage. Pick the flow that best matches your task.',
       bullets: [
         'Create library – spin up a fresh session that guides you from seed collection to review.',
-        'Edit library – open a previously created library to add or remove seeds',
-        'Load library – browse the repositories of completed libraries to use in the avaible use cases.',
+        'Load library – browse the repositories of completed libraries to use in the available use cases.',
+        'Crawler – run iterative keyword crawls seeded by your libraries.',
       ],
     },
     {
-      title: 'Create library',
-      description: 'Launching a new library session from here automatically:',
+      title: 'Other workflows',
+      description: 'Need something beyond basic library creation?',
       bullets: [
-        'Create a new library.',
-        'Add papers from various sources into a staging area where you can refine their metadata and selected wanted papers for your library.',
-        'Matches selected papers from staging against openalex to use in library.',
-        'Configure library details and create your library.',
+        'Author topic evolution – trace a researcher’s publications and topics across time.',
+        'Edit library – open a previously created library to add or remove seeds.',
+        'Crawler reruns – revisit stored crawler experiments and relaunch them with tweaks.',
       ],
     },
   ],
@@ -188,6 +187,60 @@ const libraryStartContent = {
   ],
 }
 
+const authorTopicContent = {
+  contextLabel: 'Author topic evolution',
+  title: 'Trace a researcher’s topics over time',
+  intro:
+    'This workflow pulls every OpenAlex paper for an author, runs topic modeling, and summarizes how their focus changed across periods.',
+  sections: [
+    {
+      title: '1. Select the author',
+      description: 'Search OpenAlex, inspect the affiliations/metrics, and confirm the exact identity.',
+      bullets: [
+        'Typing a name returns the highest-confidence matches with works/citations counts.',
+        'Pick the right author to ensure the subsequent modeling uses the correct corpus.',
+        'If the author has multiple disambiguations, verify their institutions before continuing.',
+      ],
+    },
+    {
+      title: '2. Configure the run',
+      description: 'Tune modeling parameters and storage preferences before launching.',
+      bullets: [
+        'Choose NMF or LDA, set the number of topics, and define the temporal window (years per period).',
+        'Optionally cap the number of papers analyzed if you only need a subset.',
+        'Toggle “Save as permanent library” and point at your preferred root folder to persist the generated library.',
+      ],
+    },
+    {
+      title: '3. Analyze',
+      description: 'We fetch works from OpenAlex, assign topics, and build the temporal distributions.',
+      bullets: [
+        'The pipeline enriches each paper with concepts/topics and groups them by period automatically.',
+        'If you chose a permanent destination, the markdown + visualization assets are written to disk.',
+        'Once processing finishes, you are redirected to the results dashboard.',
+      ],
+    },
+    {
+      title: '4. Review results',
+      description: 'Use the summary, period counts, and charts to understand topic evolution at a glance.',
+      bullets: [
+        'Line/heatmap/stacked-area charts are generated from the same metadata for interactive inspection.',
+        'Emerging and declining topic lists highlight the biggest shifts.',
+        'When saved permanently, the artifact paths tell you where the visualization and library live on disk.',
+      ],
+    },
+    {
+      title: 'Other workflows',
+      description: 'Need something beyond basic library creation?',
+      bullets: [
+        'Author topic evolution – trace a researcher’s publications and topics across time.',
+        'Crawler – run iterative keyword crawls seeded by your libraries.',
+        'Crawler reruns – revisit stored crawler experiments and relaunch them with tweaks.',
+      ],
+    },
+  ],
+}
+
 const stagingContent = {
   contextLabel: 'Unified staging',
   title: 'Stage, clean, and approve your seed papers',
@@ -284,6 +337,10 @@ const helpContentRules = [
   {
     match: (pathname) => pathname.startsWith('/create/library-start'),
     content: libraryStartContent,
+  },
+  {
+    match: (pathname) => pathname.startsWith('/author-topic-evolution'),
+    content: authorTopicContent,
   },
   {
     match: (pathname) => pathname.startsWith('/create/staging'),

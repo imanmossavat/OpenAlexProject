@@ -2,6 +2,7 @@
 import logging
 from typing import Optional, List, Dict
 from pathlib import Path
+import tempfile
 
 
 class AuthorTopicEvolutionService:
@@ -38,7 +39,8 @@ class AuthorTopicEvolutionService:
             max_papers: Optional[int] = None,
             save_library: bool = False,
             library_path: Optional[str] = None,
-            output_path: Optional[str] = None):
+            output_path: Optional[str] = None,
+            author_name: Optional[str] = None):
         # Build dependencies
         api = self._api(api_provider)
         from ArticleCrawler.library.author_search_service import AuthorSearchService
@@ -53,10 +55,20 @@ class AuthorTopicEvolutionService:
         from ArticleCrawler.visualization.visualization_config import VisualizationConfig
 
         author_search = AuthorSearchService(api, self.logger)
-        candidates = author_search.search_authors(author_id, limit=1)
-        if not candidates:
+        search_query = author_name or author_id
+        candidates = author_search.search_authors(search_query, limit=10)
+
+        normalized_target = self._normalize_author_id(author_id)
+        author = None
+        for candidate in candidates:
+            if self._normalize_author_id(candidate.id) == normalized_target:
+                author = candidate
+                break
+        if not author and candidates:
+            author = candidates[0]
+
+        if not author:
             raise ValueError(f"Author not found: {author_id}")
-        author = candidates[0]
 
         text_cfg = TextProcessingConfig(num_topics=num_topics)
         topic_orch = TopicModelingOrchestrator(topic_config=text_cfg, logger=self.logger)
@@ -66,7 +78,10 @@ class AuthorTopicEvolutionService:
         temporal_analyzer = TemporalAnalysisService(temporal_cfg, self.logger)
         viz_cfg = VisualizationConfig()
         visualizer = LineChartVisualizer(viz_cfg, self.logger)
-        md_writer = MarkdownFileGenerator(storage_and_logging_options=None, api_provider_type=api_provider)
+        md_writer = MarkdownFileGenerator(
+            storage_and_logging_options=self._create_storage_config(),
+            api_provider_type=api_provider
+        )
 
         from ArticleCrawler.usecases.author_topic_evolution_usecase import AuthorTopicEvolutionUseCase
         use_case = AuthorTopicEvolutionUseCase(
@@ -94,4 +109,28 @@ class AuthorTopicEvolutionService:
         )
 
         return result
+
+    def _normalize_author_id(self, author_id: str) -> str:
+        if not author_id:
+            return ""
+        author_id = author_id.strip()
+        if author_id.startswith("https://openalex.org/"):
+            author_id = author_id.split('/')[-1]
+        return author_id.upper()
+
+    def _create_storage_config(self):
+        class BackendStorageConfig:
+            def __init__(self, base_path: Path):
+                self.experiment_file_name = "author_topic_evolution"
+                self.vault_folder = base_path
+                self.abstracts_folder = base_path / "papers"
+                self.figure_folder = base_path / "figures"
+                self.metadata_folder = base_path / "metadata"
+                self.summary_folder = base_path / "summary"
+                self.open_vault_folder = False
+                self.summary_structured_folder = self.summary_folder / "structured"
+                self.manifest_folder = base_path / "manifest"
+
+        temp_dir = Path(tempfile.mkdtemp(prefix="author_topic_evolution_"))
+        return BackendStorageConfig(temp_dir)
 
