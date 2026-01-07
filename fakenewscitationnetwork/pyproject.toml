@@ -38,6 +38,7 @@ dependencies = [
     "python-magic-bin==0.4.14; platform_system == 'Windows'",
     "python-magic==0.4.27; platform_system != 'Windows'",
     "pylatexenc==2.10",
+    "pyarrow==22.0.0",
 ]
 
 [project.optional-dependencies]
