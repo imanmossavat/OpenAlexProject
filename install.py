@@ -138,6 +138,7 @@ def gather_env_inputs(non_interactive: bool = False) -> dict:
         backend_log_level = "INFO"
         cors_list = DEFAULT_CORS.copy()
         frontend_api_url = "http://localhost:8000"
+        grobid_url = "http://localhost:8070"
     else:
         def require_env(name: str) -> str:
             value = os.getenv(name, "").strip()
@@ -164,6 +165,7 @@ def gather_env_inputs(non_interactive: bool = False) -> dict:
         backend_log_level = optional_env("LOG_LEVEL", "INFO")
         cors_list = parse_cors_list(os.getenv("BACKEND_CORS_ORIGINS"))
         frontend_api_url = optional_env("FRONTEND_API_URL") or optional_env("VITE_API_URL", "http://localhost:8000")
+        grobid_url = optional_env("GROBID_URL", "http://localhost:8070")
 
     return {
         "openalex_email": openalex_email,
@@ -177,6 +179,7 @@ def gather_env_inputs(non_interactive: bool = False) -> dict:
         "backend_log_level": backend_log_level,
         "backend_cors_origins": cors_list or DEFAULT_CORS.copy(),
         "frontend_api_url": frontend_api_url,
+        "grobid_url": grobid_url,
     }
 
 
@@ -213,6 +216,9 @@ def write_cli_env(values: dict, force: bool = False) -> None:
         "# Storage",
         f'ARTICLECRAWLER_LIBRARY_ROOT="{values["library_root"]}"',
         "",
+        "# Services",
+        f"GROBID_URL={values['grobid_url']}",
+        "",
     ]
     content = "\n".join(lines)
     write_file_with_prompt(CLI_DIR / ".env", content, force=force)
@@ -233,6 +239,7 @@ def write_backend_env(values: dict, force: bool = False) -> None:
         f"ZOTERO_LIBRARY_TYPE={values['zotero_library_type']}",
         f"ZOTERO_API_KEY={values['zotero_api_key']}",
         f'ARTICLECRAWLER_LIBRARY_ROOT="{values["library_root"]}"',
+        f"GROBID_URL={values['grobid_url']}",
         "",
     ]
     content = "\n".join(lines)

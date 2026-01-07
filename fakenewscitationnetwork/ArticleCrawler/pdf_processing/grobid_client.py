@@ -9,12 +9,15 @@ from grobid_client.grobid_client import GrobidClient
 
 class GrobidClientWrapper:
     
-    def __init__(self, 
-                 server_url: str = "http://localhost:8070",
-                 logger: Optional[logging.Logger] = None):
-        self.server_url = server_url
+    def __init__(
+        self,
+        server_url: Optional[str] = None,
+        logger: Optional[logging.Logger] = None,
+    ):
+        resolved_url = server_url or os.getenv("GROBID_URL") or os.getenv("GROBID_BASE_URL") or "http://localhost:8070"
+        self.server_url = resolved_url
         self.logger = logger or logging.getLogger(__name__)
-        self.client = GrobidClient(grobid_server=server_url, check_server=False)
+        self.client = GrobidClient(grobid_server=resolved_url, check_server=False)
     
     def process_pdfs(self, pdf_paths: List[Path]) -> dict:
         if not pdf_paths:

@@ -1,9 +1,11 @@
 
+import logging
+import os
 import subprocess
 import time
-import requests
 from typing import Optional
-import logging
+
+import requests
 
 
 class DockerManager:
@@ -11,14 +13,18 @@ class DockerManager:
     DEFAULT_PORT = 8070
     CONTAINER_NAME = "grobid-service"
     
-    def __init__(self, 
-                 image: str = DEFAULT_IMAGE,
-                 port: int = DEFAULT_PORT,
-                 logger: Optional[logging.Logger] = None):
+    def __init__(
+        self,
+        image: str = DEFAULT_IMAGE,
+        port: int = DEFAULT_PORT,
+        logger: Optional[logging.Logger] = None,
+        base_url: Optional[str] = None,
+    ):
         self.image = image
         self.port = port
         self.logger = logger or logging.getLogger(__name__)
-        self.base_url = f"http://localhost:{port}"
+        env_url = os.getenv("GROBID_URL") or os.getenv("GROBID_BASE_URL")
+        self.base_url = base_url or env_url or f"http://localhost:{port}"
     
     def is_docker_available(self) -> bool:
         try:

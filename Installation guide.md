@@ -153,6 +153,8 @@ If you prefer running the stack inside containers (helpful on macOS where `libma
 
    The backend container runs `python install.py --non-interactive --env-only` on startup, so the same `.env` files are generated automatically inside the mounted directories.
 
+   The compose file also starts GROBID for you; the backend uses `GROBID_URL` (defaults to `http://grobid:8070`) to reach it inside the Docker network.
+
 4. Data & uploads persist on the host through mounted folders:
    * `fakenewscitationnetwork/libraries`
    * `fakenewscitationnetwork/data`

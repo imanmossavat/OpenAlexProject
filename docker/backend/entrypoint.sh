@@ -18,7 +18,7 @@ done
 if [[ "${SKIP_BOOTSTRAP:-0}" != "1" ]]; then
   if [[ "${needs_bootstrap}" == "true" ]]; then
     echo "Generating environment files via install.py..."
-    python install.py --non-interactive --env-only --force
+    python /app/install.py --non-interactive --env-only --force
   else
     echo "Environment files already present. Skipping bootstrap."
   fi
