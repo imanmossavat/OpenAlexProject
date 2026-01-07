@@ -137,6 +137,33 @@ ZOTERO_API_KEY=your_zotero_key
 VITE_API_URL=http://localhost:8000
 ```
 
+---
+
+### Docker-based setup (optional, no local dependencies)
+
+If you prefer running the stack inside containers (helpful on macOS where `libmagic` is tricky), use the provided Docker workflow.
+
+1. Install Docker Desktop.
+2. Copy `.env.docker.example` to `.env` at the repository root and fill in the required values (at minimum `OPENALEX_EMAIL`). Adjust `ARTICLECRAWLER_LIBRARY_ROOT` if you mount a custom host directory.
+3. Run:
+
+   ```bash
+   docker compose up --build
+   ```
+
+   The backend container runs `python install.py --non-interactive --env-only` on startup, so the same `.env` files are generated automatically inside the mounted directories.
+
+4. Data & uploads persist on the host through mounted folders:
+   * `fakenewscitationnetwork/libraries`
+   * `fakenewscitationnetwork/data`
+   * `article-crawler-backend/uploaded_dumps`
+   * `article-crawler-backend/retraction_cache`
+
+   Mount additional host paths in `docker-compose.yml` if you want libraries/experiments stored elsewhere.
+
+5. Visit [http://localhost:5173](http://localhost:5173) for the frontend and [http://localhost:8000/api/v1/docs](http://localhost:8000/api/v1/docs) for the API once the containers are up.
+
+You can still run `python install.py` interactively on Windows/Linux when you do not want Docker.
 
 ---
 
@@ -149,6 +176,8 @@ All Python commands assume the **root `.venv` is activated**.
 ```bash
 python install.py
 ```
+
+> Tip: pass `--non-interactive --env-only` if you just need the `.env` files generated from environment variables (used by the Docker workflow).
 
 Activate the environment afterward:
 
@@ -271,4 +300,3 @@ Vite defaults to [http://localhost:5173](http://localhost:5173).
 * **API import errors**: check `ARTICLECRAWLER_PATH`
 * **CORS issues**: update `BACKEND_CORS_ORIGINS`
 * **PDF parsing failures**: confirm GROBID is running
-

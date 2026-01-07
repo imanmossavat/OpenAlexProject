@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./fakenewscitationnetwork/libraries:/app/fakenewscitationnetwork/libraries
+      - ./fakenewscitationnetwork/data:/app/fakenewscitationnetwork/data
+      - ./article-crawler-backend/uploaded_dumps:/app/article-crawler-backend/uploaded_dumps
+      - ./article-crawler-backend/retraction_cache:/app/article-crawler-backend/retraction_cache
+      - ./article-crawler-backend/.env:/app/article-crawler-backend/.env
+    depends_on:
+      - grobid
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../docker/frontend/Dockerfile
+    env_file:
+      - .env
+    environment:
+      VITE_API_URL: ${FRONTEND_API_URL:-http://api:8000}
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+
+  grobid:
+    image: lfoppiano/grobid:0.8.2
+    ports:
+      - "8070:8070"

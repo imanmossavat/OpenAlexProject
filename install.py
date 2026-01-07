@@ -1,3 +1,6 @@
+import argparse
+import json
+import os
 import platform
 import shutil
 import subprocess
@@ -10,6 +13,7 @@ CLI_DIR = ROOT_DIR / "fakenewscitationnetwork"
 BACKEND_DIR = ROOT_DIR / "article-crawler-backend"
 FRONTEND_DIR = ROOT_DIR / "frontend"
 VENV_PATH = ROOT_DIR / ".venv"
+DEFAULT_CORS = ["http://localhost:5173", "http://localhost:3000"]
 
 
 class Colors:
@@ -98,21 +102,68 @@ def check_python_version() -> None:
 
 
 
-def gather_env_inputs() -> dict:
-    print_header("Configuring Environment Values")
-    openalex_email = prompt_required(f"{Colors.BOLD}OpenAlex email (required){Colors.ENDC}")
-    print_info("Zotero configuration is optional. Leave fields empty to skip.")
-    zotero_library_id = input("Zotero Library ID: ").strip()
-    zotero_api_key = input("Zotero API Key: ").strip()
-    zotero_library_type = prompt_with_default("Zotero Library Type (user/group)", "user")
+def parse_bool_env(value: str | None, default: bool) -> bool:
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "y", "on"}
 
-    library_root = (CLI_DIR / "libraries").resolve().as_posix()
-    backend_project_name = "ArticleCrawler API"
-    backend_version = "1.0.0"
-    backend_debug = True
-    backend_log_level = "INFO"
-    cors_list = ["http://localhost:5173", "http://localhost:3000"]
-    frontend_api_url = "http://localhost:8000"
+
+def parse_cors_list(raw: str | None) -> list[str]:
+    if not raw:
+        return DEFAULT_CORS.copy()
+    stripped = raw.strip()
+    if stripped.startswith("["):
+        try:
+            parsed = json.loads(stripped)
+            if isinstance(parsed, list):
+                return [str(item) for item in parsed if str(item).strip()]
+        except json.JSONDecodeError:
+            print_warning("Failed to parse BACKEND_CORS_ORIGINS as JSON. Falling back to comma parsing.")
+    parts = [segment.strip() for segment in stripped.split(",") if segment.strip()]
+    return parts or DEFAULT_CORS.copy()
+
+
+def gather_env_inputs(non_interactive: bool = False) -> dict:
+    print_header("Configuring Environment Values")
+    if not non_interactive:
+        openalex_email = prompt_required(f"{Colors.BOLD}OpenAlex email (required){Colors.ENDC}")
+        print_info("Zotero configuration is optional. Leave fields empty to skip.")
+        zotero_library_id = input("Zotero Library ID: ").strip()
+        zotero_api_key = input("Zotero API Key: ").strip()
+        zotero_library_type = prompt_with_default("Zotero Library Type (user/group)", "user")
+        library_root = (CLI_DIR / "libraries").resolve().as_posix()
+        backend_project_name = "ArticleCrawler API"
+        backend_version = "1.0.0"
+        backend_debug = True
+        backend_log_level = "INFO"
+        cors_list = DEFAULT_CORS.copy()
+        frontend_api_url = "http://localhost:8000"
+    else:
+        def require_env(name: str) -> str:
+            value = os.getenv(name, "").strip()
+            if not value:
+                print_error(f"{name} must be set when running non-interactively.")
+                sys.exit(1)
+            return value
+
+        def optional_env(name: str, default: str = "") -> str:
+            value = os.getenv(name)
+            return value.strip() if isinstance(value, str) and value.strip() else default
+
+        openalex_email = require_env("OPENALEX_EMAIL")
+        zotero_library_id = optional_env("ZOTERO_LIBRARY_ID")
+        zotero_api_key = optional_env("ZOTERO_API_KEY")
+        zotero_library_type = optional_env("ZOTERO_LIBRARY_TYPE", "user")
+        library_root = optional_env(
+            "ARTICLECRAWLER_LIBRARY_ROOT",
+            (CLI_DIR / "libraries").resolve().as_posix(),
+        )
+        backend_project_name = optional_env("PROJECT_NAME", "ArticleCrawler API")
+        backend_version = optional_env("BACKEND_VERSION", "1.0.0")
+        backend_debug = parse_bool_env(os.getenv("BACKEND_DEBUG"), True)
+        backend_log_level = optional_env("LOG_LEVEL", "INFO")
+        cors_list = parse_cors_list(os.getenv("BACKEND_CORS_ORIGINS"))
+        frontend_api_url = optional_env("FRONTEND_API_URL") or optional_env("VITE_API_URL", "http://localhost:8000")
 
     return {
         "openalex_email": openalex_email,
@@ -124,13 +175,13 @@ def gather_env_inputs() -> dict:
         "backend_version": backend_version,
         "backend_debug": backend_debug,
         "backend_log_level": backend_log_level,
-        "backend_cors_origins": cors_list or ["http://localhost:5173", "http://localhost:3000"],
+        "backend_cors_origins": cors_list or DEFAULT_CORS.copy(),
         "frontend_api_url": frontend_api_url,
     }
 
 
-def write_file_with_prompt(path: Path, content: str) -> None:
-    if path.exists():
+def write_file_with_prompt(path: Path, content: str, force: bool = False) -> None:
+    if path.exists() and not force:
         overwrite = prompt_yes_no(f"{path} already exists. Overwrite?", False)
         if not overwrite:
             print_warning(f"Skipping {path}.")
@@ -141,7 +192,7 @@ def write_file_with_prompt(path: Path, content: str) -> None:
     print_success(f"Wrote {path}.")
 
 
-def write_cli_env(values: dict) -> None:
+def write_cli_env(values: dict, force: bool = False) -> None:
     lines = [
         "# OpenAlex Configuration",
         f"OPENALEX_EMAIL={values['openalex_email']}",
@@ -164,10 +215,10 @@ def write_cli_env(values: dict) -> None:
         "",
     ]
     content = "\n".join(lines)
-    write_file_with_prompt(CLI_DIR / ".env", content)
+    write_file_with_prompt(CLI_DIR / ".env", content, force=force)
 
 
-def write_backend_env(values: dict) -> None:
+def write_backend_env(values: dict, force: bool = False) -> None:
     cors = "[" + ",".join(f'"{origin}"' for origin in values["backend_cors_origins"]) + "]"
     articlecrawler_path = CLI_DIR.resolve().as_posix()
     lines = [
@@ -185,12 +236,12 @@ def write_backend_env(values: dict) -> None:
         "",
     ]
     content = "\n".join(lines)
-    write_file_with_prompt(BACKEND_DIR / ".env", content)
+    write_file_with_prompt(BACKEND_DIR / ".env", content, force=force)
 
 
-def write_frontend_env(values: dict) -> None:
+def write_frontend_env(values: dict, force: bool = False) -> None:
     content = f"VITE_API_URL={values['frontend_api_url']}\n"
-    write_file_with_prompt(FRONTEND_DIR / ".env", content)
+    write_file_with_prompt(FRONTEND_DIR / ".env", content, force=force)
 
 
 def upgrade_pip(pip_exe: Path) -> bool:
@@ -369,18 +420,41 @@ def setup_frontend_dependencies() -> None:
         print_success("Frontend dependencies installed.")
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="ArticleCrawler installer")
+    parser.add_argument(
+        "--non-interactive",
+        action="store_true",
+        help="Read config values from environment variables instead of prompting.",
+    )
+    parser.add_argument(
+        "--env-only",
+        action="store_true",
+        help="Only generate .env files (skip dependency installation).",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite existing .env files without prompting (implied in non-interactive mode).",
+    )
+    return parser.parse_args()
+
+
 def main() -> None:
+    args = parse_args()
     print_header("ArticleCrawler Full-Stack Installer")
     ensure_project_structure()
     check_python_version()
 
-    values = gather_env_inputs()
-    write_cli_env(values)
-    write_backend_env(values)
-    write_frontend_env(values)
+    values = gather_env_inputs(non_interactive=args.non_interactive)
+    force_write = args.force or args.non_interactive
+    write_cli_env(values, force=force_write)
+    write_backend_env(values, force=force_write)
+    write_frontend_env(values, force=force_write)
 
-    setup_python_environment()
-    setup_frontend_dependencies()
+    if not args.env_only:
+        setup_python_environment()
+        setup_frontend_dependencies()
 
     print_header("All Done")
     print_success("Environment files are configured.")
