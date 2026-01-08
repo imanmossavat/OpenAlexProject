@@ -6,11 +6,10 @@
 2. [Requirements](#requirements)
 3. [Repository Setup](#repository-setup)
 4. [Environment Configuration](#environment-configuration)
-5. [CLI Installation & Usage](#cli-installation--usage)
 6. [Backend API Setup](#backend-api-setup)
 7. [Frontend Setup](#frontend-setup)
 8. [Running the Stack Together](#running-the-stack-together)
-9. [Troubleshooting](#troubleshooting)
+
 
 ---
 
@@ -18,11 +17,11 @@
 
 ArticleCrawler ships as a three-part stack:
 
-* **CLI + core engine** (`fakenewscitationnetwork/`): the Python package that crawls OpenAlex, manages experiments, and exports libraries.
+* **core engine** (`fakenewscitationnetwork/`): the Python package that crawls OpenAlex, manages experiments, and exports libraries.
 * **Backend API** (`article-crawler-backend/`): a FastAPI service that exposes crawler functionality to the UI and orchestrates long-running jobs.
 * **Frontend** (`frontend/`): a Vite + React application that talks to the API and visualizes crawler outputs.
 
-The CLI can still run stand-alone for scripted experimentation, while the backend and frontend let you operate the crawler through a browser.
+The backend and frontend let you operate the crawler through a browser.
 
 ---
 
@@ -31,8 +30,8 @@ The CLI can still run stand-alone for scripted experimentation, while the backen
 * **Software**
 
   * Git
-  * Python 3.10+
-  * Docker Desktop (required for optional GROBID PDF parsing)
+  * Python 3.11
+  * Docker Desktop (required for optional GROBID PDF parsing) or for the docker setup
 * **Accounts / API keys**
 
   * OpenAlex email (`OPENALEX_EMAIL`)
@@ -49,7 +48,6 @@ Clone the repo and switch to the working branch:
 ```bash
 git clone https://github.com/imanmossavat/OpenAlexProject.git
 cd OpenAlexProject
-git checkout Bryan
 ```
 
 Project layout:
@@ -64,7 +62,9 @@ Project layout:
 
 ## Environment Configuration
 
-You can either let the installer generate all environment files automatically (**recommended**) or create them manually.
+There are 2 ways to configure 1. the automated setup where you run install.py, 2. is the Docker-based setup (recommended for MacOS)
+
+You can either let the installer generate all environment files automatically by just inputting the right data in the console when prompted.
 
 The installer:
 
@@ -77,6 +77,7 @@ The installer:
 From the repository root:
 
 ```bash
+# From the root
 python install.py
 ```
 
@@ -93,31 +94,6 @@ You can re-run it safely; it will prompt before overwriting files.
 
 ---
 
-### Manual configuration (optional)
-
-#### 1. CLI (`fakenewscitationnetwork/.env`)
-
-```
-OPENALEX_EMAIL=your.email@example.com
-ZOTERO_LIBRARY_ID=1234567            # Optional
-ZOTERO_LIBRARY_TYPE=user             # or group
-ZOTERO_API_KEY=your_zotero_key       # Optional
-```
-
-#### 2. Backend (`article-crawler-backend/.env`)
-
-```
-ARTICLECRAWLER_PATH=C:/path/to/OpenAlexProject/fakenewscitationnetwork
-PROJECT_NAME="ArticleCrawler API"
-VERSION="1.0.0"
-DEBUG=true
-LOG_LEVEL=INFO
-BACKEND_CORS_ORIGINS=["http://localhost:5173","http://localhost:3000"]
-OPENALEX_EMAIL=your.email@example.com
-ZOTERO_LIBRARY_ID=1234567
-ZOTERO_LIBRARY_TYPE=user
-ZOTERO_API_KEY=your_zotero_key
-```
 
 #### Getting API Keys
 
@@ -131,23 +107,19 @@ ZOTERO_API_KEY=your_zotero_key
 5. Copy the API key to your `.env` file
 6. Find your library ID
 
-#### 3. Frontend (`frontend/.env`)
-
-```
-VITE_API_URL=http://localhost:8000
-```
 
 ---
 
 ### Docker-based setup (optional, no local dependencies)
 
-If you prefer running the stack inside containers (helpful on macOS where `libmagic` is tricky), use the provided Docker workflow.
+If you prefer running the stack inside containers (helpful on macOS where some dependencies require extra work outside of the installer), use the provided Docker workflow.
 
 1. Install Docker Desktop.
-2. Copy `.env.docker.example` to `.env` at the repository root and fill in the required values (at minimum `OPENALEX_EMAIL`). Adjust `ARTICLECRAWLER_LIBRARY_ROOT` if you mount a custom host directory.
+2. Copy `.env.docker.example` to `.env` at the repository root and fill in the required values.
 3. Run:
 
    ```bash
+   # From the root
    docker compose up --build
    ```
 
@@ -155,13 +127,7 @@ If you prefer running the stack inside containers (helpful on macOS where `libma
 
    The compose file also starts GROBID for you; the backend uses `GROBID_URL` (defaults to `http://grobid:8070`) to reach it inside the Docker network.
 
-4. Data & uploads persist on the host through mounted folders:
-   * `fakenewscitationnetwork/libraries`
-   * `fakenewscitationnetwork/data`
-   * `article-crawler-backend/uploaded_dumps`
-   * `article-crawler-backend/retraction_cache`
-
-   Mount additional host paths in `docker-compose.yml` if you want libraries/experiments stored elsewhere.
+4. Data & uploads persist on the host through mounted folders
 
 5. Visit [http://localhost:5173](http://localhost:5173) for the frontend and [http://localhost:8000/api/v1/docs](http://localhost:8000/api/v1/docs) for the API once the containers are up.
 
@@ -169,13 +135,11 @@ You can still run `python install.py` interactively on Windows/Linux when you do
 
 ---
 
-## CLI Installation & Usage
 
-All Python commands assume the **root `.venv` is activated**.
-
-### Option A – full-stack installer (recommended)
+### full-stack installer
 
 ```bash
+# From the root
 python install.py
 ```
 
@@ -196,23 +160,7 @@ Activate the environment afterward:
 
 ---
 
-### Option B – manual Python setup
-
-```bash
-python -m venv .venv
-# Windows
-.venv\Scripts\activate
-# Linux/macOS
-source .venv/bin/activate
-
-cd fakenewscitationnetwork
-pip install -e ".[cli,dev]"
-
-cd ../article-crawler-backend
-pip install -r requirements.txt
-
-python -c "import nltk; [nltk.download(p) for p in ('stopwords','punkt','wordnet','omw-1.4')]"
-```
+The following is only for if you used the full-stack installer instead of the Docker-based setup
 
 ---
 
@@ -243,19 +191,6 @@ docker run --rm -p 8070:8070 lfoppiano/grobid:0.8.2
 
 ---
 
-### Core CLI commands
-
-cd fakenewscitationnetwork
-
-```bash
-python -m ArticleCrawler.cli.main wizard
-python -m ArticleCrawler.cli.main edit
-python -m ArticleCrawler.cli.main library-create
-python -m ArticleCrawler.cli.main topic-modeling
-python -m ArticleCrawler.cli.main author-evolution
-```
-
----
 
 ## Backend API Setup
 
@@ -263,6 +198,7 @@ If you used the installer, backend dependencies are already installed.
 
 ```bash
 # ensure .venv is active
+# From the root
 cd article-crawler-backend
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
@@ -277,6 +213,7 @@ Verify:
 ## Frontend Setup
 
 ```bash
+# From the root
 cd frontend
 npm install
 npm run dev
@@ -290,15 +227,8 @@ Vite defaults to [http://localhost:5173](http://localhost:5173).
 
 1. Activate `.venv/`
 2. Start Docker + GROBID (optional)
-3. Run backend API (`uvicorn …`)
+3. Run backend API (`uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload`)
 4. Run frontend (`npm run dev`)
 5. Use separate terminals for each service
 
 ---
-
-## Troubleshooting
-
-* **Wrong Python environment**: ensure `.venv` is activated
-* **API import errors**: check `ARTICLECRAWLER_PATH`
-* **CORS issues**: update `BACKEND_CORS_ORIGINS`
-* **PDF parsing failures**: confirm GROBID is running
