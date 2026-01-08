@@ -1,0 +1,232 @@
+from abc import ABC, abstractmethod
+from pathlib import Path
+from typing import List
+from rich.console import Console
+import os
+from dotenv import load_dotenv
+from .prompts import Prompter
+from .validators import validate_paper_id, validate_file_path
+from .pdf_ui_helpers import PDFFileSelector, MetadataReviewer, MatchResultsPresenter
+from .pdf_workflow import PDFSeedWorkflow
+from ...pdf_processing import PDFProcessor
+
+
+class SeedProvider(ABC):
+    
+    @abstractmethod
+    def get_seeds(self) -> List[str]:
+        pass
+    
+    @abstractmethod
+    def display_name(self) -> str:
+        pass
+    
+    def is_available(self) -> tuple[bool, str]:
+        """
+        Check if this provider is available.
+        
+        Returns:
+            tuple[bool, str]: (is_available, reason_if_not_available)
+        """
+        return True, None
+    
+    def get_unavailable_message(self) -> str:
+        """
+        Get a helpful message to show when this provider is unavailable.
+        
+        Returns:
+            str: Helpful message for the user
+        """
+        return "This source is currently unavailable. Please select another."
+
+
+class ManualSeedProvider(SeedProvider):
+    
+    def __init__(self, prompter: Prompter):
+        self.prompter = prompter
+    
+    def display_name(self) -> str:
+        return "Enter paper IDs manually"
+    
+    def get_seeds(self) -> List[str]:
+        seeds = []
+        self.prompter.console.print("Enter paper IDs (one per line, blank to finish):")
+        self.prompter.console.print("[dim]Formats accepted: W123456789 (OpenAlex), DOIs, S2 IDs[/dim]\n")
+        
+        idx = 1
+        while True:
+            seed = self.prompter.input(f"Paper ID {idx}").strip()
+            
+            if not seed:
+                break
+            
+            if validate_paper_id(seed):
+                seeds.append(seed)
+                idx += 1
+            else:
+                self.prompter.error(f"Invalid paper ID format: {seed}")
+                self.prompter.console.print("[dim]Try: W123456789, DOI, or S2 paper ID[/dim]")
+        
+        return seeds
+
+
+class FileSeedProvider(SeedProvider):
+    
+    def __init__(self, prompter: Prompter):
+        self.prompter = prompter
+    
+    def display_name(self) -> str:
+        return "Load from file"
+    
+    def get_seeds(self) -> List[str]:
+        while True:
+            path_str = self.prompter.input("Enter path to seed papers file")
+            
+            is_valid, error_msg = validate_file_path(path_str)
+            if not is_valid:
+                self.prompter.error(error_msg)
+                continue
+            
+            try:
+                seeds = self._load_from_file(Path(path_str))
+                if not seeds:
+                    self.prompter.error("File is empty or contains no valid paper IDs")
+                    continue
+                
+                return seeds
+                
+            except Exception as e:
+                self.prompter.error(f"Error reading file: {e}")
+                continue
+    
+    def _load_from_file(self, file_path: Path) -> List[str]:
+        seeds = []
+        
+        with open(file_path, 'r', encoding='utf-8') as f:
+            for line_num, line in enumerate(f, 1):
+                line = line.strip()
+                
+                if not line or line.startswith('#'):
+                    continue
+                
+                if validate_paper_id(line):
+                    seeds.append(line)
+                else:
+                    self.prompter.warning(f"Line {line_num}: Invalid paper ID format: {line}")
+        
+        return seeds
+
+
+class PDFSeedProvider(SeedProvider):
+    
+    def __init__(self, prompter: Prompter, api_provider_type: str = 'openalex'):
+        self.prompter = prompter
+        self.api_provider_type = api_provider_type
+        console = Console()
+        
+        file_selector = PDFFileSelector(console)
+        metadata_reviewer = MetadataReviewer(prompter, console)
+        results_presenter = MatchResultsPresenter(prompter, console, api_provider_type)
+        pdf_processor = PDFProcessor()
+        
+        self.workflow = PDFSeedWorkflow(
+            prompter=prompter,
+            api_provider_type=api_provider_type,
+            pdf_processor=pdf_processor,
+            file_selector=file_selector,
+            metadata_reviewer=metadata_reviewer,
+            results_presenter=results_presenter
+        )
+    
+    def display_name(self) -> str:
+        return "Extract from PDF files"
+    
+    def is_available(self) -> tuple[bool, str]:
+        """Check if GROBID is available for PDF processing."""
+        try:
+            from ...pdf_processing.docker_manager import DockerManager
+            
+            docker_manager = DockerManager()
+            
+            try:
+                if docker_manager.is_grobid_running():
+                    return True, None
+            except Exception:
+                pass
+            
+            if not docker_manager.is_docker_available():
+                return False, "Docker not available"
+            
+            return False, "GROBID not running"
+            
+        except Exception as e:
+            return False, "GROBID not available"
+    
+    def get_unavailable_message(self) -> str:
+        """Get helpful message for unavailable PDF processing."""
+        return (
+            "PDF processing requires GROBID to be running.\n"
+            "   Start it with: docker run -d -p 8070:8070 --name grobid-service lfoppiano/grobid:0.8.2"
+        )
+    
+    def get_seeds(self) -> List[str]:
+        return self.workflow.execute()
+
+
+class ZoteroSeedProvider(SeedProvider):
+    """
+    Provides seeds from Zotero library.
+    Uses ZoteroSeedWorkflow for orchestration.
+    """
+    
+    def __init__(self, prompter: Prompter, api_provider_type: str = 'openalex'):
+        self.prompter = prompter
+        self.api_provider_type = api_provider_type
+        self.console = Console()
+    
+    def display_name(self) -> str:
+        return "Import from Zotero library"
+    
+    def is_available(self) -> tuple[bool, str]:
+        """Check if Zotero is configured."""
+        import os
+        from dotenv import load_dotenv
+        
+        load_dotenv()
+        
+        library_id = os.getenv('ZOTERO_LIBRARY_ID')
+        api_key = os.getenv('ZOTERO_API_KEY')
+        
+        if not library_id or not api_key:
+            return False, "not configured in .env"
+        
+        return True, None
+    
+    def get_unavailable_message(self) -> str:
+        """Get helpful message for unavailable Zotero."""
+        return (
+            "Zotero is not configured. Add these to your .env file:\n"
+            "   ZOTERO_LIBRARY_ID=your_library_id\n"
+            "   ZOTERO_API_KEY=your_api_key\n"
+            "   Get credentials from: https://www.zotero.org/settings/keys"
+        )
+    
+    def get_seeds(self) -> List[str]:
+        """Execute workflow and return paper IDs."""
+        from ..zotero.workflow import ZoteroSeedWorkflow
+        
+        workflow = ZoteroSeedWorkflow(
+            prompter=self.prompter,
+            console=self.console,
+            api_provider_type=self.api_provider_type
+        )
+        
+        return workflow.execute()
+
+
+SEED_PROVIDERS = [
+    ManualSeedProvider,
+    FileSeedProvider,
+    PDFSeedProvider,
+    ZoteroSeedProvider,
+]

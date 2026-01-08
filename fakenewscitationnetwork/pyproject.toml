@@ -1,0 +1,65 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "articlecrawler"
+version = "0.1.0"
+description = "Scientific Literature Discovery Tool"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    {name = "Iman Mossavat"}, {name = "Bryan Hoppenbrouwer"}
+]
+
+dependencies = [
+    "networkx==3.4.2",
+    "pandas==2.3.3",
+    "numpy==2.2.6",
+    "scikit-learn==1.7.2",
+    "sentence-transformers==5.1.1",
+    "python-dotenv==1.1.1",
+    "requests==2.32.5",
+    "langdetect==1.0.9",
+    "nltk==3.9.2",
+    "wordcloud==1.9.4",
+    "matplotlib==3.10.7",
+    "openpyxl==3.1.5",
+    "xlsxwriter==3.2.9",
+    "tabulate==0.9.0",
+    "pyalex==0.18",
+    "pyzotero==1.7.3",
+    "grobid-client-python==0.0.18",
+    "scipy==1.15.3",
+    "torch==2.9.0",
+    "s2==0.1.9",
+    "python-docx==1.1.2",
+    "beautifulsoup4==4.12.3",
+    "python-magic-bin==0.4.14; platform_system == 'Windows'",
+    "python-magic==0.4.27; platform_system != 'Windows'",
+    "pylatexenc==2.10",
+    "pyarrow==22.0.0",
+]
+
+[project.optional-dependencies]
+cli = [
+    "typer[all]==0.20.0",
+    "rich==14.2.0",
+    "questionary==2.1.1",
+    "pyyaml==6.0.3",
+    "pydantic==2.12.3",
+]
+
+dev = [
+    "pytest==8.4.2",
+    "pytest-cov==7.0.0",
+    "black==25.9.0",
+    "flake8==7.3.0",
+]
+
+[project.scripts]
+crawler = "ArticleCrawler.cli.main:app"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["ArticleCrawler*"]

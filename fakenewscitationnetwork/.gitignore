@@ -1,0 +1,19 @@
+# Ignore all .pkl files
+*.pkl
+
+
+.env
+*.csv
+*.xlsx
+*.log
+*.log.*
+*.pyc
+FakeNewsCitationNetwork/data
+Experiment/data
+fakenewscitationnetwork/experiments/
+libraries/
+venv/
+*.egg-info/
+__pycache__/
+*.pyc
+*.pyd

@@ -1,0 +1,15 @@
+fastapi==0.111.0
+starlette==0.37.2
+uvicorn[standard]==0.27.0
+python-multipart==0.0.20
+
+
+pydantic==2.5.3
+pydantic-settings==2.1.0
+
+dependency-injector>=4.41.0
+python-dotenv==1.1.1
+
+polars==0.20.21
+-e ../fakenewscitationnetwork
+

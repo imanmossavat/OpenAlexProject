@@ -1,0 +1,14 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+*.log
+node_modules/
+frontend/node_modules/
+frontend/test-results/
+frontend/tests/playwright-report/
+article-crawler-backend/.env
+fakenewscitationnetwork/.env
+frontend/.env
+article-crawler-backend/uploaded_dumps/
+
