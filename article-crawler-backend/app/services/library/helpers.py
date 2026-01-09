@@ -37,7 +37,8 @@ class LibraryPathResolver:
     """Resolve and validate library paths based on API configuration."""
 
     def __init__(self, articlecrawler_path: str):
-        self._base = Path(articlecrawler_path)
+        base_str = (articlecrawler_path or "").strip()
+        self._base = Path(base_str) if base_str else Path.cwd()
 
     def resolve(self, raw_path: Optional[str]) -> Path:
         """Resolve a library path, defaulting to ArticleCrawler/libraries."""
@@ -47,11 +48,22 @@ class LibraryPathResolver:
 
     def ensure_absolute(self, raw_path: str) -> Path:
         try:
-            candidate = Path(raw_path)
+            normalized = str(raw_path).strip()
+            if not normalized:
+                raise InvalidInputException("Library path must be an absolute path")
+            candidate = Path(normalized).expanduser()
         except Exception as exc:
             raise InvalidInputException(f"Invalid path: {exc}")
+
+        if not candidate.is_absolute():
+            try:
+                candidate = candidate.resolve(strict=False)
+            except Exception as exc:
+                raise InvalidInputException(f"Invalid path: {exc}")
+
         if not candidate.is_absolute():
             raise InvalidInputException("Library path must be an absolute path")
+
         return candidate
 
 
