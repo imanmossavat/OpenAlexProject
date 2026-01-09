@@ -4,7 +4,7 @@ import logging
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 from app.core.executors.background import BackgroundJobExecutor
 from app.core.stores.crawler_job_store import (
@@ -17,6 +17,7 @@ from app.services.crawler import (
     CrawlerResultAssembler,
     CrawlerRunInputs,
     CrawlerRunResult,
+    CrawlerProgressSnapshot,
 )
 
 
@@ -66,6 +67,7 @@ class CrawlerExecutionService:
 
         run_inputs = self._config_builder.build(job_id, session_data)
 
+        now = datetime.utcnow()
         job_data = {
             "job_id": job_id,
             "session_id": session_id,
@@ -73,14 +75,25 @@ class CrawlerExecutionService:
             "current_iteration": 0,
             "max_iterations": run_inputs.max_iterations,
             "papers_collected": 0,
-            "started_at": datetime.utcnow(),
+            "iterations_completed": 0,
+            "iterations_remaining": run_inputs.max_iterations,
+            "seed_papers": len(session_data.get("seeds") or []),
+            "citations_collected": 0,
+            "references_collected": 0,
+            "papers_added_this_iteration": 0,
+            "started_at": now,
             "completed_at": None,
+            "last_progress_at": now,
             "error_message": None,
             "experiment_name": session_data.get("experiment_name"),
         }
         self._job_store.create_job(job_id, job_data)
 
-        self._executor.submit(self._run_crawler, job_id, run_inputs)
+        self._executor.submit(
+            self._run_crawler,
+            job_id,
+            run_inputs,
+        )
 
         return job_id
 
@@ -90,7 +103,11 @@ class CrawlerExecutionService:
         run_inputs: CrawlerRunInputs,
     ) -> None:
         try:
-            run_result = self._job_runner.run(job_id, run_inputs)
+            run_result = self._job_runner.run(
+                job_id,
+                run_inputs,
+                progress_callback=self._build_progress_handler(job_id),
+            )
             self._record_success(job_id, run_inputs, run_result)
             self.logger.info("Job %s: Completed successfully", job_id)
         except Exception as exc:
@@ -104,6 +121,18 @@ class CrawlerExecutionService:
                 completed_at=datetime.utcnow(),
             )
 
+    def _build_progress_handler(self, job_id: str):
+        def _handle(snapshot: CrawlerProgressSnapshot) -> None:
+            try:
+                updates = snapshot.as_job_updates()
+                self._job_store.update_job(job_id, **updates)
+            except Exception:
+                self.logger.warning(
+                    "Job %s: Failed to persist progress update", job_id, exc_info=True
+                )
+
+        return _handle
+
     def _record_success(
         self,
         job_id: str,
@@ -114,10 +143,16 @@ class CrawlerExecutionService:
         self._job_store.update_job(
             job_id,
             current_iteration=run_inputs.max_iterations,
+            iterations_completed=run_inputs.max_iterations,
+            iterations_remaining=0,
             papers_collected=run_result.papers_collected,
             status="completed",
             completed_at=datetime.utcnow(),
+            last_progress_at=datetime.utcnow(),
         )
+
+    def list_jobs(self) -> List[Dict]:
+        return self._job_store.list_jobs()
 
     def get_job_status(self, job_id: str) -> Optional[Dict]:
         return self._job_store.get_job(job_id)

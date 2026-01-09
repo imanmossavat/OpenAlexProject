@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from types import SimpleNamespace
-from unittest.mock import Mock
+from unittest.mock import Mock, ANY
 
 from app.core.stores.crawler_job_store import InMemoryCrawlerJobStore
 from app.services.crawler import (
@@ -70,12 +70,15 @@ def test_start_crawler_runs_job_and_updates_store(monkeypatch):
 
     assert job_id == "job_1234567890ab"
     builder.build.assert_called_once_with(job_id, session_data)
-    runner.run.assert_called_once_with(job_id, config_inputs)
+    runner.run.assert_called_once_with(job_id, config_inputs, progress_callback=ANY)
 
     stored = store.get_job(job_id)
     assert stored["status"] == "completed"
     assert stored["papers_collected"] == 5
     assert stored["current_iteration"] == 2
+    assert stored["iterations_completed"] == 2
+    assert stored["iterations_remaining"] == 0
+    assert stored["last_progress_at"] is not None
 
 
 def test_get_results_uses_result_assembler(monkeypatch):
