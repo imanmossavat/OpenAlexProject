@@ -3,13 +3,14 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Callable, Dict, Optional
 
 from ArticleCrawler.DataManagement.markdown_writer import MarkdownFileGenerator
 from ArticleCrawler.crawler import Crawler
 from ArticleCrawler.cli.utils.config_loader import save_config
 
 from .config_builder import CrawlerRunInputs
+from .progress import CrawlerProgressSnapshot
 
 
 @dataclass(frozen=True)
@@ -26,7 +27,13 @@ class CrawlerJobRunner:
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         self._logger = logger or logging.getLogger(__name__)
 
-    def run(self, job_id: str, inputs: CrawlerRunInputs) -> CrawlerRunResult:
+    def run(
+        self,
+        job_id: str,
+        inputs: CrawlerRunInputs,
+        *,
+        progress_callback: Optional[Callable[[CrawlerProgressSnapshot], None]] = None,
+    ) -> CrawlerRunResult:
         crawler_configs = inputs.experiment_config.to_crawler_configs()
 
         api_config = crawler_configs["api_config"]
@@ -60,6 +67,9 @@ class CrawlerJobRunner:
             graph_config=graph_config,
             retraction_config=retraction_config,
             md_generator=generator,
+            progress_callback=self._build_progress_emitter(
+                progress_callback, stopping_config.max_iter
+            ),
         )
 
         self._logger.info("Job %s: Starting crawl process", job_id)
@@ -85,6 +95,27 @@ class CrawlerJobRunner:
         )
 
         return CrawlerRunResult(crawler=crawler, papers_collected=papers_collected)
+
+    def _build_progress_emitter(
+        self,
+        callback: Optional[Callable[[CrawlerProgressSnapshot], None]],
+        max_iterations: int,
+    ) -> Optional[Callable[[Dict], None]]:
+        if not callback:
+            return None
+
+        def _emit(raw_payload: Dict) -> None:
+            try:
+                payload = dict(raw_payload or {})
+                payload.setdefault("iterations_total", max_iterations)
+                snapshot = CrawlerProgressSnapshot.from_payload(payload)
+                callback(snapshot)
+            except Exception:
+                self._logger.warning(
+                    "Failed to normalize crawler progress payload", exc_info=True
+                )
+
+        return _emit
 
     def _persist_configuration(
         self,

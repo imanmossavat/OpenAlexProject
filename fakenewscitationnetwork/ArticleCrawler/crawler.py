@@ -12,6 +12,9 @@ All existing functionality is preserved while providing better maintainability
 and extensibility through SOLID principles.
 """
 
+from datetime import datetime
+from typing import Callable, Dict, Optional
+
 from .api import create_api_provider
 from .data import PaperRetrievalService, DataValidationService, DataCoordinator, FrameManager
 from .config import (
@@ -51,7 +54,8 @@ class Crawler:
                  storage_and_logging_options=None,
                  retraction_options=None,
                  frames=None,
-                 md_generator=None):
+                 md_generator=None,
+                 progress_callback: Optional[Callable[[Dict], None]] = None):
         
         self._resolve_configurations(
             api_config, sampling_config, text_config, storage_config,
@@ -63,6 +67,7 @@ class Crawler:
         self.crawl_initial_condition = crawl_initial_condition
         self.crawl_initial_condition.validate_keywords()
         self.md_generator = md_generator
+        self._progress_callback = progress_callback
 
         self.logger = CrawlerLogger(self.storage_config)
         
@@ -77,6 +82,7 @@ class Crawler:
         self.logger.info(f"Data coordinator seeded with paperIds {self.crawl_initial_condition.seed_paperid}")
         self.logger.log_reporting_information(data_manager=self.data_coordinator, iteration='Initialization')
         self.logger.info('Enhanced Crawler initialization finished.')
+        self._emit_progress(iterations_completed=0, papers_added=0)
 
     def _resolve_configurations(self, api_config, sampling_config, text_config, storage_config,
                                graph_config, retraction_config, stopping_criteria_config,
@@ -252,6 +258,7 @@ class Crawler:
         self.logger.info(f"Using {self.api_config.provider_type} API provider for crawling")
 
         iteration = 0
+        previous_total_papers = self.data_coordinator.frames.df_paper_metadata.shape[0]
         self.logger.info('Enhanced crawling started with dependency injection architecture.')
 
         while self._should_continue_crawling(iteration):
@@ -286,9 +293,18 @@ class Crawler:
             self.logger.log_reporting_information(data_manager=self.data_coordinator, iteration=iteration)
             self.logger.info('Enhanced iteration %d completed.', iteration)
 
+            current_total_papers = self.data_coordinator.frames.df_paper_metadata.shape[0]
+            papers_added = max(current_total_papers - previous_total_papers, 0)
+            previous_total_papers = current_total_papers
+
             iteration += 1
+            self._emit_progress(iterations_completed=iteration, papers_added=papers_added)
 
         self._finalize_crawling()
+        self._emit_progress(
+            iterations_completed=min(iteration, self.stopping_config.max_iter),
+            papers_added=0,
+        )
 
     def _should_continue_crawling(self, iteration):
         """
@@ -350,11 +366,11 @@ class Crawler:
         topic modeling while maintaining backward compatibility.
         """
         self.logger.info("Starting enhanced analysis and report generation with strategy-based architecture.")
-        
+
         try:
             with temporary_text_config(self.text_config, **kwargs) as modified_config:
                 self.text_processor.config = modified_config
-                
+
                 self.text_processor.analyze_and_report(
                     data_manager=self.data_coordinator,
                     logger=self.logger,
@@ -365,12 +381,53 @@ class Crawler:
                     vault_folder=self.storage_config.vault_folder,
                     config=modified_config
                 )
-                
+
                 self.logger.info(f"PKL file stored at {self.storage_config.filepath_final_pkl}")
 
         except Exception as e:
             self.logger.error(f"An error occurred during enhanced analysis and report generation: {e}")
             raise
+
+    def _emit_progress(self, iterations_completed: int, papers_added: int) -> None:
+        """Emit crawler progress metrics through the optional callback."""
+        if not self._progress_callback:
+            return
+
+        try:
+            df_meta = getattr(self.data_coordinator.frames, "df_paper_metadata", None)
+            total_papers = int(df_meta.shape[0]) if df_meta is not None else 0
+
+            if df_meta is not None and "isSeed" in df_meta.columns:
+                seed_papers = int(df_meta["isSeed"].fillna(False).astype(bool).sum())
+            else:
+                seed_papers = 0
+
+            df_citations = getattr(self.data_coordinator.frames, "df_paper_citations", None)
+            citations_count = int(df_citations.shape[0]) if df_citations is not None else 0
+
+            df_references = getattr(self.data_coordinator.frames, "df_paper_references", None)
+            references_count = int(df_references.shape[0]) if df_references is not None else 0
+
+            payload = {
+                "iterations_completed": min(iterations_completed, self.stopping_config.max_iter),
+                "iterations_total": self.stopping_config.max_iter,
+                "papers_collected": total_papers,
+                "seed_papers": seed_papers,
+                "citations_collected": citations_count,
+                "references_collected": references_count,
+                "papers_added_this_iteration": max(papers_added, 0),
+                "timestamp": datetime.utcnow(),
+            }
+
+            self._progress_callback(payload)
+        except Exception:
+            self.logger.warning("Failed to emit crawler progress update", exc_info=True)
+
+    def __getstate__(self):
+        """Drop non-picklable runtime-only references before serialization."""
+        state = self.__dict__.copy()
+        state["_progress_callback"] = None
+        return state
 
     # Backward compatibility properties
     @property

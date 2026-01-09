@@ -29,8 +29,19 @@ class CrawlerStatus(BaseModel):
     current_iteration: int = Field(default=0, description="Current iteration number")
     max_iterations: int = Field(..., description="Maximum iterations configured")
     papers_collected: int = Field(default=0, description="Total papers collected so far")
+    iterations_completed: int = Field(0, description="Number of iterations completed")
+    iterations_remaining: int = Field(0, description="Remaining iterations")
+    seed_papers: int = Field(0, description="Seed papers processed so far")
+    citations_collected: int = Field(0, description="Total citation edges collected")
+    references_collected: int = Field(0, description="Total reference edges collected")
+    papers_added_this_iteration: int = Field(
+        0, description="Papers saved during the last finished iteration"
+    )
     started_at: datetime = Field(..., description="Job start timestamp")
     completed_at: Optional[datetime] = Field(None, description="Job completion timestamp")
+    last_progress_at: Optional[datetime] = Field(
+        None, description="Timestamp of the latest progress update"
+    )
     error_message: Optional[str] = Field(None, description="Error message if failed")
     
     class Config:
@@ -41,8 +52,15 @@ class CrawlerStatus(BaseModel):
                 "current_iteration": 2,
                 "max_iterations": 5,
                 "papers_collected": 150,
+                "iterations_completed": 2,
+                "iterations_remaining": 3,
+                "seed_papers": 10,
+                "citations_collected": 620,
+                "references_collected": 610,
+                "papers_added_this_iteration": 50,
                 "started_at": "2025-10-29T10:30:00",
                 "completed_at": None,
+                "last_progress_at": "2025-10-29T10:35:00",
                 "error_message": None
             }
         }

@@ -20,7 +20,9 @@ import VenuesTab from './components/VenuesTab'
 import CatalogSection from './components/CatalogSection'
 import TopicDrawer from './components/TopicDrawer'
 import EntityDrawer from './components/EntityDrawer'
+import ProgressPanel from './components/ProgressPanel'
 import { clearSession } from '@/shared/lib/session'
+import { parseDate } from '@/shared/lib/time'
 
 const steps = ['Keywords', 'Configuration', 'Run', 'Results']
 const JOB_STORAGE_KEY = 'crawler_last_job_id'
@@ -183,6 +185,42 @@ export default function CrawlerResultsPage() {
     setStatus(null)
     navigate('/')
   }, [navigate])
+
+  const progress = useMemo(() => {
+    if (!status) return null
+    const iterationsCompleted = Math.max(
+      0,
+      status.iterations_completed ?? status.current_iteration ?? 0
+    )
+    const iterationsTotalCandidate =
+      status.max_iterations ??
+      status.iterations_total ??
+      (iterationsCompleted > 0 ? iterationsCompleted : 0)
+    const iterationsTotal = Math.max(iterationsTotalCandidate, iterationsCompleted)
+    const iterationsRemaining =
+      status.iterations_remaining ?? Math.max(iterationsTotal - iterationsCompleted, 0)
+    let percent = iterationsTotal > 0 ? Math.round((iterationsCompleted / iterationsTotal) * 100) : 0
+    if (status.status === 'completed' && percent < 100) percent = 100
+    percent = Math.min(100, Math.max(0, percent))
+
+    const startedAt = parseDate(status.started_at)
+    const lastUpdateRaw = status.last_progress_at || status.completed_at
+    const lastUpdate = parseDate(lastUpdateRaw) || startedAt
+
+    return {
+      status: status.status,
+      percent,
+      iterationsCompleted,
+      iterationsTotal,
+      iterationsRemaining,
+      papersCollected: status.papers_collected ?? 0,
+      seedPapers: status.seed_papers ?? 0,
+      citations: status.citations_collected ?? 0,
+      references: status.references_collected ?? 0,
+      startedAt,
+      lastUpdate,
+    }
+  }, [status])
 
   const networkOverview = useMemo(() => {
     if (!results?.network_overview) return []
@@ -443,10 +481,14 @@ export default function CrawlerResultsPage() {
     if (entityTotal > 0 && nextPage > entityMaxPage) return
     fetchEntityPapers(entityViewer.type, entityViewer.id, nextPage)
   }
+  const showProgressPanel = progress && status?.status === 'running'
+
+  const stepperStep = status?.status === 'running' ? 3 : 4
+
   return (
     <div className="min-h-[calc(100vh-160px)] bg-white">
       <div className="max-w-6xl mx-auto px-6 py-12 space-y-8">
-        <Stepper steps={steps} currentStep={4} />
+        <Stepper steps={steps} currentStep={stepperStep} />
 
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div className="flex flex-col gap-3">
@@ -482,7 +524,9 @@ export default function CrawlerResultsPage() {
           </div>
         ) : null}
 
-        {status?.status === 'running' ? (
+        {showProgressPanel ? <ProgressPanel progress={progress} /> : null}
+
+        {!showProgressPanel && status?.status === 'running' ? (
           <div className="rounded-3xl border border-dashed border-gray-300 p-8 text-center text-gray-600">
             <div className="flex justify-center mb-3">
               <Loader2 className="w-5 h-5 animate-spin text-gray-500" />
@@ -588,11 +632,9 @@ export default function CrawlerResultsPage() {
               )}
             </div>
           </>
-        ) : (
+        ) : status?.status === 'running' ? null : (
           <div className="rounded-3xl border border-dashed border-gray-300 p-8 text-center text-gray-600">
-            {status?.status === 'running'
-              ? 'Crawler is running. Results will appear automatically once it completes.'
-              : 'Start a crawler job to see results.'}
+            Start a crawler job to see results.
           </div>
         )}
       </div>

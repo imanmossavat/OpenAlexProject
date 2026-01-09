@@ -3,6 +3,7 @@
 from .config_builder import CrawlerConfigBuilder, CrawlerRunInputs
 from .job_runner import CrawlerJobRunner, CrawlerRunResult
 from .result_assembler import CrawlerResultAssembler
+from .progress import CrawlerProgressSnapshot
 
 __all__ = [
     "CrawlerConfigBuilder",
@@ -10,4 +11,5 @@ __all__ = [
     "CrawlerJobRunner",
     "CrawlerRunResult",
     "CrawlerResultAssembler",
+    "CrawlerProgressSnapshot",
 ]
