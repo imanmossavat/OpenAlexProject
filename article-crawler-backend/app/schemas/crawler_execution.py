@@ -133,6 +133,10 @@ class PaperMetadata(BaseModel):
     doi: Optional[str] = Field(None, description="DOI")
     citation_count: Optional[int] = Field(None, description="Total citations")
     centrality_score: float = Field(..., description="Eigenvector centrality score")
+    centrality_metrics: Dict[str, Optional[float]] = Field(
+        default_factory=dict,
+        description="Available centrality metrics (e.g., centrality_in, centrality_out)",
+    )
     is_seed: bool = Field(False, description="Whether this was a seed paper")
     is_retracted: bool = Field(False, description="Whether paper is retracted")
     url: Optional[str] = Field(None, description="URL to paper")
@@ -148,6 +152,7 @@ class PaperMetadata(BaseModel):
                 "doi": "10.1038/example",
                 "citation_count": 150,
             "centrality_score": 0.85,
+            "centrality_metrics": {"centrality_in": 0.85, "centrality_out": 0.42},
             "is_seed": True,
             "is_retracted": False,
             "url": "https://openalex.org/W2741809807"
@@ -198,6 +203,7 @@ class AuthorInfluence(BaseModel):
 class VenueStatistics(BaseModel):
     """Venue aggregated metrics."""
     venue: str = Field(..., description="Venue name")
+    venue_id: Optional[str] = Field(None, description="OpenAlex venue identifier when available")
     total_papers: int = Field(..., description="Total papers attributed to this venue")
     self_citations: int = Field(0, description="Self-citation count")
     citing_others: int = Field(0, description="Outgoing citations to other venues")
@@ -207,6 +213,7 @@ class VenueStatistics(BaseModel):
         json_schema_extra = {
             "example": {
                 "venue": "Nature",
+                "venue_id": "S198399229",
                 "total_papers": 12,
                 "self_citations": 1,
                 "citing_others": 30,

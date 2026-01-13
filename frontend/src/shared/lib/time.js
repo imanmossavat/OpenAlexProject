@@ -15,7 +15,6 @@ export function parseDate(value) {
     return parsed
   }
 
-  // Treat naive timestamps as UTC to avoid browser-local offsets
   return new Date(`${value}Z`)
 }
 

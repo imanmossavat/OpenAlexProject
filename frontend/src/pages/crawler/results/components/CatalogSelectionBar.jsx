@@ -7,6 +7,10 @@ export default function CatalogSelectionBar({
   annotationMarks,
   onBulkMark,
   bulkMarkState,
+  onCopySelected,
+  copyingSelections,
+  onDownloadSelected,
+  downloadingSelections,
 }) {
   if (selectionCount <= 0) return null
   return (
@@ -22,22 +26,46 @@ export default function CatalogSelectionBar({
           Clear selection
         </Button>
       </div>
-      <div className="flex flex-wrap gap-2">
-        {annotationMarks.map((mark) => (
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap gap-2">
           <Button
-            key={`bulk-${mark.value}`}
             type="button"
             variant="outline"
             className="rounded-full text-xs shadow-sm"
-            onClick={() => onBulkMark(mark.value)}
-            disabled={bulkMarkState.loading}
+            onClick={onCopySelected}
+            disabled={copyingSelections}
           >
-            {bulkMarkState.loading && bulkMarkState.mark === mark.value ? (
-              <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
-            ) : null}
-            {mark.label}
+            {copyingSelections ? <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" /> : null}
+            Copy selected URLs
           </Button>
-        ))}
+          <Button
+            type="button"
+            variant="outline"
+            className="rounded-full text-xs shadow-sm"
+            onClick={onDownloadSelected}
+            disabled={downloadingSelections}
+          >
+            {downloadingSelections ? <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" /> : null}
+            Download TXT
+          </Button>
+        </div>
+        <div className="flex flex-wrap gap-2 border-l border-blue-200 pl-3">
+          {annotationMarks.map((mark) => (
+            <Button
+              key={`bulk-${mark.value}`}
+              type="button"
+              variant="outline"
+              className="rounded-full text-xs shadow-sm"
+              onClick={() => onBulkMark(mark.value)}
+              disabled={bulkMarkState.loading}
+            >
+              {bulkMarkState.loading && bulkMarkState.mark === mark.value ? (
+                <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
+              ) : null}
+              {mark.label}
+            </Button>
+          ))}
+        </div>
       </div>
     </div>
   )
