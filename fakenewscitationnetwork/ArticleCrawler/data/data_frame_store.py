@@ -30,6 +30,7 @@ class DataFrameStore:
             'paperId': pd.Series(dtype='str'),
             'doi': pd.Series(dtype='str'),   
             'venue': pd.Series(dtype='str'),
+            'venue_id': pd.Series(dtype='str'),
             'year': pd.Series(dtype='int'),
             'title': pd.Series(dtype='str'),
             'url': pd.Series(dtype='str'),

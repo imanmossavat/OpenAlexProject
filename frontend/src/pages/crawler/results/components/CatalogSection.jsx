@@ -12,7 +12,7 @@ import {
   CATALOG_ANNOTATION_MARKS,
   CATALOG_ANNOTATION_MARK_VALUES,
 } from '../catalogFilters'
-import { getAnnotationSwatchClass } from '../utils'
+import { downloadTextFile, getAnnotationSwatchClass, getPreferredPaperUrl } from '../utils'
 import CatalogToolbar from './CatalogToolbar'
 import CatalogFilterSidebar from './CatalogFilterSidebar'
 import ColumnFilterChips from './ColumnFilterChips'
@@ -66,6 +66,8 @@ export default function CatalogSection({
   const [selectedPaperIds, setSelectedPaperIds] = useState(() => new Set())
   const [markSavingIds, setMarkSavingIds] = useState(() => new Set())
   const [bulkMarkState, setBulkMarkState] = useState({ loading: false, mark: null })
+  const [copyingSelection, setCopyingSelection] = useState(false)
+  const [downloadingSelection, setDownloadingSelection] = useState(false)
   const { toast } = useToast()
 
   useEffect(() => {
@@ -319,6 +321,89 @@ export default function CatalogSection({
     updateCatalogFilter('marks', [...ALL_ANNOTATION_MARK_VALUES])
   }
 
+  const handleCopySelectedUrls = useCallback(async () => {
+    if (!selectedPaperIds.size) {
+      toast({
+        title: 'No papers selected',
+        description: 'Select at least one paper in the table first.',
+        variant: 'destructive',
+      })
+      return
+    }
+    const selectedPapers = catalogPapers.filter((paper) =>
+      paper?.paper_id ? selectedPaperIds.has(paper.paper_id) : false
+    )
+    const urls = selectedPapers
+      .map((paper) => getPreferredPaperUrl(paper))
+      .filter((value) => typeof value === 'string' && value.length > 0)
+    if (!urls.length) {
+      toast({
+        title: 'No URLs to copy',
+        description: 'Selected papers do not have DOI or source URLs.',
+        variant: 'destructive',
+      })
+      return
+    }
+    setCopyingSelection(true)
+    try {
+      await navigator.clipboard.writeText(urls.join('\n'))
+      toast({
+        title: `Copied ${urls.length} link${urls.length === 1 ? '' : 's'}`,
+        description: 'Ready to paste into NotebookLM or other tools.',
+        variant: 'success',
+      })
+    } catch (err) {
+      toast({
+        title: 'Unable to copy links',
+        description: err?.message || 'Clipboard permission was denied.',
+        variant: 'destructive',
+      })
+    } finally {
+      setCopyingSelection(false)
+    }
+  }, [catalogPapers, selectedPaperIds, toast])
+
+  const handleDownloadSelectedUrls = useCallback(() => {
+    if (!selectedPaperIds.size) {
+      toast({
+        title: 'No papers selected',
+        description: 'Select at least one paper in the table first.',
+        variant: 'destructive',
+      })
+      return
+    }
+    const selectedPapers = catalogPapers.filter((paper) =>
+      paper?.paper_id ? selectedPaperIds.has(paper.paper_id) : false
+    )
+    const urls = selectedPapers
+      .map((paper) => getPreferredPaperUrl(paper))
+      .filter((value) => typeof value === 'string' && value.length > 0)
+    if (!urls.length) {
+      toast({
+        title: 'No URLs to download',
+        description: 'Selected papers do not have DOI or source URLs.',
+        variant: 'destructive',
+      })
+      return
+    }
+    setDownloadingSelection(true)
+    try {
+      downloadTextFile('selected_papers.txt', urls.join('\n'))
+      toast({
+        title: `Downloaded ${urls.length} link${urls.length === 1 ? '' : 's'}`,
+        description: 'Check your downloads folder for selected_papers.txt.',
+      })
+    } catch (err) {
+      toast({
+        title: 'Unable to download links',
+        description: err?.message || 'Something went wrong while creating the file.',
+        variant: 'destructive',
+      })
+    } finally {
+      setDownloadingSelection(false)
+    }
+  }, [catalogPapers, selectedPaperIds, toast])
+
   const handleCatalogPageChange = (direction) => {
     setCatalogPage((prev) => {
       const candidate = prev + direction
@@ -402,6 +487,7 @@ export default function CatalogSection({
           markValue === 'standard'
             ? `Cleared annotations for ${ids.length} paper${ids.length === 1 ? '' : 's'}.`
             : `Marked ${ids.length} paper${ids.length === 1 ? '' : 's'} as ${markValue}.`,
+        variant: 'success',
       })
       refreshCatalog()
       return true
@@ -536,6 +622,10 @@ export default function CatalogSection({
                 annotationMarks={CATALOG_ANNOTATION_MARKS}
                 onBulkMark={handleBulkMark}
                 bulkMarkState={bulkMarkState}
+                onCopySelected={handleCopySelectedUrls}
+                copyingSelections={copyingSelection}
+                onDownloadSelected={handleDownloadSelectedUrls}
+                downloadingSelections={downloadingSelection}
               />
               <CatalogTable
                 catalogPapers={catalogPapers}

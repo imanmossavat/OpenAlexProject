@@ -71,6 +71,7 @@ export default function CrawlerResultsPage() {
   const [entityTotal, setEntityTotal] = useState(0)
   const [entityLoading, setEntityLoading] = useState(false)
   const [entityError, setEntityError] = useState(null)
+  const [centralityMetric, setCentralityMetric] = useState('centrality_in')
   const catalogEnabled = Boolean(jobId && status?.status === 'completed')
   const {
     papers: catalogPapers,
@@ -262,13 +263,37 @@ export default function CrawlerResultsPage() {
       }))
   }, [results])
 
-  const topPapers = results?.top_papers ?? []
+  const sortedTopPapers = useMemo(() => {
+    const papers = results?.top_papers ?? []
+    if (!papers.length) return []
+    return [...papers].sort((a, b) => {
+      const metricsA = a.centrality_metrics || {}
+      const metricsB = b.centrality_metrics || {}
+      const valA =
+        typeof metricsA?.[centralityMetric] === 'number'
+          ? metricsA[centralityMetric]
+          : typeof a.centrality_score === 'number'
+          ? a.centrality_score
+          : 0
+      const valB =
+        typeof metricsB?.[centralityMetric] === 'number'
+          ? metricsB[centralityMetric]
+          : typeof b.centrality_score === 'number'
+          ? b.centrality_score
+          : 0
+      return Number(valB) - Number(valA)
+    })
+  }, [results?.top_papers, centralityMetric])
+
   const topics = results?.topics ?? []
   const topicMaxPage = topicTotal > 0 ? Math.ceil(topicTotal / TOPIC_PAPERS_PAGE_SIZE) : 1
   const topAuthors = results?.top_authors ?? []
   const topVenues = results?.top_venues ?? []
   const entityMaxPage = entityTotal > 0 ? Math.ceil(entityTotal / ENTITY_PAPERS_PAGE_SIZE) : 1
-  const totalTopPaperPages = Math.max(1, Math.ceil(topPapers.length / TOP_PAPERS_PAGE_SIZE))
+  const totalTopPaperPages = Math.max(
+    1,
+    Math.ceil(sortedTopPapers.length / TOP_PAPERS_PAGE_SIZE)
+  )
 
   const openPaperDetails = async (paper, options = {}) => {
     const { skipFetch = false } = options
@@ -320,7 +345,7 @@ export default function CrawlerResultsPage() {
 
   const fetchTopicPapers = useCallback(
     async (topicId, requestedPage = 1) => {
-      if (!jobId || !topicId) return
+      if (!jobId || topicId === undefined || topicId === null) return
       setTopicLoading(true)
       setTopicError(null)
       const res = await apiClient(
@@ -578,7 +603,7 @@ export default function CrawlerResultsPage() {
 
               {activeTab === 'top_papers' && (
                 <TopPapersTab
-                  papers={topPapers}
+                  papers={sortedTopPapers}
                   currentPage={topPapersPage}
                   totalPages={totalTopPaperPages}
                   pageSize={TOP_PAPERS_PAGE_SIZE}
@@ -591,6 +616,8 @@ export default function CrawlerResultsPage() {
                     })
                   }
                   onSelectPaper={openPaperDetails}
+                  centralityMetric={centralityMetric}
+                  onCentralityMetricChange={setCentralityMetric}
                 />
               )}
 

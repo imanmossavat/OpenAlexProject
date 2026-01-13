@@ -5,6 +5,7 @@ import HelpGuideModal from '@/components/help/HelpGuideModal'
 import { getHelpContent } from '@/components/help/helpContent'
 import WorkflowModal from '@/components/workflow/WorkflowModal'
 import { WORKFLOW_LIST, getWorkflowContext } from '@/shared/workflows'
+import { Toaster } from '@/components/ui/toaster'
 
 export default function Layout() {
   const location = useLocation()
@@ -28,6 +29,7 @@ export default function Layout() {
         contextWorkflow={workflowContext.workflow}
         contextStepId={workflowContext.stepId}
       />
+      <Toaster />
     </div>
   )
 }

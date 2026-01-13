@@ -351,8 +351,21 @@ class OpenAlexAPIProvider(BaseAPIProvider):
             doi = doi.replace('https://doi.org/', '')
         
         venue = None
-        if work.get('primary_location') and work['primary_location'].get('source'):
-            venue = work['primary_location']['source'].get('display_name')
+        venue_id = None
+        primary_location = work.get('primary_location')
+        if primary_location and primary_location.get('source'):
+            source = primary_location['source']
+            venue = source.get('display_name') or venue
+            venue_id = source.get('id') or venue_id
+        host_venue = work.get('host_venue') or {}
+        if not venue and host_venue:
+            venue = host_venue.get('display_name') or venue
+        if not venue_id and host_venue:
+            venue_id = host_venue.get('id') or venue_id
+        if isinstance(venue_id, str) and venue_id.strip():
+            venue_id = self._normalize_venue_id(venue_id)
+        else:
+            venue_id = None
         
         abstract = work.get('abstract')
         if not abstract and work.get('abstract_inverted_index'):
@@ -391,6 +404,7 @@ class OpenAlexAPIProvider(BaseAPIProvider):
             year=year,
             venue=venue,
             venue_raw=venue,
+            venue_id=venue_id,
             doi=doi,
             abstract=abstract,
             url=url,
@@ -604,6 +618,17 @@ class OpenAlexAPIProvider(BaseAPIProvider):
             )
         
         venue = self._extract_venue_with_fallbacks(openalex_work)
+        venue_id = None
+        primary_location = openalex_work.get('primary_location') or {}
+        if primary_location.get('source'):
+            venue_id = primary_location['source'].get('id') or venue_id
+        host_venue = openalex_work.get('host_venue') or {}
+        if not venue_id and host_venue:
+            venue_id = host_venue.get('id')
+        if isinstance(venue_id, str) and venue_id.strip():
+            venue_id = self._normalize_venue_id(venue_id)
+        else:
+            venue_id = None
         authors = self._convert_authorships_to_s2_authors(openalex_work.get('authorships', []))
         concepts = []
         for concept in openalex_work.get('concepts', []):
@@ -620,6 +645,7 @@ class OpenAlexAPIProvider(BaseAPIProvider):
             'title': openalex_work.get('title', ''),
             'abstract': abstract,
             'venue': venue,
+            'venue_id': venue_id,
             'year': openalex_work.get('publication_year'),
             'doi': self._clean_doi(openalex_work.get('doi', '')),
             'url': f"https://openalex.org/{paper_id}",

@@ -462,6 +462,7 @@ class MarkdownFileGenerator:
         for _, row in top_venues.iterrows():
             payload.append({
                 "venue": row.get('venue'),
+                "venue_id": self._convert_scalar_for_json(row.get('venue_id')),
                 "total_papers": self._convert_scalar_for_json(row.get('total_papers')),
                 "self_citations": self._convert_scalar_for_json(row.get('self_citations')),
                 "citing_others": self._convert_scalar_for_json(row.get('citing_others')),
