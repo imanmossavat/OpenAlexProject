@@ -3,6 +3,10 @@ from math import ceil
 from pathlib import Path
 from typing import Dict, List, Optional
 
+import matplotlib
+
+# Use a non-interactive backend so figure generation works in background threads/headless envs
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd

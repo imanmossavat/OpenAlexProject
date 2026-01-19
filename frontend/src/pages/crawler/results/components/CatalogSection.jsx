@@ -57,6 +57,7 @@ export default function CatalogSection({
   clearAllColumnFilters,
   fetchCatalogColumnOptions,
   onOpenPaperDetails,
+  onSelectionChange = () => {},
 }) {
   const [catalogSearchDraft, setCatalogSearchDraft] = useState(catalogFilters.search || '')
   const [catalogVenueDraft, setCatalogVenueDraft] = useState(catalogFilters.venue || '')
@@ -440,6 +441,12 @@ export default function CatalogSection({
   }
 
   const clearSelection = () => setSelectedPaperIds(new Set())
+
+  useEffect(() => {
+    if (typeof onSelectionChange === 'function') {
+      onSelectionChange(Array.from(selectedPaperIds))
+    }
+  }, [selectedPaperIds, onSelectionChange])
 
   const markPapers = useCallback(
     async (paperIds, markValue, { skipBulkState = false } = {}) => {

@@ -26,9 +26,11 @@ export default function ProgressPanel({ progress }) {
       ? 'Completed'
       : status === 'failed'
       ? 'Failed'
+      : status === 'saving'
+      ? 'Saving'
       : 'Running'
 
-  const isActive = status === 'running'
+  const isActive = status === 'running' || status === 'saving'
   const [now, setNow] = useState(() => new Date())
 
   useEffect(() => {
@@ -61,7 +63,9 @@ export default function ProgressPanel({ progress }) {
           <p className="text-xs uppercase tracking-[0.4em] text-gray-500">Crawler progress</p>
           <div className="flex items-center gap-2">
             <h2 className="text-3xl font-semibold text-gray-900">{statusLabel}</h2>
-            {status === 'running' ? <Loader2 className="w-5 h-5 text-gray-500 animate-spin" /> : null}
+            {status === 'running' || status === 'saving' ? (
+              <Loader2 className="w-5 h-5 text-gray-500 animate-spin" />
+            ) : null}
           </div>
           <p className="text-sm text-gray-600">
             Started {startedAtText || '—'} • Last update {lastUpdateText || '—'} • Elapsed {elapsedText || '—'}

@@ -41,6 +41,13 @@ class DataCoordinator:
             self.frames.df_paper_metadata['selected'].fillna(False).astype(bool)
         )
 
+    def mark_selected_papers(self, paper_ids):
+        """Mark existing papers as selected (used for manual frontier overrides)."""
+        if not paper_ids:
+            return
+        if hasattr(self.frames, 'mark_papers_selected'):
+            self.frames.mark_papers_selected(list(paper_ids))
+
     def retrieve_and_process_papers(self, paper_ids, paperIDs_are_sampled=False):
         """
         Main orchestration method for retrieving and processing papers.

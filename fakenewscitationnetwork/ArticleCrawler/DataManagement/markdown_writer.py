@@ -138,10 +138,11 @@ class MarkdownFileGenerator:
         """
         Normalize stored structured metadata into a list of dictionaries.
         """
-        if not items or (isinstance(items, float) and pd.isna(items)):
+        normalized_items = self._normalize_structured_items(items)
+        if not normalized_items:
             return []
         normalized = []
-        for item in items:
+        for item in normalized_items:
             entry = {}
             for key in keys:
                 value = None
@@ -154,6 +155,37 @@ class MarkdownFileGenerator:
             if entry:
                 normalized.append(entry)
         return normalized
+
+    def _normalize_structured_items(self, items):
+        """
+        Safely convert heterogeneous stored metadata into a list of dicts.
+        """
+        if items is None:
+            return []
+        if isinstance(items, (float, int)) and pd.isna(items):
+            return []
+        if isinstance(items, str):
+            try:
+                parsed = json.loads(items)
+            except Exception:
+                return []
+            items = parsed
+        if isinstance(items, dict):
+            items = [items]
+        elif hasattr(items, "tolist"):
+            try:
+                items = items.tolist()
+            except Exception:
+                pass
+        if isinstance(items, tuple):
+            items = list(items)
+        if not isinstance(items, list):
+            try:
+                items = list(items)
+            except TypeError:
+                return []
+        filtered = [entry for entry in items if isinstance(entry, dict)]
+        return filtered
 
     def _get_top_authors(self, df_author, df_paper_author):
         """

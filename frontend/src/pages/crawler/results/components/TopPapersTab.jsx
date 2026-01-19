@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast'
 
 import TopPaperCard from './TopPaperCard'
 import { downloadTextFile, getPreferredPaperUrl } from '../utils'
+import CopyUsageHelp from './CopyUsageHelp'
 
 export default function TopPapersTab({
   papers,
@@ -105,6 +106,10 @@ export default function TopPapersTab({
             >
               Download TXT
             </Button>
+            <CopyUsageHelp
+              contextLabel="these influential paper URLs"
+              tooltip="Copy URL usage tips"
+            />
           </div>
         </div>
       </div>

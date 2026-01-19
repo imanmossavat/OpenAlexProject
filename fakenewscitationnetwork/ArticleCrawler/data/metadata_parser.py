@@ -6,8 +6,17 @@ and abstracts from API responses into DataFrames.
 """
 
 import pandas as pd
+import numpy as np
+from pandas.api import types as pd_types
 import logging
 from itertools import chain
+import warnings
+
+warnings.filterwarnings(
+    "ignore",
+    category=FutureWarning,
+    message="Setting an item of incompatible dtype is deprecated",
+)
 
 
 class MetadataParser:
@@ -30,6 +39,28 @@ class MetadataParser:
         self.store = store
         self.feature_computer = feature_computer
         self.logger = logger or logging.getLogger(__name__)
+    def _coerce_value_for_column(self, column, value):
+        series = self.store.df_paper_metadata[column]
+        if pd_types.is_object_dtype(series.dtype):
+            return value if value is not None else ""
+        if pd_types.is_bool_dtype(series.dtype):
+            if isinstance(value, str):
+                normalized = value.strip().lower()
+                if normalized in ('', '0', 'false', 'no', 'n', 'none'):
+                    return False
+                if normalized in ('true', '1', 'yes', 'y'):
+                    return True
+            if pd.isna(value) or value in (None, '', 0):
+                return False
+            return bool(value)
+        if pd_types.is_numeric_dtype(series.dtype):
+            if value in (None, '') or (isinstance(value, str) and value.strip() == ''):
+                return 0 if pd_types.is_integer_dtype(series.dtype) else np.nan
+            try:
+                return int(value) if pd_types.is_integer_dtype(series.dtype) else float(value)
+            except (TypeError, ValueError):
+                return 0 if pd_types.is_integer_dtype(series.dtype) else np.nan
+        return value
     
     def parse_metadata(self, papers, processed=True):
         """
@@ -44,22 +75,26 @@ class MetadataParser:
 
         for paper in papers:
             paper_id = paper.paperId
-            
+            paper_dict = paper2dict(paper, processed=processed, columns=self.store.df_paper_metadata.columns)
+
             if paper_id not in existing_paper_ids:
-                data.append(
-                    paper2dict(paper, processed=processed, columns=self.store.df_paper_metadata.columns)
-                )
+                data.append(paper_dict)
                 existing_paper_ids.add(paper_id)
             else:
-                if processed:
-                    processed_series = self.store.df_paper_metadata.loc[
-                        self.store.df_paper_metadata['paperId'] == paper_id, 'processed'
-                    ]
-                    if not processed_series.empty and not processed_series.iloc[0]:
-                        self.store.df_paper_metadata.loc[
-                            self.store.df_paper_metadata['paperId'] == paper_id, 'processed'
-                        ] = processed
-        
+                # update existing row with refreshed metadata
+                mask = self.store.df_paper_metadata['paperId'] == paper_id
+                target_index = self.store.df_paper_metadata.index[mask]
+                if target_index.empty:
+                    continue
+                for column, value in paper_dict.items():
+                    if column == 'paperId':
+                        continue
+                    coerced_value = self._coerce_value_for_column(column, value)
+                    if len(target_index) == 1:
+                        self.store.df_paper_metadata.at[target_index[0], column] = coerced_value
+                    else:
+                        self.store.df_paper_metadata.loc[mask, column] = [coerced_value] * len(target_index)
+
         if data:
             df = pd.DataFrame(data)
             self.store.df_paper_metadata = pd.concat(
