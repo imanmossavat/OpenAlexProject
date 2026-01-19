@@ -3,7 +3,7 @@ Pydantic schemas for crawler execution and results.
 """
 
 from pydantic import BaseModel, Field
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 from typing import Literal
 from datetime import datetime
 
@@ -18,6 +18,25 @@ class StartCrawlerRequest(BaseModel):
         json_schema_extra = {
             "example": {
                 "use_case": "crawler_wizard"
+        }
+    }
+
+
+class ResumeCrawlerRequest(BaseModel):
+    """Request to resume a crawler job."""
+    mode: Literal["auto", "manual"] = Field(
+        default="auto", description="Resume strategy: auto sampler or manually curated frontier"
+    )
+    paper_ids: Optional[List[str]] = Field(
+        default=None,
+        description="Paper IDs to use as the next frontier when mode='manual'",
+    )
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "mode": "manual",
+                "paper_ids": ["W1234567890", "W0987654321"],
             }
         }
 
@@ -167,7 +186,11 @@ class TopicOverview(BaseModel):
     paper_count: int = Field(..., description="Number of papers in this topic")
     top_words: List[str] = Field(default_factory=list, description="Top words for this topic")
     paper_ids: List[str] = Field(default_factory=list, description="List of paper IDs in this topic")
-    
+    paper_links: List["TopicPaperLink"] = Field(
+        default_factory=list,
+        description="List of DOI/URL references for topic papers",
+    )
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -175,9 +198,49 @@ class TopicOverview(BaseModel):
                 "topic_label": "Machine Learning in Medicine",
                 "paper_count": 45,
                 "top_words": ["learning", "neural", "network", "training", "model"],
-                "paper_ids": ["W123", "W456", "W789"]
+                "paper_ids": ["W123", "W456", "W789"],
+                "paper_links": [],
             }
         }
+
+
+class TopicPaperLink(BaseModel):
+    """Link metadata for a topic paper."""
+
+    paper_id: str = Field(..., description="OpenAlex paper identifier")
+    doi: Optional[str] = Field(default=None, description="DOI string when available")
+    url: Optional[str] = Field(default=None, description="Primary URL for the paper")
+
+
+TopicOverview.model_rebuild()
+
+
+class CrawlerConfigSnapshot(BaseModel):
+    """Sanitized snapshot of the configuration used for a crawler run."""
+
+    job_name: str = Field(..., description="Internal crawler job identifier")
+    display_name: Optional[str] = Field(
+        default=None, description="Display name supplied by the user"
+    )
+    library: Dict[str, Optional[str]] = Field(
+        default_factory=dict, description="Library reference metadata"
+    )
+    keywords: List[str] = Field(default_factory=list, description="Keywords used in the crawl")
+    seeds: List[str] = Field(default_factory=list, description="Seed paper IDs")
+    crawler: Dict[str, Any] = Field(
+        default_factory=dict, description="Crawler-wide limits (iterations, papers per iteration)"
+    )
+    api: Dict[str, Any] = Field(default_factory=dict, description="API configuration")
+    sampling: Dict[str, Any] = Field(default_factory=dict, description="Sampling configuration")
+    text_processing: Dict[str, Any] = Field(
+        default_factory=dict, description="Text processing configuration"
+    )
+    graph: Dict[str, Any] = Field(default_factory=dict, description="Graph configuration")
+    retraction: Dict[str, Any] = Field(default_factory=dict, description="Retraction settings")
+    output: Dict[str, Any] = Field(default_factory=dict, description="Output/logging settings")
+    crawler_parameters: Dict[str, Any] = Field(
+        default_factory=dict, description="Runtime crawler parameter metadata"
+    )
 
 
 class AuthorInfluence(BaseModel):
@@ -245,6 +308,9 @@ class CrawlerResults(BaseModel):
     top_venues: List[VenueStatistics] = Field(
         default_factory=list,
         description="Venues with the strongest activity"
+    )
+    config_snapshot: Optional[CrawlerConfigSnapshot] = Field(
+        default=None, description="Sanitized configuration details for the crawler run"
     )
     
     class Config:

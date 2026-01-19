@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { downloadTextFile } from '../utils'
+import CopyUsageHelp from './CopyUsageHelp'
 
 const buildVenueUrl = (venue) => {
   if (!venue) return null
@@ -120,37 +121,40 @@ export default function VenuesTab({ venues, onOpenVenue }) {
                 />
                 Include venue labels
               </label>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  className="rounded-full"
-                  onClick={handleCopyVenues}
-                  disabled={copying}
-                >
-                  {copying ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Copying…
-                    </>
-                  ) : (
-                    'Copy venue URLs'
-                  )}
-                </Button>
-                <Button
-                  variant="outline"
-                  className="rounded-full"
-                  onClick={handleDownloadVenues}
-                  disabled={downloading}
-                >
-                  {downloading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Downloading…
-                    </>
-                  ) : (
-                    'Download TXT'
-                  )}
-                </Button>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    className="rounded-full"
+                    onClick={handleCopyVenues}
+                    disabled={copying}
+                  >
+                    {copying ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Copying…
+                      </>
+                    ) : (
+                      'Copy venue URLs'
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="rounded-full"
+                    onClick={handleDownloadVenues}
+                    disabled={downloading}
+                  >
+                    {downloading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Downloading…
+                      </>
+                    ) : (
+                      'Download TXT'
+                    )}
+                  </Button>
+                </div>
+                <CopyUsageHelp contextLabel="venue profile URLs" tooltip="Copy URL usage" />
               </div>
             </div>
           ) : null}

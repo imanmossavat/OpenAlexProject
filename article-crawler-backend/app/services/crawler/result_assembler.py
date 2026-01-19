@@ -135,6 +135,7 @@ class CrawlerResultAssembler:
             "topics": topics,
             "top_authors": top_authors,
             "top_venues": top_venues,
+            "config_snapshot": (job_metadata or {}).get("config_snapshot"),
         }
 
         return results
@@ -766,6 +767,13 @@ class CrawlerResultAssembler:
         )
         top_words_list = topic_results.get("top_words", [])
 
+        provider_type = getattr(
+            getattr(crawler, "api_config", None),
+            "provider_type",
+            "openalex",
+        )
+        url_builder = PaperURLBuilder()
+
         topics = []
         topic_counts = df_results[topic_col].value_counts().sort_index()
 
@@ -775,9 +783,17 @@ class CrawlerResultAssembler:
 
             topic_id = int(topic_id)
 
-            topic_papers = df_results[df_results[topic_col] == topic_id][
-                "paperId"
-            ].tolist()
+            topic_frame = df_results[df_results[topic_col] == topic_id]
+            topic_papers = topic_frame["paperId"].tolist()
+            paper_links = []
+            for _, row in topic_frame.iterrows():
+                link_entry = self._build_topic_link_entry(
+                    row,
+                    provider_type,
+                    url_builder,
+                )
+                if link_entry:
+                    paper_links.append(link_entry)
 
             top_words = []
             if topic_id < len(top_words_list):
@@ -794,10 +810,30 @@ class CrawlerResultAssembler:
                     "paper_count": int(count),
                     "top_words": top_words,
                     "paper_ids": topic_papers,
+                    "paper_links": paper_links,
                 }
             )
 
         return topics
+
+    def _build_topic_link_entry(
+        self,
+        row: pd.Series,
+        provider_type: str,
+        url_builder: PaperURLBuilder,
+    ) -> Optional[Dict]:
+        paper_id = row.get("paperId") or row.get("paper_id")
+        if not paper_id:
+            return None
+        doi = row.get("doi")
+        url = row.get("url") or url_builder.build_url(paper_id, provider_type)
+        if not url and doi:
+            url = f"https://doi.org/{doi}"
+        return {
+            "paper_id": paper_id,
+            "doi": doi,
+            "url": url,
+        }
 
     def _get_top_authors(
         self,

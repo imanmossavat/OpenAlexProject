@@ -3,11 +3,12 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 from ArticleCrawler.DataManagement.markdown_writer import MarkdownFileGenerator
 from ArticleCrawler.crawler import Crawler
 from ArticleCrawler.cli.utils.config_loader import save_config
+from ArticleCrawler.checkpoint import CheckpointManager
 
 from .config_builder import CrawlerRunInputs
 from .progress import CrawlerProgressSnapshot
@@ -33,6 +34,7 @@ class CrawlerJobRunner:
         inputs: CrawlerRunInputs,
         *,
         progress_callback: Optional[Callable[[CrawlerProgressSnapshot], None]] = None,
+        resume: Optional[Dict[str, Any]] = None,
     ) -> CrawlerRunResult:
         crawler_configs = inputs.experiment_config.to_crawler_configs()
 
@@ -55,6 +57,16 @@ class CrawlerJobRunner:
             storage_and_logging_options=storage_config,
             api_provider_type=api_config.provider_type,
         )
+        checkpoint_manager = CheckpointManager(storage_config, logger=self._logger)
+        resume_state_obj = None
+        if resume:
+            manual_frontier = resume.get("manual_frontier")
+            resume_state_obj = checkpoint_manager.load(manual_frontier=manual_frontier)
+            if resume_state_obj is None:
+                self._logger.warning(
+                    "Job %s: Resume requested but no checkpoint available; starting fresh",
+                    job_id,
+                )
 
         self._logger.info("Job %s: Initializing crawler", job_id)
         crawler = Crawler(
@@ -70,6 +82,8 @@ class CrawlerJobRunner:
             progress_callback=self._build_progress_emitter(
                 progress_callback, stopping_config.max_iter
             ),
+            checkpoint_manager=checkpoint_manager,
+            resume_state=resume_state_obj,
         )
 
         self._logger.info("Job %s: Starting crawl process", job_id)

@@ -15,6 +15,7 @@ from app.api.dependencies import (
 from app.schemas.crawler_execution import (
     StartCrawlerRequest,
     StartCrawlerResponse,
+    ResumeCrawlerRequest,
     CrawlerStatus,
     CrawlerResults,
     TopicPapersResponse,
@@ -112,6 +113,53 @@ async def start_crawler(
         job_id=job_id,
         status="running",
         message=f"Crawler job {job_id} started successfully"
+    )
+
+
+@router.post("/jobs/{job_id}/resume", response_model=StartCrawlerResponse)
+async def resume_crawler(
+    job_id: str = PathParam(..., description="Existing job ID to resume"),
+    request: ResumeCrawlerRequest = ResumeCrawlerRequest(),
+    crawler_service = Depends(get_crawler_execution_service),
+):
+    """
+    Resume a completed crawler job, optionally supplying a manual frontier.
+    """
+    manual_ids = None
+    if request.mode == "manual":
+        if not request.paper_ids:
+            raise HTTPException(
+                status_code=400, detail="Manual resume requires at least one paper ID."
+            )
+        manual_ids = request.paper_ids
+    elif request.paper_ids:
+        manual_ids = request.paper_ids
+
+    manual_count = len(manual_ids or [])
+    if manual_count:
+        logger.info(
+            "Job %s: manual resume requested with %d paper IDs",
+            job_id,
+            manual_count,
+        )
+    else:
+        logger.info("Job %s: automatic resume requested", job_id)
+
+    try:
+        crawler_service.resume_job(job_id, manual_frontier=manual_ids)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    status_message = (
+        f"Crawler job {job_id} resumed with {manual_count} manual paper(s)"
+        if manual_count
+        else f"Crawler job {job_id} resumed successfully"
+    )
+
+    return StartCrawlerResponse(
+        job_id=job_id,
+        status="running",
+        message=status_message,
     )
 
 

@@ -4,6 +4,7 @@ import {
   AlertCircle,
   Loader2,
   RefreshCcw,
+  Settings as SettingsIcon,
 } from 'lucide-react'
 
 import apiClient from '@/shared/api/client'
@@ -21,6 +22,7 @@ import CatalogSection from './components/CatalogSection'
 import TopicDrawer from './components/TopicDrawer'
 import EntityDrawer from './components/EntityDrawer'
 import ProgressPanel from './components/ProgressPanel'
+import CrawlerConfigDialog from './components/CrawlerConfigDialog'
 import { clearSession } from '@/shared/lib/session'
 import { parseDate } from '@/shared/lib/time'
 
@@ -72,6 +74,9 @@ export default function CrawlerResultsPage() {
   const [entityLoading, setEntityLoading] = useState(false)
   const [entityError, setEntityError] = useState(null)
   const [centralityMetric, setCentralityMetric] = useState('centrality_in')
+  const [selectedCatalogPaperIds, setSelectedCatalogPaperIds] = useState([])
+  const [resumingIteration, setResumingIteration] = useState(false)
+  const [configModalOpen, setConfigModalOpen] = useState(false)
   const catalogEnabled = Boolean(jobId && status?.status === 'completed')
   const {
     papers: catalogPapers,
@@ -98,46 +103,61 @@ export default function CrawlerResultsPage() {
   } = useCrawlerPapers({ jobId, pageSize: 25, enabled: catalogEnabled })
   const pollingRef = useRef(null)
 
-  const stopPolling = () => {
+  const stopPolling = useCallback(() => {
     if (pollingRef.current) {
       clearInterval(pollingRef.current)
       pollingRef.current = null
     }
-  }
+  }, [])
 
-  const fetchResults = async (id) => {
+  const fetchResults = useCallback(async (id) => {
     const res = await apiClient('GET', `${endpoints.crawlerJobs}/${id}/results`)
     if (res.error) {
       setError(res.error)
       return
     }
     setResults(res.data)
-  }
+  }, [])
 
-  const fetchStatus = async (id) => {
-    if (!id) return
-    setLoading(true)
-    const res = await apiClient('GET', `${endpoints.crawlerJobs}/${id}/status`)
-    if (res.error) {
-      setError(res.error)
+  const fetchStatus = useCallback(
+    async (id) => {
+      if (!id) return
+      setLoading(true)
+      const res = await apiClient('GET', `${endpoints.crawlerJobs}/${id}/status`)
+      if (res.error) {
+        setError(res.error)
+        setLoading(false)
+        return
+      }
+      setStatus(res.data)
+      const jobStatus = res.data?.status
+      if (jobStatus === 'completed') {
+        stopPolling()
+        await fetchResults(id)
+        setStatus(res.data)
+        setLoading(false)
+        return
+      } else if (jobStatus === 'failed') {
+        stopPolling()
+        setError(res.data?.error_message || 'Crawler job failed.')
+        setStatus(res.data)
+        setLoading(false)
+        return
+      }
       setLoading(false)
-      return
-    }
-    setStatus(res.data)
-    const jobStatus = res.data?.status
-    if (jobStatus === 'completed') {
+    },
+    [fetchResults, stopPolling]
+  )
+
+  const startPolling = useCallback(
+    (id) => {
+      if (!id) return
       stopPolling()
-      await fetchResults(id)
-      setStatus(res.data)
-      return
-    } else if (jobStatus === 'failed') {
-      stopPolling()
-      setError(res.data?.error_message || 'Crawler job failed.')
-      setStatus(res.data)
-      return
-    }
-    setLoading(false)
-  }
+      fetchStatus(id)
+      pollingRef.current = setInterval(() => fetchStatus(id), 5000)
+    },
+    [fetchStatus, stopPolling]
+  )
 
   useEffect(() => {
     if (jobParam) {
@@ -152,10 +172,9 @@ export default function CrawlerResultsPage() {
 
   useEffect(() => {
     if (!jobId) return
-    fetchStatus(jobId)
-    pollingRef.current = setInterval(() => fetchStatus(jobId), 5000)
+    startPolling(jobId)
     return () => stopPolling()
-  }, [jobId])
+  }, [jobId, startPolling, stopPolling])
 
   useEffect(() => {
     if (results) setActiveTab('overview')
@@ -169,6 +188,45 @@ export default function CrawlerResultsPage() {
   const handleRefresh = () => {
     if (jobId) fetchStatus(jobId)
   }
+
+  const handleCatalogSelectionChange = useCallback((ids = []) => {
+    setSelectedCatalogPaperIds(Array.isArray(ids) ? ids : [])
+  }, [])
+
+  const manualIterationReady = status?.status === 'completed' && selectedCatalogPaperIds.length > 0
+
+  const handleManualIteration = useCallback(async () => {
+    if (!jobId || !selectedCatalogPaperIds.length) return
+    const sanitizedPaperIds = Array.from(
+      new Set(
+        selectedCatalogPaperIds
+          .map((value) => (typeof value === 'string' ? value.trim() : String(value || '')))
+          .filter((value) => value.length > 0)
+      )
+    )
+    if (!sanitizedPaperIds.length) return
+    setResumingIteration(true)
+    setError(null)
+    try {
+      const res = await apiClient('POST', `${endpoints.crawlerJobs}/${encodeURIComponent(jobId)}/resume`, {
+        mode: 'manual',
+        paper_ids: sanitizedPaperIds,
+      })
+      if (res.error) {
+        setError(res.error)
+        setResumingIteration(false)
+        return
+      }
+      setResults(null)
+      setActiveTab('overview')
+      setSelectedCatalogPaperIds([])
+      startPolling(jobId)
+    } catch (err) {
+      setError(err?.message || 'Unable to start manual iteration.')
+    } finally {
+      setResumingIteration(false)
+    }
+  }, [jobId, selectedCatalogPaperIds, startPolling])
 
   const handleFinishAndReset = useCallback(() => {
     try {
@@ -294,6 +352,7 @@ export default function CrawlerResultsPage() {
     1,
     Math.ceil(sortedTopPapers.length / TOP_PAPERS_PAGE_SIZE)
   )
+  const configSnapshot = results?.config_snapshot || null
 
   const openPaperDetails = async (paper, options = {}) => {
     const { skipFetch = false } = options
@@ -506,9 +565,9 @@ export default function CrawlerResultsPage() {
     if (entityTotal > 0 && nextPage > entityMaxPage) return
     fetchEntityPapers(entityViewer.type, entityViewer.id, nextPage)
   }
-  const showProgressPanel = progress && status?.status === 'running'
+  const showProgressPanel = progress && (status?.status === 'running' || status?.status === 'saving')
 
-  const stepperStep = status?.status === 'running' ? 3 : 4
+  const stepperStep = status?.status === 'running' || status?.status === 'saving' ? 3 : 4
 
   return (
     <div className="min-h-[calc(100vh-160px)] bg-white">
@@ -518,20 +577,50 @@ export default function CrawlerResultsPage() {
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div className="flex flex-col gap-3">
             <p className="text-xs uppercase tracking-[0.4em] text-gray-500">Crawler workflow</p>
-            <h1 className="text-4xl font-bold text-gray-900">Crawler results</h1>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-4xl font-bold text-gray-900">Crawler results</h1>
+              {configSnapshot ? (
+                <button
+                  type="button"
+                  onClick={() => setConfigModalOpen(true)}
+                  title="View configuration"
+                  className="rounded-full w-12 h-12 text-gray-700 hover:text-gray-900 bg-transparent flex items-center justify-center transition"
+                >
+                  <SettingsIcon className="w-7 h-7" />
+                </button>
+              ) : null}
+            </div>
             <p className="text-gray-600 text-lg">
               Track the crawler job status and explore the resulting network, top papers, topics, and influential authors.
             </p>
           </div>
-          {results ? (
-            <Button
-              type="button"
-              size="sm"
-              className="rounded-full bg-gray-900 text-white hover:bg-gray-800 px-4 py-2"
-              onClick={handleFinishAndReset}
-            >
-              Finish and reset
-            </Button>
+          {status?.status === 'completed' ? (
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="rounded-full px-4 py-2"
+                onClick={handleManualIteration}
+                disabled={!manualIterationReady || resumingIteration}
+              >
+                {resumingIteration ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                Run manual iteration
+                {selectedCatalogPaperIds.length
+                  ? ` (${selectedCatalogPaperIds.length})`
+                  : ''}
+              </Button>
+              {results ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  className="rounded-full bg-gray-900 text-white hover:bg-gray-800 px-4 py-2"
+                  onClick={handleFinishAndReset}
+                >
+                  Finish and reset
+                </Button>
+              ) : null}
+            </div>
           ) : null}
         </div>
 
@@ -551,12 +640,12 @@ export default function CrawlerResultsPage() {
 
         {showProgressPanel ? <ProgressPanel progress={progress} /> : null}
 
-        {!showProgressPanel && status?.status === 'running' ? (
+        {!showProgressPanel && (status?.status === 'running' || status?.status === 'saving') ? (
           <div className="rounded-3xl border border-dashed border-gray-300 p-8 text-center text-gray-600">
             <div className="flex justify-center mb-3">
               <Loader2 className="w-5 h-5 animate-spin text-gray-500" />
             </div>
-            Crawler is running. Results will appear automatically once it completes.
+            Crawler is {status?.status === 'saving' ? 'saving results' : 'running'}. Results will appear automatically once it completes.
           </div>
         ) : status?.status === 'completed' && !results ? (
           <div className="rounded-3xl border border-dashed border-gray-300 p-8 text-center text-gray-600 space-y-3">
@@ -655,11 +744,12 @@ export default function CrawlerResultsPage() {
                   clearAllColumnFilters={clearAllColumnFilters}
                   fetchCatalogColumnOptions={fetchCatalogColumnOptions}
                   onOpenPaperDetails={openPaperDetails}
+                  onSelectionChange={handleCatalogSelectionChange}
                 />
               )}
             </div>
           </>
-        ) : status?.status === 'running' ? null : (
+        ) : status?.status === 'running' || status?.status === 'saving' ? null : (
           <div className="rounded-3xl border border-dashed border-gray-300 p-8 text-center text-gray-600">
             Start a crawler job to see results.
           </div>
@@ -708,6 +798,12 @@ export default function CrawlerResultsPage() {
         onClose={closePaperDetails}
         loading={detailLoading}
         error={detailError}
+      />
+      <CrawlerConfigDialog
+        open={configModalOpen}
+        onOpenChange={setConfigModalOpen}
+        config={configSnapshot}
+        iterations={results?.network_overview?.total_iterations}
       />
     </div>
   )

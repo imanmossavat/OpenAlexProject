@@ -40,6 +40,7 @@ class CrawlerLogger:
         self.options = options
         self.logger = logging.getLogger(options.logger_name)
         self.logger.setLevel(getattr(logging, options.log_level))
+        self.logger.propagate = False
 
         self.logging_setup_done = False  # Flag to track setup status
         self.setup_logging()
@@ -58,9 +59,21 @@ class CrawlerLogger:
         # Create the log folder if it doesn't exist
         os.makedirs(self.options.log_folder, exist_ok=True)
 
+        # Remove any existing handlers before attaching a new rotating handler
+        for handler in list(self.logger.handlers):
+            try:
+                handler.close()
+            finally:
+                self.logger.removeHandler(handler)
+
         # Create a file handler that rotates log files
         log_file = os.path.join(self.options.log_folder, self.options.log_file)
-        file_handler = RotatingFileHandler(log_file, maxBytes=self.options.max_log_size, backupCount=self.options.log_backup_count)
+        file_handler = RotatingFileHandler(
+            log_file,
+            maxBytes=self.options.max_log_size,
+            backupCount=self.options.log_backup_count,
+            delay=True,
+        )
         file_handler.setLevel(getattr(logging, self.options.log_level))
 
         # Define the log format

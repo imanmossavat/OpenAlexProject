@@ -1,6 +1,8 @@
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
 
+import CopyUsageHelp from './CopyUsageHelp'
+
 export default function CatalogSelectionBar({
   selectionCount,
   onClearSelection,
@@ -27,27 +29,30 @@ export default function CatalogSelectionBar({
         </Button>
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            className="rounded-full text-xs shadow-sm"
-            onClick={onCopySelected}
-            disabled={copyingSelections}
-          >
-            {copyingSelections ? <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" /> : null}
-            Copy selected URLs
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            className="rounded-full text-xs shadow-sm"
-            onClick={onDownloadSelected}
-            disabled={downloadingSelections}
-          >
-            {downloadingSelections ? <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" /> : null}
-            Download TXT
-          </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-full text-xs shadow-sm"
+              onClick={onCopySelected}
+              disabled={copyingSelections}
+            >
+              {copyingSelections ? <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" /> : null}
+              Copy selected URLs
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-full text-xs shadow-sm"
+              onClick={onDownloadSelected}
+              disabled={downloadingSelections}
+            >
+              {downloadingSelections ? <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" /> : null}
+              Download TXT
+            </Button>
+          </div>
+          <CopyUsageHelp contextLabel="the selected paper URLs" tooltip="Copy URL usage" />
         </div>
         <div className="flex flex-wrap gap-2 border-l border-blue-200 pl-3">
           {annotationMarks.map((mark) => (

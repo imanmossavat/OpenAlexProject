@@ -168,6 +168,25 @@ class FrameManager:
         )
 
         self.logger.info(f"Set isKeyAuthor flag for {len(paper_id)} paper IDs.")
+
+    def mark_papers_selected(self, paper_ids):
+        """Mark the provided paper IDs as selected in the metadata frame."""
+        if not isinstance(paper_ids, list):
+            self.logger.error("Input paper_ids must be a list.")
+            return
+        if not paper_ids:
+            return
+
+        mask = self.store.df_paper_metadata['paperId'].isin(paper_ids)
+        if not mask.any():
+            self.logger.info("No matching paper IDs found to mark as selected.")
+            return
+
+        self.store.df_paper_metadata.loc[mask, 'selected'] = True
+        self.store.df_paper_metadata['selected'] = (
+            self.store.df_paper_metadata['selected'].fillna(False).astype(bool)
+        )
+        self.logger.info("Marked %d paper IDs as selected.", int(mask.sum()))
     
     def process_data(self, papers, processed=True):
         """

@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { downloadTextFile } from '../utils'
+import CopyUsageHelp from './CopyUsageHelp'
 
 const deriveAffiliation = (author) => {
   if (!author) return ''
@@ -130,37 +131,40 @@ export default function AuthorsTab({ authors, onOpenAuthor }) {
                 />
                 Include labels (name + affiliation)
               </label>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  className="rounded-full"
-                  onClick={handleCopyAuthors}
-                  disabled={copying}
-                >
-                  {copying ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Copying…
-                    </>
-                  ) : (
-                    'Copy author URLs'
-                  )}
-                </Button>
-                <Button
-                  variant="outline"
-                  className="rounded-full"
-                  onClick={handleDownloadAuthors}
-                  disabled={downloading}
-                >
-                  {downloading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Downloading…
-                    </>
-                  ) : (
-                    'Download TXT'
-                  )}
-                </Button>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    className="rounded-full"
+                    onClick={handleCopyAuthors}
+                    disabled={copying}
+                  >
+                    {copying ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Copying…
+                      </>
+                    ) : (
+                      'Copy author URLs'
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="rounded-full"
+                    onClick={handleDownloadAuthors}
+                    disabled={downloading}
+                  >
+                    {downloading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Downloading…
+                      </>
+                    ) : (
+                      'Download TXT'
+                    )}
+                  </Button>
+                </div>
+                <CopyUsageHelp contextLabel="author profile URLs and labels" tooltip="Copy URL usage" />
               </div>
             </div>
           ) : null}

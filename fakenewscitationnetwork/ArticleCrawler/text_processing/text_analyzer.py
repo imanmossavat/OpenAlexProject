@@ -422,6 +422,8 @@ class TextAnalysisManager:
         bool_columns = [
             "isSeed",
             "selected",
+            "isKeyAuthor",
+            "processed",
             "textProcessing",
             "isRetracted",
             "retracted",
