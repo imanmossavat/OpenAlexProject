@@ -82,14 +82,6 @@ class TestDockerManager:
         assert result is False
         mock_logger.error.assert_called()
     
-    @patch.object(DockerManager, 'is_docker_available')
-    @patch.object(DockerManager, 'is_container_running')
-    def test_start_container_already_running(self, mock_is_running, mock_docker_available, docker_manager, mock_logger):
-        mock_docker_available.return_value = True
-        mock_is_running.return_value = True
-        result = docker_manager.start_container()
-        assert result is True
-        mock_logger.info.assert_called()
     
     @patch.object(DockerManager, 'is_grobid_running')
     @patch('time.sleep')

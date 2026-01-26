@@ -20,12 +20,19 @@ const formatValue = (value) => {
   return String(value)
 }
 
-const ChipList = ({ label, items }) => (
+const uniqueItems = (items) => {
+  if (!Array.isArray(items)) return []
+  return Array.from(new Set(items.filter((item) => item !== undefined && item !== null)))
+}
+
+const ChipList = ({ label, items }) => {
+  const dedupedItems = uniqueItems(items)
+  return (
   <div className="space-y-1">
     <p className="text-xs uppercase tracking-[0.2em] text-gray-400">{label}</p>
-    {items?.length ? (
+    {dedupedItems.length ? (
       <div className="flex flex-wrap gap-2">
-        {items.map((item, index) => (
+        {dedupedItems.map((item, index) => (
           <span
             key={`${item}-${index}`}
             className="px-2 py-1 rounded-full bg-gray-100 text-xs text-gray-700 break-words"
@@ -38,7 +45,7 @@ const ChipList = ({ label, items }) => (
       <p className="text-sm text-gray-500">—</p>
     )}
   </div>
-)
+)}
 
 const KeyValueRow = ({ label, value }) => (
   <div>
