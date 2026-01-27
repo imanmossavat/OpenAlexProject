@@ -18,8 +18,10 @@ from app.api.dependencies import (
     get_seed_selection_service,
     get_seed_session_service,
     get_staging_service,
+    get_staging_route_helper,
     get_zotero_seed_service,
 )
+from app.api.routes_helpers.staging import StagingRouteHelper
 from app.core.container import Container
 from app.schemas.seeds import MatchedSeed, SeedMatchResult, UnmatchedSeed
 from app.schemas.papers import (
@@ -34,12 +36,16 @@ from app.schemas.staging import (
     StagingPaper,
     StagingPaperCreate,
     StagingListResponse,
+    StagingMatchRow,
 )
 
 
 @pytest.fixture(scope="function")
 def app_client(
     mock_staging_service,
+    mock_staging_query_parser,
+    mock_manual_metadata_enricher,
+    mock_staging_match_service,
     mock_seed_selection_service,
     mock_seed_session_service,
     mock_library_service,
@@ -62,6 +68,13 @@ def app_client(
         get_crawler_execution_service: lambda: mock_crawler_execution_service,
         get_paper_catalog_service: lambda: mock_paper_catalog_service,
         get_paper_metadata_service: lambda: mock_paper_metadata_service,
+        get_staging_route_helper: lambda: StagingRouteHelper(
+            staging_service=mock_staging_service,
+            query_parser=mock_staging_query_parser,
+            manual_metadata_enricher=mock_manual_metadata_enricher,
+            match_service=mock_staging_match_service,
+            seed_session_service=mock_seed_session_service,
+        ),
     }
     app.dependency_overrides.update(overrides)
     try:
@@ -279,6 +292,95 @@ def mock_seed_session_service(sample_matched_seeds):
         total_seeds=3
     ))
     
+    return mock_service
+
+
+@pytest.fixture
+def mock_staging_query_parser():
+    """Mock parser for staging filters."""
+    parser = Mock()
+    parser.parse_identifier_filters = Mock(side_effect=lambda values: values or [])
+    parser.parse_column_filters = Mock(side_effect=lambda filters: filters or [])
+
+    def _validate(status):
+        if status and status not in {"retracted", "not_retracted"}:
+            raise ValueError("Invalid retraction status")
+
+    parser.validate_retraction_status = Mock(side_effect=_validate)
+    return parser
+
+
+@pytest.fixture
+def mock_manual_metadata_enricher():
+    """Mock manual metadata enricher that deduplicates payloads."""
+
+    async def _enrich(payload):
+        if not payload:
+            return [], []
+
+        rows = []
+        invalid_ids = []
+        seen = set()
+        for entry in payload:
+            if isinstance(entry, StagingPaperCreate):
+                src_id = entry.source_id
+                if src_id and src_id not in seen:
+                    seen.add(src_id)
+                    rows.append(entry)
+                continue
+
+            src_id = entry.get("source_id")
+            if not src_id:
+                invalid_ids.append(src_id)
+                continue
+            if src_id in seen:
+                continue
+            seen.add(src_id)
+            rows.append(StagingPaperCreate(**entry))
+        return rows, invalid_ids
+
+    mock_enricher = Mock()
+    mock_enricher.enrich = AsyncMock(side_effect=_enrich)
+    mock_enricher.logger = Mock()
+    return mock_enricher
+
+
+@pytest.fixture
+def mock_staging_match_service(sample_staging_papers):
+    """Mock staging match service that returns deterministic matches."""
+
+    async def _match_rows(session_id: str, rows, api_provider: str):
+        results = []
+        for idx, row in enumerate(rows):
+            staging = row if isinstance(row, StagingPaper) else sample_staging_papers[0]
+            matched = idx % 2 == 0
+            matched_seed = MatchedSeed(
+                paper_id=f"W{staging.staging_id}",
+                title=staging.title or "Matched Paper",
+                authors=staging.authors,
+                year=staging.year,
+                venue=staging.venue,
+                confidence=0.9,
+                match_method="manual",
+                source=staging.source,
+                source_type=staging.source_type,
+                source_id=staging.source_id or f"W{staging.staging_id}",
+            ) if matched else None
+            results.append(
+                StagingMatchRow(
+                    staging_id=staging.staging_id,
+                    staging=staging,
+                    matched=matched,
+                    match_method="manual" if matched else None,
+                    confidence=0.9 if matched else None,
+                    error=None if matched else "No match",
+                    matched_seed=matched_seed,
+                )
+            )
+        return results
+
+    mock_service = Mock()
+    mock_service.match_rows = AsyncMock(side_effect=_match_rows)
     return mock_service
 
 

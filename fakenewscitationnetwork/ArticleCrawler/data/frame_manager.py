@@ -168,6 +168,25 @@ class FrameManager:
         )
 
         self.logger.info(f"Set isKeyAuthor flag for {len(paper_id)} paper IDs.")
+
+    def mark_papers_selected(self, paper_ids):
+        """Mark the provided paper IDs as selected in the metadata frame."""
+        if not isinstance(paper_ids, list):
+            self.logger.error("Input paper_ids must be a list.")
+            return
+        if not paper_ids:
+            return
+
+        mask = self.store.df_paper_metadata['paperId'].isin(paper_ids)
+        if not mask.any():
+            self.logger.info("No matching paper IDs found to mark as selected.")
+            return
+
+        self.store.df_paper_metadata.loc[mask, 'selected'] = True
+        self.store.df_paper_metadata['selected'] = (
+            self.store.df_paper_metadata['selected'].fillna(False).astype(bool)
+        )
+        self.logger.info("Marked %d paper IDs as selected.", int(mask.sum()))
     
     def process_data(self, papers, processed=True):
         """
@@ -452,6 +471,13 @@ class AcademicFeatureComputer:
         )
 
         self.cleaned_venues = df_paper_metadata['venue'].dropna().unique()
+        venue_id_map = {}
+        if 'venue_id' in df_paper_metadata.columns:
+            venue_id_series = df_paper_metadata[['venue', 'venue_id']].dropna(subset=['venue'])
+            for venue_name, group in venue_id_series.groupby('venue'):
+                ids = group['venue_id'].dropna()
+                if not ids.empty:
+                    venue_id_map[venue_name] = ids.iloc[0]
 
         df_citing = df_paper_metadata[['paperId', 'venue']].rename(
             columns={'paperId': 'paperId', 'venue': 'venue_citing'}
@@ -492,5 +518,11 @@ class AcademicFeatureComputer:
         venue_summary.columns = ['total_papers', 'self_citations', 'citing_others', 'being_cited_by_others']
         
         venue_summary = venue_summary.reset_index().rename(columns={'index': 'venue'})
+        if venue_id_map:
+            venue_summary['venue_id'] = venue_summary['venue'].map(venue_id_map).where(
+                pd.notna, None
+            )
+        else:
+            venue_summary['venue_id'] = None
 
         return venue_summary

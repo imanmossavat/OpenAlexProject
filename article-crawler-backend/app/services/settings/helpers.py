@@ -20,7 +20,7 @@ class IntegrationSettingsRepository:
         replica_env_paths: Optional[Iterable[str | Path]] = None,
     ):
         self._logger = logger or logging.getLogger(__name__)
-        project_root = Path(__file__).resolve().parents[2]
+        project_root = Path(__file__).resolve().parents[3]
         default_primary = project_root / ".env"
         default_replica = project_root.parent / "fakenewscitationnetwork" / ".env"
 

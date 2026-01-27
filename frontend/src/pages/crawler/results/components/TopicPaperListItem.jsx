@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { ExternalLink } from 'lucide-react'
 
-import { formatCentrality } from '../utils'
+import { formatCentrality, getPreferredPaperUrl } from '../utils'
 
 export default function TopicPaperListItem({ paper, index, onSelect, showCentrality = true }) {
   const authors =
@@ -12,10 +12,11 @@ export default function TopicPaperListItem({ paper, index, onSelect, showCentral
     paper.venue || null,
   ].filter(Boolean)
   const meta = metaParts.join(' • ')
-  const centralityScore =
-    typeof paper.centrality_score === 'number' ? paper.centrality_score : null
-  const normalizedCentrality =
-    centralityScore != null ? Math.min(1, Math.max(0, centralityScore)) : null
+  const centralityMetrics = paper.centrality_metrics || {}
+  const centralityIn =
+    typeof centralityMetrics.centrality_in === 'number' ? centralityMetrics.centrality_in : null
+  const centralityOut =
+    typeof centralityMetrics.centrality_out === 'number' ? centralityMetrics.centrality_out : null
 
   return (
     <div
@@ -48,21 +49,49 @@ export default function TopicPaperListItem({ paper, index, onSelect, showCentral
           {meta ? <div className="text-xs text-gray-500">{meta}</div> : null}
 
           {showCentrality ? (
-            <div className="flex items-center gap-3 mt-3">
-              <div className="w-1/2 bg-gray-200 rounded-full h-1.5 overflow-hidden">
-                <div
-                  className="h-full bg-black rounded-full transition-all"
-                  style={{ width: `${(normalizedCentrality ?? 0) * 100}%` }}
-                />
-              </div>
-              <span className="text-xs font-semibold text-gray-700">
-                {centralityScore != null ? formatCentrality(centralityScore) : 'N/A'}
-              </span>
+            <div className="space-y-2 mt-3">
+              {centralityIn != null && (
+                <div>
+                  <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+                    <span>Centrality (In)</span>
+                    <span className="font-semibold text-gray-700">
+                      {formatCentrality(centralityIn)}
+                    </span>
+                  </div>
+                  <div className="w-1/2 bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                    <div
+                      className="h-full bg-black rounded-full transition-all"
+                      style={{ width: `${Math.min(1, Math.max(0, centralityIn)) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+              {centralityOut != null && (
+                <div>
+                  <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+                    <span>Centrality (Out)</span>
+                    <span className="font-semibold text-gray-700">
+                      {formatCentrality(centralityOut)}
+                    </span>
+                  </div>
+                  <div className="w-1/2 bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                    <div
+                      className="h-full bg-gray-800 rounded-full transition-all"
+                      style={{ width: `${Math.min(1, Math.max(0, centralityOut)) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+              {centralityIn == null && centralityOut == null ? (
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-semibold text-gray-700">Centrality: N/A</span>
+                </div>
+              ) : null}
             </div>
           ) : null}
         </div>
 
-        {paper.url ? (
+        {getPreferredPaperUrl(paper) ? (
           <Button
             variant="outline"
             size="sm"
@@ -70,8 +99,13 @@ export default function TopicPaperListItem({ paper, index, onSelect, showCentral
             asChild
             onClick={(event) => event.stopPropagation()}
           >
-            <a href={paper.url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs">
-              OpenAlex <ExternalLink className="w-3 h-3" />
+            <a
+              href={getPreferredPaperUrl(paper)}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-1 text-xs"
+            >
+              Source <ExternalLink className="w-3 h-3" />
             </a>
           </Button>
         ) : null}

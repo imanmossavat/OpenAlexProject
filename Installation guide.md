@@ -98,13 +98,15 @@ You can re-run it safely; it will prompt before overwriting files.
 #### Getting API Keys
 
 
-**Zotero API Key** (Optional):
+**Zotero API Key** (Optional, required for Zotero features):
 
 1. Create account at https://www.zotero.org/
 2. Go to https://www.zotero.org/settings/keys
 3. Click "Create new private key"
-4. Select read permissions
-5. Copy the API key to your `.env` file
+4. Choose the scopes you need:
+   * **Read-only** keys are enough if you just want the app to pull collections/seeds from Zotero.
+   * **Read/write** keys are required for the in-app “Export to Zotero” workflow (creating items or collections).
+5. Copy the API key (without extra labels) into the `.env` files for both `article-crawler-backend` and `fakenewscitationnetwork`.
 6. Find your library ID
 
 

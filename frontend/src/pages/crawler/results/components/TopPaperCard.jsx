@@ -1,9 +1,11 @@
 import { Button } from '@/components/ui/button'
 import { ExternalLink } from 'lucide-react'
 
-import { formatCentrality } from '../utils'
+import { formatCentrality, getPreferredPaperUrl } from '../utils'
 
-export default function TopPaperCard({ paper, rank, onSelect }) {
+const OPENALEX_BASE = 'https://openalex.org/'
+
+export default function TopPaperCard({ paper, rank, onSelect, centralityMetric }) {
   const authors =
     paper.authors && paper.authors.length ? paper.authors.join(', ') : 'Unknown authors'
   const metaItems = [
@@ -16,6 +18,11 @@ export default function TopPaperCard({ paper, rank, onSelect }) {
     typeof paper.centrality_score === 'number' ? paper.centrality_score : null
   const normalizedCentrality =
     centralityScore != null ? Math.min(1, Math.max(0, centralityScore)) : null
+  const centralityMetrics = paper.centrality_metrics || {}
+  const centralityIn =
+    typeof centralityMetrics.centrality_in === 'number' ? centralityMetrics.centrality_in : null
+  const centralityOut =
+    typeof centralityMetrics.centrality_out === 'number' ? centralityMetrics.centrality_out : null
 
   const handleClick = () => {
     if (onSelect) onSelect(paper)
@@ -62,9 +69,32 @@ export default function TopPaperCard({ paper, rank, onSelect }) {
               {centralityScore != null ? formatCentrality(centralityScore) : 'N/A'}
             </span>
           </div>
+
+          {(centralityIn != null || centralityOut != null) && (
+            <div className="flex flex-wrap gap-4 text-xs text-gray-600 mt-2">
+              {centralityIn != null && (
+                <span
+                  className={
+                    centralityMetric === 'centrality_in' ? 'font-semibold text-gray-900' : undefined
+                  }
+                >
+                  Centrality (In): {formatCentrality(centralityIn)}
+                </span>
+              )}
+              {centralityOut != null && (
+                <span
+                  className={
+                    centralityMetric === 'centrality_out' ? 'font-semibold text-gray-900' : undefined
+                  }
+                >
+                  Centrality (Out): {formatCentrality(centralityOut)}
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
-        {paper.url ? (
+        {getPreferredPaperUrl(paper) ? (
           <Button
             variant="outline"
             size="sm"
@@ -72,8 +102,8 @@ export default function TopPaperCard({ paper, rank, onSelect }) {
             asChild
             onClick={(event) => event.stopPropagation()}
           >
-            <a href={paper.url} target="_blank" rel="noreferrer" className="flex items-center gap-1">
-              OpenAlex <ExternalLink className="w-3 h-3" />
+            <a href={getPreferredPaperUrl(paper)} target="_blank" rel="noreferrer" className="flex items-center gap-1">
+              Source <ExternalLink className="w-3 h-3" />
             </a>
           </Button>
         ) : null}

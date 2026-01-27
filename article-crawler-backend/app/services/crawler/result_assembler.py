@@ -135,6 +135,7 @@ class CrawlerResultAssembler:
             "topics": topics,
             "top_authors": top_authors,
             "top_venues": top_venues,
+            "config_snapshot": (job_metadata or {}).get("config_snapshot"),
         }
 
         return results
@@ -261,6 +262,33 @@ class CrawlerResultAssembler:
             entry_builder=self._build_remote_paper_entry,
         )
 
+    _CENTRALITY_COLUMN_MAP = {
+        "centrality_in": [
+            "centrality_in",
+            "in_centrality",
+            "centrality",
+            "in_degree_centrality",
+            "centrality_in_degree",
+            "centrality (in)",
+        ],
+        "centrality_out": [
+            "centrality_out",
+            "out_centrality",
+            "out_degree_centrality",
+            "centrality (out)",
+        ],
+        "eigenvector_in": [
+            "eigen_centrality",
+            "eigenvector_centrality",
+            "eigen_centrality_in",
+        ],
+        "eigenvector_out": [
+            "eigen_centrality_out",
+            "eigenvector_centrality_out",
+        ],
+        "pagerank": ["pagerank"],
+    }
+
     def _select_centrality_column(self, df: pd.DataFrame) -> Optional[str]:
         candidates = [
             "centrality_in",
@@ -277,6 +305,18 @@ class CrawlerResultAssembler:
             if col in df.columns:
                 return col
         return None
+
+    def _extract_centrality_metrics(self, values: Optional[Dict]) -> Dict[str, float]:
+        metrics: Dict[str, float] = {}
+        if not values:
+            return metrics
+
+        for canonical, columns in self._CENTRALITY_COLUMN_MAP.items():
+            for column in columns:
+                if column in values and values[column] is not None:
+                    metrics[canonical] = self._safe_float(values[column])
+                    break
+        return metrics
 
     def _select_citation_count_column(self, df: pd.DataFrame) -> Optional[str]:
         candidates = [
@@ -351,6 +391,8 @@ class CrawlerResultAssembler:
 
         papers = []
         for _, row in df_sorted.iterrows():
+            row_dict = row.to_dict()
+            metrics = self._extract_centrality_metrics(row_dict)
             authors_field = row.get("authors", [])
             authors_list: List[str] = []
             if isinstance(authors_field, list) and authors_field:
@@ -387,6 +429,10 @@ class CrawlerResultAssembler:
                         cite_int = int(float(cite_val))
                     except Exception:
                         cite_int = None
+            centrality_score = (
+                float(row.get(score_col, 0.0)) if score_col else metrics.get("centrality_in", 0.0)
+            )
+
             paper = {
                 "paper_id": row["paperId"],
                 "title": row.get("title", ""),
@@ -398,9 +444,8 @@ class CrawlerResultAssembler:
                 "venue": row.get("venue", ""),
                 "doi": row.get("doi", ""),
                 "citation_count": cite_int,
-                "centrality_score": float(row.get(score_col, 0.0))
-                if score_col
-                else 0.0,
+                "centrality_score": centrality_score,
+                "centrality_metrics": metrics,
                 "is_seed": bool(row.get("isSeed", False)),
                 "is_retracted": bool(row.get("retracted", row.get("isRetracted", False))),
                 "url": url_builder.build_url(
@@ -470,6 +515,7 @@ class CrawlerResultAssembler:
             formatted.append(
                 {
                     "venue": entry.get("venue"),
+                    "venue_id": entry.get("venue_id"),
                     "total_papers": self._safe_int(entry.get("total_papers")),
                     "self_citations": self._safe_int(entry.get("self_citations")),
                     "citing_others": self._safe_int(entry.get("citing_others")),
@@ -501,6 +547,9 @@ class CrawlerResultAssembler:
             venues.append(
                 {
                     "venue": row.get("venue", ""),
+                    "venue_id": row.get("venue_id")
+                    or row.get("venueId")
+                    or row.get("venue_id_normalized"),
                     "total_papers": self._safe_int(row.get("total_papers")),
                     "self_citations": self._safe_int(row.get("self_citations")),
                     "citing_others": self._safe_int(row.get("citing_others")),
@@ -647,9 +696,13 @@ class CrawlerResultAssembler:
             self._safe_int(citation_count) if citation_count is not None else None
         )
 
+        centrality_metrics = self._extract_centrality_metrics(fallback)
+
         centrality_score = 0.0
         if score_column and score_column in fallback:
             centrality_score = self._safe_float(fallback.get(score_column))
+        elif "centrality_in" in centrality_metrics:
+            centrality_score = centrality_metrics["centrality_in"]
 
         is_seed = bool(fallback.get("isSeed") or fallback.get("is_seed"))
         is_retracted = bool(
@@ -668,6 +721,7 @@ class CrawlerResultAssembler:
             "doi": doi,
             "citation_count": citation_count,
             "centrality_score": centrality_score,
+            "centrality_metrics": centrality_metrics,
             "is_seed": is_seed,
             "is_retracted": is_retracted,
             "url": url,
@@ -713,6 +767,13 @@ class CrawlerResultAssembler:
         )
         top_words_list = topic_results.get("top_words", [])
 
+        provider_type = getattr(
+            getattr(crawler, "api_config", None),
+            "provider_type",
+            "openalex",
+        )
+        url_builder = PaperURLBuilder()
+
         topics = []
         topic_counts = df_results[topic_col].value_counts().sort_index()
 
@@ -722,9 +783,17 @@ class CrawlerResultAssembler:
 
             topic_id = int(topic_id)
 
-            topic_papers = df_results[df_results[topic_col] == topic_id][
-                "paperId"
-            ].tolist()
+            topic_frame = df_results[df_results[topic_col] == topic_id]
+            topic_papers = topic_frame["paperId"].tolist()
+            paper_links = []
+            for _, row in topic_frame.iterrows():
+                link_entry = self._build_topic_link_entry(
+                    row,
+                    provider_type,
+                    url_builder,
+                )
+                if link_entry:
+                    paper_links.append(link_entry)
 
             top_words = []
             if topic_id < len(top_words_list):
@@ -741,10 +810,30 @@ class CrawlerResultAssembler:
                     "paper_count": int(count),
                     "top_words": top_words,
                     "paper_ids": topic_papers,
+                    "paper_links": paper_links,
                 }
             )
 
         return topics
+
+    def _build_topic_link_entry(
+        self,
+        row: pd.Series,
+        provider_type: str,
+        url_builder: PaperURLBuilder,
+    ) -> Optional[Dict]:
+        paper_id = row.get("paperId") or row.get("paper_id")
+        if not paper_id:
+            return None
+        doi = row.get("doi")
+        url = row.get("url") or url_builder.build_url(paper_id, provider_type)
+        if not url and doi:
+            url = f"https://doi.org/{doi}"
+        return {
+            "paper_id": paper_id,
+            "doi": doi,
+            "url": url,
+        }
 
     def _get_top_authors(
         self,

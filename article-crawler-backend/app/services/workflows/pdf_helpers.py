@@ -8,6 +8,16 @@ from app.schemas.staging import StagingPaperCreate
 from app.services.providers.article_crawler import ArticleCrawlerAPIProviderFactory
 
 
+class _CallableAPIProviderFactory:
+    """Adapter to allow passing a simple callable as the API factory."""
+
+    def __init__(self, factory):
+        self._factory = factory
+
+    def get_provider(self, provider_name: str):
+        return self._factory(provider_name)
+
+
 class PDFStagingRowBuilder:
     """Transform reviewed PDF metadata into staging rows."""
 
@@ -67,7 +77,12 @@ class PDFSeedEnricher:
         api_factory: Optional[ArticleCrawlerAPIProviderFactory] = None,
     ):
         self._logger = logger
-        self._api_factory = api_factory or ArticleCrawlerAPIProviderFactory(logger=logger)
+        if api_factory is None:
+            self._api_factory = ArticleCrawlerAPIProviderFactory(logger=logger)
+        elif callable(api_factory) and not hasattr(api_factory, "get_provider"):
+            self._api_factory = _CallableAPIProviderFactory(api_factory)
+        else:
+            self._api_factory = api_factory
 
     def enrich(self, seeds: List[MatchedSeed]) -> List[MatchedSeed]:
         if not seeds:

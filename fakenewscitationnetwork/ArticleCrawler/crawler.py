@@ -12,6 +12,9 @@ All existing functionality is preserved while providing better maintainability
 and extensibility through SOLID principles.
 """
 
+from datetime import datetime
+from typing import Callable, Dict, Optional, List
+
 from .api import create_api_provider
 from .data import PaperRetrievalService, DataValidationService, DataCoordinator, FrameManager
 from .config import (
@@ -25,6 +28,7 @@ from ArticleCrawler.DataManagement.data_storage import DataStorage
 from ArticleCrawler.sampling.sampler import Sampler
 from ArticleCrawler.papervalidation.retraction_watch_manager import RetractionWatchManager
 from contextlib import contextmanager
+from ArticleCrawler.checkpoint import ResumeState
 
 class Crawler:
     """
@@ -51,7 +55,10 @@ class Crawler:
                  storage_and_logging_options=None,
                  retraction_options=None,
                  frames=None,
-                 md_generator=None):
+                 md_generator=None,
+                 progress_callback: Optional[Callable[[Dict], None]] = None,
+                 checkpoint_manager=None,
+                 resume_state: Optional[ResumeState] = None):
         
         self._resolve_configurations(
             api_config, sampling_config, text_config, storage_config,
@@ -63,6 +70,11 @@ class Crawler:
         self.crawl_initial_condition = crawl_initial_condition
         self.crawl_initial_condition.validate_keywords()
         self.md_generator = md_generator
+        self._progress_callback = progress_callback
+        self.checkpoint_manager = checkpoint_manager
+        self._manual_frontier_ids: Optional[List[str]] = None
+        self._initial_iteration = 0
+        self._previous_total_papers = None
 
         self.logger = CrawlerLogger(self.storage_config)
         
@@ -72,11 +84,46 @@ class Crawler:
         )
 
         self._create_services()
+        self._initialize_resume_state(resume_state)
         
         self.logger.info(f"Enhanced Crawler initialized with {self.api_config.provider_type} API provider")
         self.logger.info(f"Data coordinator seeded with paperIds {self.crawl_initial_condition.seed_paperid}")
         self.logger.log_reporting_information(data_manager=self.data_coordinator, iteration='Initialization')
         self.logger.info('Enhanced Crawler initialization finished.')
+        initial_progress_iteration = max(self._initial_iteration, 0)
+        self._emit_progress(iterations_completed=initial_progress_iteration, papers_added=0)
+        if self._previous_total_papers is None:
+            self._previous_total_papers = self.data_coordinator.frames.df_paper_metadata.shape[0]
+
+    def _initialize_resume_state(self, resume_state: Optional[ResumeState]) -> None:
+        if not resume_state:
+            self._initial_iteration = 0
+            self._previous_total_papers = self.data_coordinator.frames.df_paper_metadata.shape[0]
+            return
+
+        frames_payload = resume_state.frames or {}
+        store = self.data_coordinator.frames
+        for attr, df in frames_payload.items():
+            if df is None:
+                continue
+            if hasattr(store, attr):
+                setattr(store, attr, df)
+
+        try:
+            self.graph_manager.DG.clear()
+            self.graph_manager.update_graph_with_new_nodes(store)
+        except Exception:
+            self.logger.warning("Failed to rebuild graph from checkpoint state", exc_info=True)
+
+        self._initial_iteration = int(resume_state.iteration or 0)
+        total_papers = resume_state.total_papers or store.df_paper_metadata.shape[0]
+        self._previous_total_papers = total_papers
+        self._manual_frontier_ids = resume_state.manual_frontier
+
+        sampler_flags = resume_state.sampler_flags or {}
+        if sampler_flags:
+            self.sampler.no_papers_available = bool(sampler_flags.get('no_papers_available'))
+            self.data_coordinator.no_papers_retrieved = bool(sampler_flags.get('data_retrieval_empty'))
 
     def _resolve_configurations(self, api_config, sampling_config, text_config, storage_config,
                                graph_config, retraction_config, stopping_criteria_config,
@@ -251,16 +298,29 @@ class Crawler:
         self.logger.info(f"Keywords and expressions to filter titles {self.crawl_initial_condition.keywords}")
         self.logger.info(f"Using {self.api_config.provider_type} API provider for crawling")
 
-        iteration = 0
+        iteration = self._initial_iteration
+        previous_total_papers = self._previous_total_papers or self.data_coordinator.frames.df_paper_metadata.shape[0]
         self.logger.info('Enhanced crawling started with dependency injection architecture.')
+        if iteration > 0:
+            self.logger.info('Resuming crawl from iteration %d', iteration)
 
         while self._should_continue_crawling(iteration):
             self.logger.set_iteration(iteration)
             self.logger.info(f'Starting iteration {iteration} with enhanced architecture')
 
-            self.logger.info('Sampling started with enhanced service architecture.')
-            self.sampler.sample_papers()
-            selected_paperIds = self.sampler.sampled_papers
+            manual_override = self._consume_manual_frontier()
+            if manual_override is not None:
+                selected_paperIds = manual_override
+                try:
+                    self.data_coordinator.mark_selected_papers(selected_paperIds)
+                except Exception:
+                    self.logger.warning(
+                        "Unable to mark manual frontier papers as selected", exc_info=True
+                    )
+            else:
+                self.logger.info('Sampling started with enhanced service architecture.')
+                self.sampler.sample_papers()
+                selected_paperIds = self.sampler.sampled_papers
             
             if selected_paperIds is not None and len(selected_paperIds) > 0:
                 if hasattr(selected_paperIds, 'tolist'):
@@ -286,9 +346,20 @@ class Crawler:
             self.logger.log_reporting_information(data_manager=self.data_coordinator, iteration=iteration)
             self.logger.info('Enhanced iteration %d completed.', iteration)
 
+            current_total_papers = self.data_coordinator.frames.df_paper_metadata.shape[0]
+            papers_added = max(current_total_papers - previous_total_papers, 0)
+            previous_total_papers = current_total_papers
+
             iteration += 1
+            self._emit_progress(iterations_completed=iteration, papers_added=papers_added)
+            if self.checkpoint_manager:
+                self.checkpoint_manager.save(self, iteration_idx=iteration, total_papers=current_total_papers)
 
         self._finalize_crawling()
+        self._emit_progress(
+            iterations_completed=min(iteration, self.stopping_config.max_iter),
+            papers_added=0,
+        )
 
     def _should_continue_crawling(self, iteration):
         """
@@ -330,14 +401,28 @@ class Crawler:
         filepath_final_pkl, timestamp_final_pkl = self.data_storage.save_final_file(self, experiment_file_name)
         self.storage_config.filepath_final_pkl = filepath_final_pkl
         self.storage_config.timestamp_final_pkl = timestamp_final_pkl
+        if self.checkpoint_manager:
+            self.checkpoint_manager.promote_final()
         
         self.logger.info('Enhanced Crawler finished successfully.')
         self.data_coordinator.check_and_log_inconsistent_papers()
         self.logger.shutdown()
 
+    def _consume_manual_frontier(self) -> Optional[List[str]]:
+        if not self._manual_frontier_ids:
+            return None
+        manual_ids = list(self._manual_frontier_ids)
+        self._manual_frontier_ids = None
+        self.logger.info("Manual frontier override with %d papers.", len(manual_ids))
+        return manual_ids
+
     def generate_markdown_files(self):
         """Generate markdown files using the enhanced data coordinator."""
         if self.md_generator:
+            try:
+                self.data_storage.clear_vault_outputs()
+            except Exception:
+                self.logger.warning("Unable to clear previous vault outputs", exc_info=True)
             self.md_generator.generate_markdown_files_from_crawler(self.data_coordinator)
         else:
             self.logger.warning("No markdown generator provided")
@@ -350,11 +435,11 @@ class Crawler:
         topic modeling while maintaining backward compatibility.
         """
         self.logger.info("Starting enhanced analysis and report generation with strategy-based architecture.")
-        
+
         try:
             with temporary_text_config(self.text_config, **kwargs) as modified_config:
                 self.text_processor.config = modified_config
-                
+
                 self.text_processor.analyze_and_report(
                     data_manager=self.data_coordinator,
                     logger=self.logger,
@@ -365,12 +450,53 @@ class Crawler:
                     vault_folder=self.storage_config.vault_folder,
                     config=modified_config
                 )
-                
+
                 self.logger.info(f"PKL file stored at {self.storage_config.filepath_final_pkl}")
 
         except Exception as e:
             self.logger.error(f"An error occurred during enhanced analysis and report generation: {e}")
             raise
+
+    def _emit_progress(self, iterations_completed: int, papers_added: int) -> None:
+        """Emit crawler progress metrics through the optional callback."""
+        if not self._progress_callback:
+            return
+
+        try:
+            df_meta = getattr(self.data_coordinator.frames, "df_paper_metadata", None)
+            total_papers = int(df_meta.shape[0]) if df_meta is not None else 0
+
+            if df_meta is not None and "isSeed" in df_meta.columns:
+                seed_papers = int(df_meta["isSeed"].fillna(False).astype(bool).sum())
+            else:
+                seed_papers = 0
+
+            df_citations = getattr(self.data_coordinator.frames, "df_paper_citations", None)
+            citations_count = int(df_citations.shape[0]) if df_citations is not None else 0
+
+            df_references = getattr(self.data_coordinator.frames, "df_paper_references", None)
+            references_count = int(df_references.shape[0]) if df_references is not None else 0
+
+            payload = {
+                "iterations_completed": min(iterations_completed, self.stopping_config.max_iter),
+                "iterations_total": self.stopping_config.max_iter,
+                "papers_collected": total_papers,
+                "seed_papers": seed_papers,
+                "citations_collected": citations_count,
+                "references_collected": references_count,
+                "papers_added_this_iteration": max(papers_added, 0),
+                "timestamp": datetime.utcnow(),
+            }
+
+            self._progress_callback(payload)
+        except Exception:
+            self.logger.warning("Failed to emit crawler progress update", exc_info=True)
+
+    def __getstate__(self):
+        """Drop non-picklable runtime-only references before serialization."""
+        state = self.__dict__.copy()
+        state["_progress_callback"] = None
+        return state
 
     # Backward compatibility properties
     @property

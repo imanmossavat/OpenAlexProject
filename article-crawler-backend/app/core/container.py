@@ -53,6 +53,7 @@ from app.services.staging.service import StagingService
 from app.services.retraction.watch_service import RetractionWatchService
 from app.services.topics.service import TopicModelingService
 from app.services.zotero.service import ZoteroSeedService
+from app.services.zotero.export_service import ZoteroExportCoordinator
 from app.core.config import settings
 from app.services.manual_metadata.helpers import (
     ManualMetadataLookup,
@@ -511,6 +512,12 @@ class Container(containers.DeclarativeContainer):
         query_builder=catalog_query_builder,
         column_options_builder=catalog_column_options_builder,
         catalog_exporter=paper_catalog_exporter,
+    )
+
+    zotero_export_service = providers.Singleton(
+        ZoteroExportCoordinator,
+        catalog_service=paper_catalog_service,
+        logger=logger,
     )
 
     library_route_helper = providers.Factory(

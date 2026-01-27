@@ -2,6 +2,8 @@ import os
 import pickle
 from datetime import datetime
 import glob
+from pathlib import Path
+import shutil
 
 class DataStorage:
     def __init__(self, storage_and_logging_options,logger):
@@ -70,4 +72,30 @@ class DataStorage:
         # self.storage_and_logging_options.filepath_final_pkl= fullpath
         # self.storage_and_logging_options.timestamp_final_pkl= timestamp
 
-        return fullpath, timestamp   
+        return fullpath, timestamp
+
+    def clear_vault_outputs(self, preserve_annotations: bool = True):
+        """Remove previously generated vault artifacts so new runs overwrite cleanly."""
+        vault_path = Path(self.storage_and_logging_options.vault_folder)
+        if vault_path.exists():
+            for entry in vault_path.iterdir():
+                if preserve_annotations and entry.name == "annotations":
+                    continue
+                try:
+                    if entry.is_dir():
+                        shutil.rmtree(entry)
+                    else:
+                        entry.unlink()
+                except Exception as exc:
+                    self.logger.warning("Failed to remove %s: %s", entry, exc)
+
+        xlsx_path = Path(getattr(self.storage_and_logging_options, "xlsx_folder", ""))
+        if xlsx_path.exists():
+            for entry in xlsx_path.iterdir():
+                try:
+                    if entry.is_dir():
+                        shutil.rmtree(entry)
+                    else:
+                        entry.unlink()
+                except Exception as exc:
+                    self.logger.warning("Failed to remove %s: %s", entry, exc)

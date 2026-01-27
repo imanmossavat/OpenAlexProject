@@ -146,4 +146,3 @@ def test_duplicate_library_uses_runner_with_resolved_defaults(workflow_service):
 
     workflow_runner.create_library.assert_called_once()
     assert result["name"].endswith("(Copy)")
-*** End Patch

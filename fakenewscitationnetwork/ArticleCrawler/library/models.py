@@ -47,6 +47,7 @@ class PaperData:
     year: Optional[int] = None
     venue: Optional[str] = None
     venue_raw: Optional[str] = None
+    venue_id: Optional[str] = None
     doi: Optional[str] = None
     abstract: Optional[str] = None
     url: Optional[str] = None
