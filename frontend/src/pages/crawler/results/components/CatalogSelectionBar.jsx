@@ -13,6 +13,10 @@ export default function CatalogSelectionBar({
   copyingSelections,
   onDownloadSelected,
   downloadingSelections,
+  onExportSelected,
+  exportingSelection,
+  exportDisabled,
+  exportDisabledReason,
 }) {
   if (selectionCount <= 0) return null
   return (
@@ -51,8 +55,23 @@ export default function CatalogSelectionBar({
               {downloadingSelections ? <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" /> : null}
               Download TXT
             </Button>
+            {onExportSelected ? (
+              <Button
+                type="button"
+                variant="outline"
+                className="rounded-full text-xs shadow-sm"
+                onClick={onExportSelected}
+                disabled={exportDisabled || exportingSelection}
+              >
+                {exportingSelection ? <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" /> : null}
+                Export to Zotero
+              </Button>
+            ) : null}
           </div>
           <CopyUsageHelp contextLabel="the selected paper URLs" tooltip="Copy URL usage" />
+          {exportDisabledReason ? (
+            <p className="text-xs text-blue-800">{exportDisabledReason}</p>
+          ) : null}
         </div>
         <div className="flex flex-wrap gap-2 border-l border-blue-200 pl-3">
           {annotationMarks.map((mark) => (

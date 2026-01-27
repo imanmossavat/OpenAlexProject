@@ -161,6 +161,46 @@ class PaperCatalogService:
             column_options=column_options,
         )
 
+    def get_paper_summaries(self, job_id: str, paper_ids: List[str]) -> List[PaperSummary]:
+        """Return catalog summaries for a subset of paper IDs, preserving input order."""
+        if not paper_ids:
+            return []
+        normalized_ids = []
+        seen = set()
+        for pid in paper_ids:
+            if not pid:
+                continue
+            trimmed = str(pid).strip()
+            if not trimmed or trimmed in seen:
+                continue
+            seen.add(trimmed)
+            normalized_ids.append(trimmed)
+        if not normalized_ids:
+            return []
+
+        lf = self._catalog_repo.scan_catalog(job_id)
+        if "paperId" not in lf.schema:
+            raise ValueError("Catalog does not contain paper identifiers")
+        frame = (
+            lf.filter(pl.col("paperId").is_in(normalized_ids))
+            .collect()
+            .to_dicts()
+        )
+        marks = self._annotation_repo.load_marks(job_id) or {}
+        lookup = {
+            str(row.get("paperId") or row.get("paper_id") or ""): self._convert_row_to_summary(
+                row,
+                marks.get(str(row.get("paperId") or row.get("paper_id") or "")),
+            )
+            for row in frame
+        }
+        ordered: List[PaperSummary] = []
+        for pid in normalized_ids:
+            summary = lookup.get(pid)
+            if summary:
+                ordered.append(summary)
+        return ordered
+
     def list_column_options(
         self,
         job_id: str,

@@ -4,6 +4,7 @@ from . import (
     seed_sessions,
     pdf_seeds,
     zotero_seeds,
+    zotero,
     staging,
     keywords,
     configuration,
@@ -42,6 +43,10 @@ router.include_router(
 
 router.include_router(
     zotero_seeds.router
+)
+
+router.include_router(
+    zotero.router
 )
 
 router.include_router(
