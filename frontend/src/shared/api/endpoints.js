@@ -11,6 +11,7 @@ export const endpoints = {
   library: '/api/v1/library',
   authorTopicEvolution: '/api/v1/author-topic-evolution',
   papers: '/api/v1/papers',
+  zotero: '/api/v1/zotero',
 }
 
 export default endpoints

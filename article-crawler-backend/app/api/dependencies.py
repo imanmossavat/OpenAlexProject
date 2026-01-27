@@ -173,6 +173,14 @@ async def get_paper_catalog_service(
 
 
 @inject
+async def get_zotero_export_service(
+    service=Depends(Provide[Container.zotero_export_service])
+):
+    """Get the Zotero export coordinator."""
+    return service
+
+
+@inject
 async def get_library_route_helper(
     helper=Depends(Provide[Container.library_route_helper])
 ):

@@ -12,6 +12,7 @@ import { endpoints } from '@/shared/api/endpoints'
 import Stepper from '@/components/Stepper'
 import { Button } from '@/components/ui/button'
 import PaperDetailModal from '@/components/PaperDetailModal'
+import { useToast } from '@/hooks/use-toast'
 import useCrawlerPapers from './hooks/useCrawlerPapers'
 import OverviewTab from './components/OverviewTab'
 import TopPapersTab from './components/TopPapersTab'
@@ -23,6 +24,7 @@ import TopicDrawer from './components/TopicDrawer'
 import EntityDrawer from './components/EntityDrawer'
 import ProgressPanel from './components/ProgressPanel'
 import CrawlerConfigDialog from './components/CrawlerConfigDialog'
+import ZoteroExportModal from './components/ZoteroExportModal'
 import { clearSession } from '@/shared/lib/session'
 import { parseDate } from '@/shared/lib/time'
 
@@ -77,6 +79,19 @@ export default function CrawlerResultsPage() {
   const [selectedCatalogPaperIds, setSelectedCatalogPaperIds] = useState([])
   const [resumingIteration, setResumingIteration] = useState(false)
   const [configModalOpen, setConfigModalOpen] = useState(false)
+  const { toast } = useToast()
+  const [integrationStatus, setIntegrationStatus] = useState({ loading: true, zoteroConfigured: false })
+  const [zoteroModalOpen, setZoteroModalOpen] = useState(false)
+  const [zoteroCollections, setZoteroCollections] = useState([])
+  const [zoteroCollectionsLoading, setZoteroCollectionsLoading] = useState(false)
+  const [zoteroCollectionsError, setZoteroCollectionsError] = useState(null)
+  const [zoteroExportSubmitting, setZoteroExportSubmitting] = useState(false)
+  const [zoteroForm, setZoteroForm] = useState({
+    selectedCollectionKey: '',
+    newCollectionName: '',
+    dedupe: true,
+    tagsText: '',
+  })
   const catalogEnabled = Boolean(jobId && status?.status === 'completed')
   const {
     papers: catalogPapers,
@@ -177,6 +192,26 @@ export default function CrawlerResultsPage() {
   }, [jobId, startPolling, stopPolling])
 
   useEffect(() => {
+    let cancelled = false
+    const fetchIntegrationStatus = async () => {
+      const res = await apiClient('GET', `${endpoints.settings}/integrations`)
+      if (cancelled) return
+      if (res.error) {
+        setIntegrationStatus({ loading: false, zoteroConfigured: false })
+        return
+      }
+      setIntegrationStatus({
+        loading: false,
+        zoteroConfigured: Boolean(res.data?.zotero?.configured),
+      })
+    }
+    fetchIntegrationStatus()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
     if (results) setActiveTab('overview')
   }, [results])
   useEffect(() => {
@@ -227,6 +262,124 @@ export default function CrawlerResultsPage() {
       setResumingIteration(false)
     }
   }, [jobId, selectedCatalogPaperIds, startPolling])
+
+  const fetchZoteroCollections = useCallback(async () => {
+    setZoteroCollectionsLoading(true)
+    setZoteroCollectionsError(null)
+    const res = await apiClient('GET', `${endpoints.zotero}/collections`)
+    if (res.error) {
+      setZoteroCollections([])
+      setZoteroCollectionsError(res.error)
+    } else {
+      setZoteroCollections(Array.isArray(res.data?.collections) ? res.data.collections : [])
+    }
+    setZoteroCollectionsLoading(false)
+  }, [])
+
+  const handleOpenZoteroExport = useCallback(async () => {
+    if (!selectedCatalogPaperIds.length) {
+      toast({
+        title: 'No papers selected',
+        description: 'Select at least one paper in the catalog before exporting.',
+        variant: 'destructive',
+      })
+      return
+    }
+    if (integrationStatus.loading) {
+      toast({ title: 'Please wait', description: 'Checking Zotero configuration…' })
+      return
+    }
+    if (!integrationStatus.zoteroConfigured) {
+      toast({
+        title: 'Zotero not configured',
+        description: 'Connect your Zotero account inside Settings → Integrations.',
+        variant: 'destructive',
+      })
+      navigate('/settings/integrations?provider=zotero')
+      return
+    }
+    setZoteroCollectionsError(null)
+    setZoteroForm((prev) => ({ ...prev, selectedCollectionKey: '', newCollectionName: '' }))
+    setZoteroModalOpen(true)
+    fetchZoteroCollections()
+  }, [selectedCatalogPaperIds, integrationStatus, toast, navigate, fetchZoteroCollections])
+
+  const handleConfirmZoteroExport = useCallback(async () => {
+    const WRITE_DENIED_PATTERN = /write access denied/i
+    if (!jobId || !selectedCatalogPaperIds.length) {
+      toast({
+        title: 'No papers selected',
+        description: 'Select at least one paper in the catalog before exporting.',
+        variant: 'destructive',
+      })
+      return
+    }
+    const trimmedName = (zoteroForm.newCollectionName || '').trim()
+    if (!zoteroForm.selectedCollectionKey && !trimmedName) {
+      setZoteroCollectionsError('Select an existing collection or enter a new collection name.')
+      return
+    }
+    setZoteroExportSubmitting(true)
+    const payload = {
+      paper_ids: selectedCatalogPaperIds,
+      dedupe: zoteroForm.dedupe,
+      tags: (zoteroForm.tagsText || '')
+        .split(',')
+        .map((tag) => tag.trim())
+        .filter((value) => value.length > 0),
+    }
+    if (zoteroForm.selectedCollectionKey) {
+      payload.collection_key = zoteroForm.selectedCollectionKey
+    }
+    if (!zoteroForm.selectedCollectionKey && trimmedName) {
+      payload.collection_name = trimmedName
+      payload.create_collection = true
+    }
+    const res = await apiClient(
+      'POST',
+      `${endpoints.zotero}/crawler/jobs/${encodeURIComponent(jobId)}/export`,
+      payload
+    )
+    setZoteroExportSubmitting(false)
+    if (res.error) {
+      if (WRITE_DENIED_PATTERN.test(res.error || '')) {
+        toast({
+          title: 'Write access denied',
+          description: 'Your Zotero API key is read-only. Update it in Settings → Integrations and try again.',
+          variant: 'destructive',
+        })
+      }
+      setZoteroCollectionsError(res.error)
+      return
+    }
+    const data = res.data || {}
+    const failedReasons = Object.values(data.failed_papers || {})
+    if (
+      WRITE_DENIED_PATTERN.test(data.error || '') ||
+      failedReasons.some((reason) => WRITE_DENIED_PATTERN.test(String(reason || '')))
+    ) {
+      toast({
+        title: 'Write access denied',
+        description: 'Your Zotero API key is read-only. Update it in Settings → Integrations and try again.',
+        variant: 'destructive',
+      })
+      setZoteroCollectionsError('Zotero rejected the export because the API key has read-only permissions.')
+      return
+    }
+    toast({
+      title: 'Export completed',
+      description: `Created ${data.created || 0} item${(data.created || 0) === 1 ? '' : 's'}${
+        data.skipped ? `, ${data.skipped} skipped` : ''
+      }${data.failed ? `, ${data.failed} failed` : ''}.`,
+    })
+    setZoteroModalOpen(false)
+    setZoteroForm({
+      selectedCollectionKey: '',
+      newCollectionName: '',
+      dedupe: true,
+      tagsText: '',
+    })
+  }, [jobId, selectedCatalogPaperIds, zoteroForm, toast])
 
   const handleFinishAndReset = useCallback(() => {
     try {
@@ -745,6 +898,14 @@ export default function CrawlerResultsPage() {
                   fetchCatalogColumnOptions={fetchCatalogColumnOptions}
                   onOpenPaperDetails={openPaperDetails}
                   onSelectionChange={handleCatalogSelectionChange}
+                  onExportSelected={handleOpenZoteroExport}
+                  exportingSelection={zoteroExportSubmitting}
+                  exportDisabled={integrationStatus.loading}
+                  exportDisabledReason={
+                    integrationStatus.loading || integrationStatus.zoteroConfigured
+                      ? ''
+                      : 'Connect Zotero in Settings → Integrations to enable exports.'
+                  }
                 />
               )}
             </div>
@@ -790,6 +951,33 @@ export default function CrawlerResultsPage() {
         onSelectPaper={(paper) => openPaperDetails(paper, { skipFetch: true })}
         canGoPrevious={!entityLoading && entityPage > 1}
         canGoNext={!entityLoading && entityTotal > 0 && entityPage < entityMaxPage}
+      />
+
+      <ZoteroExportModal
+        open={zoteroModalOpen}
+        onClose={() => {
+          setZoteroModalOpen(false)
+          setZoteroCollectionsError(null)
+        }}
+        collections={zoteroCollections}
+        loadingCollections={zoteroCollectionsLoading}
+        collectionsError={zoteroCollectionsError}
+        onRetryCollections={fetchZoteroCollections}
+        onOpenSettings={() => navigate('/settings/integrations?provider=zotero')}
+        selectedCollectionKey={zoteroForm.selectedCollectionKey}
+        onSelectCollection={(key) =>
+          setZoteroForm((prev) => ({ ...prev, selectedCollectionKey: key, newCollectionName: '' }))
+        }
+        newCollectionName={zoteroForm.newCollectionName}
+        onNewCollectionNameChange={(value) =>
+          setZoteroForm((prev) => ({ ...prev, newCollectionName: value, selectedCollectionKey: '' }))
+        }
+        dedupeEnabled={zoteroForm.dedupe}
+        onToggleDedupe={(checked) => setZoteroForm((prev) => ({ ...prev, dedupe: Boolean(checked) }))}
+        tagsText={zoteroForm.tagsText}
+        onTagsTextChange={(value) => setZoteroForm((prev) => ({ ...prev, tagsText: value }))}
+        submitting={zoteroExportSubmitting}
+        onConfirm={handleConfirmZoteroExport}
       />
 
       <PaperDetailModal

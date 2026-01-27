@@ -58,6 +58,10 @@ export default function CatalogSection({
   fetchCatalogColumnOptions,
   onOpenPaperDetails,
   onSelectionChange = () => {},
+  onExportSelected = null,
+  exportingSelection = false,
+  exportDisabled = false,
+  exportDisabledReason = '',
 }) {
   const [catalogSearchDraft, setCatalogSearchDraft] = useState(catalogFilters.search || '')
   const [catalogVenueDraft, setCatalogVenueDraft] = useState(catalogFilters.venue || '')
@@ -633,6 +637,10 @@ export default function CatalogSection({
                 copyingSelections={copyingSelection}
                 onDownloadSelected={handleDownloadSelectedUrls}
                 downloadingSelections={downloadingSelection}
+                onExportSelected={onExportSelected}
+                exportingSelection={exportingSelection}
+                exportDisabled={exportDisabled}
+                exportDisabledReason={exportDisabledReason}
               />
               <CatalogTable
                 catalogPapers={catalogPapers}
