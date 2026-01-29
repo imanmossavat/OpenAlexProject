@@ -40,7 +40,7 @@ class PaperCatalogExporter:
 
         export_frame = (
             lf.with_columns(pl.col(self._mark_column).alias("annotation_mark"))
-            .drop(self._mark_column, strict=False)
+            .drop(self._mark_column)
         )
         df = export_frame.collect()
         if df.is_empty():
