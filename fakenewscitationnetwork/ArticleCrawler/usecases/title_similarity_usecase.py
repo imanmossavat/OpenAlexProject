@@ -3,17 +3,22 @@ import logging
 import pickle
 import time
 import numpy as np
-import torch
 
 from pathlib import Path
-from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
+
+from ArticleCrawler.utils.optional_dependencies import import_ml_dependency
+
+# NOTE: torch and sentence-transformers are an optional extra, imported lazily
+# inside TitleSimilarityEngine so that importing ArticleCrawler stays light.
 
 
 class TitleSimilarityEngine:
     def __init__(self, model_name = 'all-MiniLM-L6-v2', device = None, crawler= None):
+        torch = import_ml_dependency("torch", "TitleSimilarityEngine")
+        st = import_ml_dependency("sentence_transformers", "TitleSimilarityEngine")
         self.device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
-        self.model = SentenceTransformer(model_name, device=self.device)
+        self.model = st.SentenceTransformer(model_name, device=self.device)
         
         if crawler:
             self.titles = crawler.data_manager.frames.df_paper_metadata['title'].tolist()

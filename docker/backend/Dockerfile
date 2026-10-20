@@ -22,8 +22,13 @@ COPY fakenewscitationnetwork ./fakenewscitationnetwork
 COPY article-crawler-backend ./article-crawler-backend
 COPY frontend ./frontend
 
+# Set INSTALL_ML=true to also install torch + sentence-transformers (several GB).
+# They are only needed for the recommender / title-similarity features, not for the API or UI.
+ARG INSTALL_ML=false
+
 RUN pip install --upgrade pip \
-    && pip install -e fakenewscitationnetwork[cli]
+    && pip install -e fakenewscitationnetwork[cli] \
+    && if [ "$INSTALL_ML" = "true" ]; then pip install -e "fakenewscitationnetwork[ml]"; fi
 
 RUN python - <<'PY'
 import nltk

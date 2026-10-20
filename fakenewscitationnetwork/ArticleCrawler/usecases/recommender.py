@@ -7,11 +7,15 @@
 # Orchestrates modules and runs recommendation loop
 
 import numpy as np
-from sentence_transformers import SentenceTransformer
 from scipy.linalg import cho_factor, cho_solve
 import os
 from datetime import datetime
 import pickle
+
+from ArticleCrawler.utils.optional_dependencies import import_ml_dependency
+
+# NOTE: sentence-transformers (and torch) are an optional extra, imported lazily
+# inside RecommenderEmbeddingModel so that importing ArticleCrawler stays light.
 
 
 class PaperRecommender:
@@ -55,7 +59,8 @@ class PaperRecommender:
 # === RecommenderEmbeddingModel ===
 class RecommenderEmbeddingModel:
     def __init__(self, model_name='all-MiniLM-L6-v2'):
-        self.model = SentenceTransformer(model_name)
+        st = import_ml_dependency("sentence_transformers", "PaperRecommender")
+        self.model = st.SentenceTransformer(model_name)
         self.dim = self.model.get_sentence_embedding_dimension()
 
     def encode_batch(self, texts: list[str]) -> np.ndarray:

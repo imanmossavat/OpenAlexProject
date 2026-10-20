@@ -18,7 +18,9 @@ class TestDockerManager:
         assert manager.port == 8070
         assert manager.base_url == "http://localhost:8070"
     
-    def test_initialization_custom(self, mock_logger):
+    def test_initialization_custom(self, mock_logger, monkeypatch):
+        monkeypatch.delenv("GROBID_URL", raising=False)  # installer .env sets it
+        monkeypatch.delenv("GROBID_BASE_URL", raising=False)
         manager = DockerManager(image="custom/grobid:1.0", port=9000, logger=mock_logger)
         assert manager.image == "custom/grobid:1.0"
         assert manager.port == 9000

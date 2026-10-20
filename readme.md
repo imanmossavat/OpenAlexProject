@@ -1,16 +1,57 @@
-# OpenAlex Project Repository
+# ArticleCrawler — build a reproducible corpus of a research field
 
-Full-stack workspace for the ArticleCrawler system (crawler core + FastAPI backend + React frontend).
+**Turn a handful of seed papers into a curated, local dataset of a whole research area — with topic models, author/venue rankings, retraction checks and a markdown vault you can hand to Obsidian, NotebookLM or an LLM.**
 
-## Project Overview – What You Can Do
+Built on [OpenAlex](https://openalex.org). Full stack: Python crawler core + FastAPI backend + React UI.
 
-The ArticleCrawler stack helps researchers and analysts explore scientific domains end-to-end: launch citation crawls, ingest personal PDF libraries, explore authors/topics, and creates structured vaults for further analysis.
+## Why use it
 
-- **Library creation from many ingestion sources:** Import Zotero exports, local folders (PDF, HTML, DOCX, etc.), or remote libraries via simple staging screens to generate clean, normalized vaults you can reuse elsewhere.
-- **Library editing:** Reopen any existing library to restage, filter, and clean it.
-- **Crawling with vault creation:** Start a seed-based crawl, let the system iteratively expand the citation network and score papers by keywords, centrality, and sampling rules, then get vaults packed with ranked tables, topic-model summaries, author/venue highlights, and manual k+1 continuation screens that help you steer the next frontier.
-- **Author topic exploration:** Run dedicated author workflows to fetch an author’s corpus, model topics over time, and visualize how their focus evolves.
-- **Crawl reruns & experimentation:** Rerun previous crawls to test new parameters.
+Tools like ResearchRabbit, Connected Papers, Litmaps and Inciteful are excellent for *looking at* the literature around a paper, and bibliometrix / VOSviewer are excellent for analysing a dataset you already have. ArticleCrawler sits between them: it **builds the dataset**, under your control.
+
+- **A corpus you own, not a map you view.** Starting from seeds (DOIs, a Zotero library, PDFs, keywords), it expands the citation network over several iterations, scoring papers by keywords, centrality and sampling rules, and lets you steer each next step. The result is a folder of files, not a tab in someone else's app.
+- **Reproducible by design.** Every run writes its parameters, errors and environment to a manifest, and previous crawls can be re-run with new settings — useful when the crawl is part of a study.
+- **Understands the field, not just the papers.** Topic models (LDA / NMF) over time, top authors and venues, and per-author topic evolution.
+- **Integrity-aware.** Papers can be checked against Retraction Watch data.
+- **Ready for LLM-assisted review.** The vault is plain markdown (one note per paper plus summaries), designed to import cleanly into Obsidian or NotebookLM.
+- **Local and open.** Runs on your machine or in Docker; your Zotero library and PDFs (parsed with GROBID) never need to leave it.
+
+**Good fit:** scoping a field you are new to, bibliometric / scientometric studies, preparing a corpus for a systematic or LLM-assisted review, tracking how a topic or an author's focus evolves. **Not a fit:** quick "what's related to this one paper?" lookups — use the tools above.
+
+**Worked example:** a crawl of roughly 7,000 fertilizer-prediction papers answered a researcher's questions about venues, experts, openness, subfields and trustworthiness (see [Media & Supporting Assets](#media--supporting-assets)).
+
+## How it works
+
+1. **Seed** – import DOIs / OpenAlex IDs, a Zotero export, PDFs or a local folder; review and clean them in the staging screens.
+2. **Crawl** – iteratively expand references and citations, score and filter, optionally add papers by hand for the next frontier.
+3. **Analyse** – topic models, rankings, author and venue views, retraction flags.
+4. **Export** – a vault of ranked tables, per-paper notes and figures; Zotero export; reruns with different parameters.
+
+## Project status (October 2026)
+
+| Area | State |
+|---|---|
+| Crawler core, backend API | Unit-tested: crawler 630 passed / 5 skipped, backend 57 passed (Python 3.12; 3.11 is the documented target) |
+| Data source | **OpenAlex only.** Semantic Scholar (the original source) is retired — see the [decision record](docs/decisions/semantic-scholar-to-openalex.md) |
+| OpenAlex access | **Needs a free API key** (`OPENALEX_API_KEY`, from <https://openalex.org/settings/api>). OpenAlex now meters usage by key; email-only access is very limited. Support was added recently and is **not yet verified against the live API** |
+| Frontend, Docker build, GROBID/PDF ingestion, Playwright e2e | Present, but **not re-verified end to end** recently — run the smoke test in the decision record before relying on them |
+| Recommender / title similarity | Experimental and unfinished; optional install (`--with-ml`), not used by the API or UI |
+| Backend Settings screen | Edits the OpenAlex email and Zotero settings only; set the API key in `.env` |
+
+If you are picking this project up, read the [decision record](docs/decisions/semantic-scholar-to-openalex.md) first: it explains the history, what changed, and the open decisions.
+
+## Quick start
+
+```bash
+python install.py            # creates .venv, installs dependencies, writes .env files
+# add your key to .env:  OPENALEX_API_KEY=...
+python run_tests.py          # optional sanity check
+```
+
+Docker: `cp .env.docker.example .env`, fill in `OPENALEX_EMAIL` / `OPENALEX_API_KEY`, then `docker compose up --build`. The heavy ML packages (torch, sentence-transformers) are **not** installed by default; add `--with-ml` (or `INSTALL_ML=true` for Docker) only if you want the experimental recommender. Full details: [Installation guide](Installation%20guide.md).
+
+## Where the name comes from
+
+The project started as a tool for mapping research on misinformation and fake news spread (hence the `fakenewscitationnetwork/` directory) and has since become a general-purpose crawler for any research field.
 
 ## Repository Structure
 
@@ -23,8 +64,9 @@ The ArticleCrawler stack helps researchers and analysts explore scientific domai
 
 ## Documentation Map
 
-- [Installation guide](Installation guide.md) – Full stack install/runbook.
+- [Installation guide](Installation%20guide.md) – Full stack install/runbook.
 - [`docs/README.md`](docs/README.md) – Start here for the complete documentation hub; it links to every guide described below.
+  - [`docs/decisions/semantic-scholar-to-openalex.md`](docs/decisions/semantic-scholar-to-openalex.md) – Why the project moved from Semantic Scholar to OpenAlex, what changed since, and what is still open.
   - [`docs/system-overview.md`](docs/system-overview.md) – Combined architecture + workflow description.
   - [`docs/components/crawler.md`](docs/components/crawler.md) – Details about `fakenewscitationnetwork/`.
   - [`docs/components/backend.md`](docs/components/backend.md) – FastAPI backend notes.
@@ -32,10 +74,6 @@ The ArticleCrawler stack helps researchers and analysts explore scientific domai
   - [`docs/handover/structure-map.md`](docs/handover/structure-map.md) – Config + code ownership guide.
   - [`docs/handover/mega-prompts.md`](docs/handover/mega-prompts.md) – Debugging prompts (general + per component).
 
-
-## Getting Started
-
-Follow the [Installation guide](Installation guide.md) for step-by-step instructions on cloning the repo, running the installer, configuring `.env` files, and launching either the local or Docker-based workflow. It also covers optional components such as GROBID and Zotero integrations.
 
 ## Running Tests
 

@@ -210,7 +210,7 @@ class ZoteroMatchResult(BaseModel):
 
 class ZoteroMatchRequest(BaseModel):
     """Request to match staged items against API."""
-    api_provider: Literal["openalex", "semantic_scholar"] = Field(
+    api_provider: Literal["openalex"] = Field(
         "openalex",
         description="API provider to use for matching"
     )

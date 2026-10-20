@@ -1,0 +1,11 @@
+# Optional ML stack for the recommender / title-similarity features.
+# Install on top of requirements.txt:  pip install -r requirements-ml.txt
+# (several GB; torch pulls in CUDA wheels on Linux unless you use the CPU index)
+huggingface-hub==0.36.0
+mpmath==1.3.0
+safetensors==0.6.2
+sentence-transformers==5.1.1
+sympy==1.14.0
+tokenizers==0.22.1
+torch==2.9.0
+transformers==4.57.1

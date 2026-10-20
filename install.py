@@ -127,6 +127,9 @@ def gather_env_inputs(non_interactive: bool = False) -> dict:
     print_header("Configuring Environment Values")
     if not non_interactive:
         openalex_email = prompt_required(f"{Colors.BOLD}OpenAlex email (required){Colors.ENDC}")
+        openalex_api_key = prompt_with_default(
+            f"{Colors.BOLD}OpenAlex API key (recommended; free at https://openalex.org/settings/api){Colors.ENDC}", ""
+        )
         print_info("Zotero configuration is optional. Leave fields empty to skip.")
         zotero_library_id = input("Zotero Library ID: ").strip()
         zotero_api_key = input("Zotero API Key: ").strip()
@@ -152,6 +155,7 @@ def gather_env_inputs(non_interactive: bool = False) -> dict:
             return value.strip() if isinstance(value, str) and value.strip() else default
 
         openalex_email = require_env("OPENALEX_EMAIL")
+        openalex_api_key = optional_env("OPENALEX_API_KEY")
         zotero_library_id = optional_env("ZOTERO_LIBRARY_ID")
         zotero_api_key = optional_env("ZOTERO_API_KEY")
         zotero_library_type = optional_env("ZOTERO_LIBRARY_TYPE", "user")
@@ -169,6 +173,7 @@ def gather_env_inputs(non_interactive: bool = False) -> dict:
 
     return {
         "openalex_email": openalex_email,
+        "openalex_api_key": openalex_api_key,
         "zotero_library_id": zotero_library_id,
         "zotero_api_key": zotero_api_key,
         "zotero_library_type": zotero_library_type or "user",
@@ -199,6 +204,7 @@ def write_cli_env(values: dict, force: bool = False) -> None:
     lines = [
         "# OpenAlex Configuration",
         f"OPENALEX_EMAIL={values['openalex_email']}",
+        f"OPENALEX_API_KEY={values['openalex_api_key']}",
         "",
         "# Zotero Configuration (Optional)",
         (
@@ -235,6 +241,7 @@ def write_backend_env(values: dict, force: bool = False) -> None:
         f"LOG_LEVEL={values['backend_log_level']}",
         f"BACKEND_CORS_ORIGINS={cors}",
         f"OPENALEX_EMAIL={values['openalex_email']}",
+        f"OPENALEX_API_KEY={values['openalex_api_key']}",
         f"ZOTERO_LIBRARY_ID={values['zotero_library_id']}",
         f"ZOTERO_LIBRARY_TYPE={values['zotero_library_type']}",
         f"ZOTERO_API_KEY={values['zotero_api_key']}",
@@ -279,6 +286,20 @@ def install_cli_requirements(pip_exe: Path) -> bool:
         print_success("CLI requirements installed.")
         return True
     print_error("Failed to install CLI requirements.")
+    return False
+
+
+def install_ml_requirements(pip_exe: Path) -> bool:
+    """Optional: torch + sentence-transformers (recommender / title similarity only)."""
+    requirements = CLI_DIR / "requirements-ml.txt"
+    if not requirements.exists():
+        print_warning(f"ML requirements file not found at {requirements}, skipping.")
+        return True
+    print_info("Installing optional ML requirements (this is several GB)...")
+    if pip_run(pip_exe, ["install", "-r", str(requirements)]):
+        print_success("ML requirements installed.")
+        return True
+    print_error("Failed to install ML requirements.")
     return False
 
 
@@ -380,7 +401,7 @@ def install_backend_dependencies(pip_exe: Path) -> bool:
     return success
 
 
-def setup_python_environment() -> None:
+def setup_python_environment(with_ml: bool = False) -> None:
     print_header("Python Virtual Environment Setup")
     if not create_virtualenv(VENV_PATH):
         print_warning("Virtual environment setup skipped.")
@@ -404,6 +425,8 @@ def setup_python_environment() -> None:
         print_warning("Continuing despite NLTK download issues.")
     if not install_backend_dependencies(pip_exe):
         return
+    if with_ml and not install_ml_requirements(pip_exe):
+        print_warning("Continuing without the optional ML extras.")
 
     check_docker()
     print_success(f"Python dependencies installed inside {VENV_PATH}.")
@@ -440,6 +463,12 @@ def parse_args() -> argparse.Namespace:
         help="Only generate .env files (skip dependency installation).",
     )
     parser.add_argument(
+        "--with-ml",
+        action="store_true",
+        help="Also install the optional ML stack (torch, sentence-transformers) "
+             "needed only for the recommender / title-similarity features.",
+    )
+    parser.add_argument(
         "--force",
         action="store_true",
         help="Overwrite existing .env files without prompting (implied in non-interactive mode).",
@@ -460,7 +489,7 @@ def main() -> None:
     write_frontend_env(values, force=force_write)
 
     if not args.env_only:
-        setup_python_environment()
+        setup_python_environment(with_ml=args.with_ml)
         setup_frontend_dependencies()
 
     print_header("All Done")

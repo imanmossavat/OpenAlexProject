@@ -1,7 +1,42 @@
-import s2  # https://github.com/mirandrom/PyS2 
+"""Semantic Scholar provider (LEGACY / DEPRECATED).
+
+The project moved to OpenAlex because Semantic Scholar became rate limited and
+API-key requests went unanswered. See docs/decisions/semantic-scholar-to-openalex.md.
+
+This provider needs the PyS2 library, which is NOT the package called ``s2`` on
+PyPI (that one is unrelated and has no ``s2.api``). Install PyS2 from GitHub if
+you really need this provider:
+
+    pip install git+https://github.com/mirandrom/PyS2
+
+It is no longer a dependency of this project and is not used by the backend or UI.
+"""
+
 import logging
 from typing import Dict, List, Optional, Tuple
 from .base_api import BaseAPIProvider
+
+try:
+    import s2  # https://github.com/mirandrom/PyS2 (not the unrelated 's2' on PyPI)
+except ImportError:  # PyS2 is no longer installed by default
+    s2 = None
+
+
+def _require_pys2_api():
+    """Return ``s2.api`` or raise a clear error if PyS2 is not installed.
+
+    Called before the provider's try/except blocks, which otherwise swallow the
+    failure and make every lookup look like "paper not found".
+    """
+    api = getattr(s2, "api", None)
+    if api is None:
+        raise ImportError(
+            "The Semantic Scholar provider requires the PyS2 library, which is not installed "
+            "(the 's2' package on PyPI is a different, unrelated project).\n"
+            "Install it with: pip install git+https://github.com/mirandrom/PyS2\n"
+            "Note: this provider is deprecated; use the OpenAlex provider instead."
+        )
+    return api
 
 class SemanticScholarAPIProvider(BaseAPIProvider):
     """
@@ -65,8 +100,9 @@ class SemanticScholarAPIProvider(BaseAPIProvider):
         Returns:
             paper (object or None): The paper retrieved from the API or None if retrieval fails.
         """
+        s2_api = _require_pys2_api()
         try:
-            paper = s2.api.get_paper(paperId=paper_id, wait=self.wait, retries=self.retries)     
+            paper = s2_api.get_paper(paperId=paper_id, wait=self.wait, retries=self.retries)     
         except Exception as e:
             error_message = f"Error retrieving paper with ID {paper_id}: {str(e)}"
             self.logger.error(error_message)
@@ -141,9 +177,10 @@ class SemanticScholarAPIProvider(BaseAPIProvider):
                 - A list of paper objects retrieved from the API.
                 - A list of paperId values for the retrieved papers.
         """
+        s2_api = _require_pys2_api()
         try:
             # Fetch the author data
-            author = s2.api.get_author(authorId=author_id)
+            author = s2_api.get_author(authorId=author_id)
             
             if author is None:
                 self.logger.error(f"Failed to retrieve author with ID {author_id}.")

@@ -9,7 +9,7 @@ class TestStorageAndLoggingConfig:
     def test_default_initialization(self, temp_dir):
         config = StorageAndLoggingConfig(root_folder=temp_dir)
         assert config.experiment_file_name == 'myExperiment'
-        assert config.root_folder == temp_dir
+        assert config.root_folder == temp_dir.resolve()  # macOS: /var -> /private/var
         assert config.log_level == 'DEBUG'
     
     def test_custom_initialization(self, temp_dir):

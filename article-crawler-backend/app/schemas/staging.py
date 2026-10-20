@@ -212,7 +212,7 @@ class BulkRemoveResponse(BaseModel):
 class MatchSelectedRequest(BaseModel):
     """Request payload to match currently selected staged rows."""
 
-    api_provider: str = Field(default="openalex", description="API provider to use for matching")
+    api_provider: Literal["openalex"] = Field(default="openalex", description="API provider to use for matching (only 'openalex' is supported)")
 
 
 def _normalize_venue_value(value: Optional[str]) -> Optional[str]:

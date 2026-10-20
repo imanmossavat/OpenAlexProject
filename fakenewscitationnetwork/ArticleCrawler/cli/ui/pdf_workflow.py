@@ -81,11 +81,17 @@ class PDFSeedWorkflow:
     def _configure_openalex(self):
         load_dotenv()
         email = os.getenv('OPENALEX_EMAIL')
-        
-        if email:
+        api_key = (os.getenv('OPENALEX_API_KEY') or '').strip()
+
+        if api_key:
+            pyalex.config.api_key = api_key
+            if email:
+                pyalex.config.email = email
+            self.console.print("[dim]Using OpenAlex API key[/dim]")
+        elif email:
             pyalex.config.email = email
             self.console.print(f"[dim]Using polite pool with email: {email}[/dim]")
         else:
-            self.console.print("[yellow]⚠ No OPENALEX_EMAIL set - using slower rate limits[/yellow]")
-            self.console.print("[dim]Add your email to .env file for faster access:[/dim]")
-            self.console.print("[dim]OPENALEX_EMAIL=your.email@example.com[/dim]\n")
+            self.console.print("[yellow]⚠ No OPENALEX_API_KEY set - OpenAlex applies a very small daily budget without a key[/yellow]")
+            self.console.print("[dim]Get a free key at https://openalex.org/settings/api and add to .env:[/dim]")
+            self.console.print("[dim]OPENALEX_API_KEY=your_key[/dim]\n")

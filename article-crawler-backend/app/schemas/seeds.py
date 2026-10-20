@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 
 class MatchedSeed(BaseModel):
@@ -42,12 +42,12 @@ class PaperIDsRequest(BaseModel):
     """Request to match paper IDs."""
     paper_ids: List[str] = Field(
         ..., 
-        description="List of paper IDs (OpenAlex IDs like W123456789, DOIs, or Semantic Scholar IDs)",
+        description="List of paper IDs (OpenAlex IDs like W123456789, or DOIs)",
         min_length=1
     )
-    api_provider: str = Field(
-        default="openalex", 
-        description="API provider to use for matching (openalex or semantic_scholar)"
+    api_provider: Literal["openalex"] = Field(
+        default="openalex",
+        description="API provider to use for matching (only 'openalex' is supported; Semantic Scholar was retired)"
     )
 
 

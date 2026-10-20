@@ -12,4 +12,6 @@ Use this folder as the single starting point for documentation. The structure mi
 - `handover/` – operations-facing assets:
   - `structure-map.md` – ownership sheet showing where each capability lives.
   - `mega-prompts.md` – reusable debugging prompts (one global, plus one per component).
+- `decisions/` – records of *why* the project looks the way it does:
+  - `semantic-scholar-to-openalex.md` – history (Semantic Scholar → OpenAlex), what the latest cleanup changed, and the open decisions (**read this first**).
 - `assets/` – Folder for presentation images, video guide notes, the fertilizer prediction interview decks, the researcher survey, and the “ideas for next” vault (see `docs/assets/README.md` for descriptions).

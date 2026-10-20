@@ -92,6 +92,16 @@ The script:
 
 You can re-run it safely; it will prompt before overwriting files.
 
+**Optional ML extras.** The recommender / title-similarity experiments need `torch` and
+`sentence-transformers` (several GB). They are *not* installed by default and nothing in the API or
+UI uses them. To install them: `python install.py --with-ml` (or
+`pip install -r fakenewscitationnetwork/requirements-ml.txt`). With Docker, set `INSTALL_ML=true`
+in `.env` and rebuild.
+
+**OpenAlex access.** OpenAlex now meters usage by free API key (https://openalex.org/settings/api). Put it in `.env` as `OPENALEX_API_KEY`; the email alone is no longer enough for real crawls — see
+[docs/decisions/semantic-scholar-to-openalex.md](docs/decisions/semantic-scholar-to-openalex.md#openalex-changed-its-access-model-after-the-pivot)
+before running large crawls.
+
 ---
 
 

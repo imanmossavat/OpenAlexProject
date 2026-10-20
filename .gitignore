@@ -12,3 +12,4 @@ fakenewscitationnetwork/.env
 frontend/.env
 article-crawler-backend/uploaded_dumps/
 
+*.patch

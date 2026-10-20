@@ -75,7 +75,7 @@ All frames live within `DataCoordinator.frames` and are persisted as parquet/pic
 
 
 ### API, Config, and CLI
-- `api/` – Provider factory plus individual provider classes (OpenAlex default, Semantic Scholar legacy) that encapsulate authentication, retries, batching, and pagination logic.
+- `api/` – Provider factory plus individual provider classes (OpenAlex default; Semantic Scholar is deprecated and needs the separately installed PyS2 library) that encapsulate authentication, retries, batching, and pagination logic.
 - `config/` – All typed configuration dataclasses (`CrawlerParameters`, `SamplingConfig`, `TextProcessingConfig`, `GraphConfig`, `StorageAndLoggingConfig`, `RetractionConfig`, `StoppingConfig`). They convert CLI/front-end JSON into strongly typed objects consumed by `Crawler`.
 - `cli/` – Full Typer/Rich command suite (`commands/`, `input_collectors/`, `validators/`, `formatters/`, `ui/`, `zotero/`). Lets operators launch crawls, inspect jobs, or sync Zotero libraries directly from a terminal.
 

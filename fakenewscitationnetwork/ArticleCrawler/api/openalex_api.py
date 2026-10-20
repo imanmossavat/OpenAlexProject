@@ -16,10 +16,17 @@ class OpenAlexAPIProvider(BaseAPIProvider):
     def __init__(self, wait=None, retries=3, logger=None):
         load_dotenv()
         email = os.getenv('OPENALEX_EMAIL')
-        if not email:
-            raise ValueError("OPENALEX_EMAIL must be set in .env file")
-        
-        pyalex.config.email = email
+        api_key = (os.getenv('OPENALEX_API_KEY') or '').strip() or None
+        if not email and not api_key:
+            raise ValueError(
+                "Set OPENALEX_API_KEY (recommended; free key from https://openalex.org/settings/api) "
+                "or OPENALEX_EMAIL in the .env file"
+            )
+
+        if email:
+            pyalex.config.email = email
+        if api_key:
+            pyalex.config.api_key = api_key
         
         self.requests_per_second = 2
         self.min_delay = 1.0 / self.requests_per_second
@@ -31,6 +38,7 @@ class OpenAlexAPIProvider(BaseAPIProvider):
         self.logger = logger or logging.getLogger(__name__)
         self._api_base_url = "https://api.openalex.org"
         self._mailto = email
+        self._api_key = api_key
         self._venue_lookup_cache: Dict[str, Optional[str]] = {}
 
         self.logger.info("OpenAlex API initialized with rate limiting at 2 req/sec")
@@ -120,6 +128,7 @@ class OpenAlexAPIProvider(BaseAPIProvider):
         }
         if self._mailto:
             params["mailto"] = self._mailto
+        headers = {"Authorization": f"Bearer {self._api_key}"} if self._api_key else None
 
         for attempt in range(self.retries + 1):
             try:
@@ -127,6 +136,7 @@ class OpenAlexAPIProvider(BaseAPIProvider):
                 response = requests.get(
                     f"{self._api_base_url}/works",
                     params=params,
+                    headers=headers,
                     timeout=60,
                 )
                 response.raise_for_status()

@@ -1,6 +1,14 @@
 import pytest
 from unittest.mock import Mock, patch
+from ArticleCrawler.api import semantic_scholar_api
 from ArticleCrawler.api.semantic_scholar_api import SemanticScholarAPIProvider
+
+# These tests patch PyS2 (https://github.com/mirandrom/PyS2). It is no longer a
+# project dependency, so they only run if someone installed it manually.
+requires_pys2 = pytest.mark.skipif(
+    getattr(semantic_scholar_api.s2, "api", None) is None,
+    reason="PyS2 is not installed (deprecated provider; the 's2' package on PyPI is a different project)",
+)
 
 
 @pytest.mark.unit
@@ -15,6 +23,7 @@ class TestSemanticScholarAPI:
         assert s2_provider.retries == 2
         assert s2_provider.failed_paper_ids == []
     
+    @requires_pys2
     @patch('ArticleCrawler.api.semantic_scholar_api.s2.api.get_paper')
     def test_get_paper_success(self, mock_get_paper, s2_provider):
         mock_paper = Mock()
@@ -25,6 +34,7 @@ class TestSemanticScholarAPI:
         assert paper is not None
         assert paper.paperId == 'test123'
     
+    @requires_pys2
     @patch('ArticleCrawler.api.semantic_scholar_api.s2.api.get_paper')
     def test_get_paper_failure_tracks_failed_id(self, mock_get_paper, s2_provider):
         mock_get_paper.side_effect = Exception("API Error")
@@ -33,6 +43,7 @@ class TestSemanticScholarAPI:
         assert paper is None
         assert 'failed_id' in s2_provider.failed_paper_ids
     
+    @requires_pys2
     @patch('ArticleCrawler.api.semantic_scholar_api.s2.api.get_paper')
     def test_get_paper_id_mismatch_tracked(self, mock_get_paper, s2_provider):
         mock_paper = Mock()
@@ -48,6 +59,7 @@ class TestSemanticScholarAPI:
             s2_provider.get_papers(paper_ids)
             assert mock_get_paper.call_count == 3
     
+    @requires_pys2
     @patch('ArticleCrawler.api.semantic_scholar_api.s2.api.get_author')
     def test_get_author_papers_success(self, mock_get_author, s2_provider):
         mock_author = Mock()
@@ -64,6 +76,7 @@ class TestSemanticScholarAPI:
         assert 'paper1' in paper_ids
         assert total == 2
     
+    @requires_pys2
     @patch('ArticleCrawler.api.semantic_scholar_api.s2.api.get_author')
     def test_get_author_papers_failure(self, mock_get_author, s2_provider):
         mock_get_author.side_effect = Exception("Author not found")
@@ -80,3 +93,28 @@ class TestSemanticScholarAPI:
         result = s2_provider.get_failed_and_inconsistent_papers()
         assert result['failed'] == ['failed1', 'failed2']
         assert result['inconsistent'] == [('req1', 'ret1')]
+
+
+@pytest.mark.unit
+class TestSemanticScholarWithoutPyS2:
+    """Without PyS2 the provider must fail loudly, not look like 'paper not found'."""
+
+    @pytest.fixture
+    def provider(self, mock_logger, monkeypatch):
+        monkeypatch.setattr(semantic_scholar_api, "s2", None)
+        return SemanticScholarAPIProvider(logger=mock_logger)
+
+    def test_get_paper_raises_helpful_error(self, provider):
+        with pytest.raises(ImportError, match="PyS2"):
+            provider.get_paper("abc123")
+
+    def test_get_author_papers_raises_helpful_error(self, provider):
+        with pytest.raises(ImportError, match="PyS2"):
+            provider.get_author_papers("12345")
+
+    def test_unrelated_pypi_s2_package_is_detected(self, mock_logger, monkeypatch):
+        class FakePyPIS2:  # the unrelated PyPI package has no `.api`
+            pass
+        monkeypatch.setattr(semantic_scholar_api, "s2", FakePyPIS2())
+        with pytest.raises(ImportError, match="PyS2"):
+            SemanticScholarAPIProvider(logger=mock_logger).get_paper("abc123")

@@ -95,7 +95,6 @@ class SeedMatchBuilder:
         self._logger = logger or logging.getLogger(__name__)
         self._builders: Dict[str, Callable[[Any, str], MatchedSeed]] = {
             "openalex": self._from_openalex,
-            "semantic_scholar": self._from_semantic_scholar,
         }
         for key, builder in (provider_builders or {}).items():
             self.register_builder(key, builder)
@@ -188,31 +187,6 @@ class SeedMatchBuilder:
             url=landing_url,
             abstract=abstract,
             institutions=institutions,
-        )
-
-    def _from_semantic_scholar(self, paper_data, original_id: str) -> MatchedSeed:
-        if isinstance(paper_data, dict):
-            paper_id = paper_data.get("paperId", "")
-            title = paper_data.get("title")
-            authors = self._author_summary(paper_data.get("authors") or [])
-            year = paper_data.get("year")
-            venue = paper_data.get("venue")
-        else:
-            paper_id = getattr(paper_data, "paperId", None) or str(paper_data)
-            title = getattr(paper_data, "title", None)
-            authors = self._author_summary(getattr(paper_data, "authors", None) or [])
-            year = getattr(paper_data, "year", None)
-            venue = getattr(paper_data, "venue", None)
-        if "/" in str(paper_id):
-            paper_id = str(paper_id).split("/")[-1]
-        return MatchedSeed(
-            paper_id=paper_id,
-            title=title,
-            authors=authors,
-            year=year,
-            venue=venue,
-            confidence=1.0,
-            match_method="Direct ID" if original_id == paper_id else "API Lookup",
         )
 
     def _author_summary(self, authorships: Iterable) -> Optional[str]:

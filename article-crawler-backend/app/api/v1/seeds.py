@@ -19,7 +19,6 @@ async def match_paper_ids(
     **Supported paper ID formats:**
     - OpenAlex IDs: W123456789
     - DOIs: 10.1234/example or https://doi.org/10.1234/example
-    - Semantic Scholar IDs: (when using semantic_scholar provider)
     
     **Returns:**
     - List of successfully matched seeds with metadata

@@ -15,7 +15,7 @@ class TestOpenAlexAPI:
         monkeypatch.delenv('OPENALEX_EMAIL', raising=False)
         
         with patch('ArticleCrawler.api.openalex_api.os.getenv', return_value=None):
-            with pytest.raises(ValueError, match="OPENALEX_EMAIL must be set"):
+            with pytest.raises(ValueError, match="OPENALEX_API_KEY"):
                 OpenAlexAPIProvider(logger=mock_logger)
     
     def test_normalize_paper_id_with_w_prefix(self, openalex_provider):

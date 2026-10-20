@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, UploadFile, File, Form, Path, HTTPException
-from typing import List
+from typing import List, Literal
 
 from app.schemas.pdf_seeds import (
     PDFUploadResponse,
@@ -97,7 +97,7 @@ async def review_pdf_metadata(
 async def match_pdf_metadata(
     session_id: str = Path(..., description="Seed session ID"),
     upload_id: str = Path(..., description="Upload ID"),
-    api_provider: str = Form(default="openalex", description="API provider (openalex or semantic_scholar)"),
+    api_provider: Literal["openalex"] = Form(default="openalex", description="API provider (only 'openalex' is supported)"),
     pdf_service = Depends(get_pdf_seed_service)
 ):
     """

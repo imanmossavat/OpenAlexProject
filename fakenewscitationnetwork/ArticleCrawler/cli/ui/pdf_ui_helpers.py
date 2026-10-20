@@ -1,7 +1,5 @@
 from pathlib import Path
 from typing import List, Optional
-from tkinter import filedialog
-import tkinter as tk
 from rich.console import Console
 from rich.table import Table
 from .prompts import Prompter
@@ -14,6 +12,18 @@ class PDFFileSelector:
         self.console = console
     
     def select_files(self) -> List[Path]:
+        # tkinter is a desktop GUI library; import it only when the dialog is actually
+        # used so headless servers (the backend API, Docker) can import this module.
+        try:
+            import tkinter as tk
+            from tkinter import filedialog
+        except ImportError as exc:
+            raise RuntimeError(
+                "The native file dialog needs tkinter (a desktop GUI library), which is not "
+                "available here. Pass PDF paths explicitly instead, or install tkinter "
+                "(e.g. 'sudo apt install python3-tk')."
+            ) from exc
+
         self.console.print("Opening file dialog to select PDF files...")
         self.console.print("[dim]Please select PDF files in the dialog window that will appear...[/dim]\n")
         

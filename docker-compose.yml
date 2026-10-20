@@ -5,6 +5,8 @@ services:
     build:
       context: .
       dockerfile: docker/backend/Dockerfile
+      args:
+        INSTALL_ML: ${INSTALL_ML:-false}
     working_dir: /app/article-crawler-backend
     env_file:
       - .env

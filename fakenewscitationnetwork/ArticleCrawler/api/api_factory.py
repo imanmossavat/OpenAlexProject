@@ -1,3 +1,4 @@
+import warnings
 from typing import Dict, Any
 from .base_api import BaseAPIProvider
 from .semantic_scholar_api import SemanticScholarAPIProvider
@@ -20,6 +21,12 @@ def create_api_provider(provider_type: str, **kwargs) -> BaseAPIProvider:
     provider_type = provider_type.lower()
     
     if provider_type in ['semantic_scholar', 's2', 'semanticscholar']:
+        warnings.warn(
+            "The Semantic Scholar provider is deprecated and unmaintained; use 'openalex'. "
+            "See docs/decisions/semantic-scholar-to-openalex.md.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return SemanticScholarAPIProvider(**kwargs)
     elif provider_type in ['openalex', 'open_alex']:
         return OpenAlexAPIProvider(**kwargs)
@@ -35,6 +42,6 @@ def get_available_providers() -> Dict[str, str]:
         Dict[str, str]: Mapping of provider names to descriptions
     """
     return {
-        'semantic_scholar': 'Semantic Scholar API using PyS2 library',
+        'semantic_scholar': 'DEPRECATED - Semantic Scholar API using PyS2 library (not installed by default)',
         'openalex': 'OpenAlex API with full citation/reference enrichment'
     }
