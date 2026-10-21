@@ -90,6 +90,8 @@ The script:
 * checks Docker
 * optionally runs `npm install` for the frontend
 
+> **macOS/Linux prerequisite:** the `python-magic` package needs the system library `libmagic` (`brew install libmagic` on macOS, `sudo apt install libmagic1` on Debian/Ubuntu). Without it, importing the crawler fails with "failed to find libmagic".
+
 You can re-run it safely; it will prompt before overwriting files.
 
 **Optional ML extras.** The recommender / title-similarity experiments need `torch` and

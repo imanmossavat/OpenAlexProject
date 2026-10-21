@@ -4,6 +4,8 @@
 
 Built on [OpenAlex](https://openalex.org). Full stack: Python crawler core + FastAPI backend + React UI.
 
+> **Status:** the code is unit-tested (see [Project status](#project-status-october-2026)), but a live crawl against OpenAlex, the UI, Docker and PDF ingestion have not been re-verified end to end since the move from Semantic Scholar. Treat the feature list below as the design intent until you have run the smoke test in the [decision record](docs/decisions/semantic-scholar-to-openalex.md).
+
 ## Why use it
 
 Tools like ResearchRabbit, Connected Papers, Litmaps and Inciteful are excellent for *looking at* the literature around a paper, and bibliometrix / VOSviewer are excellent for analysing a dataset you already have. ArticleCrawler sits between them: it **builds the dataset**, under your control.
@@ -13,11 +15,11 @@ Tools like ResearchRabbit, Connected Papers, Litmaps and Inciteful are excellent
 - **Understands the field, not just the papers.** Topic models (LDA / NMF) over time, top authors and venues, and per-author topic evolution.
 - **Integrity-aware.** Papers can be checked against Retraction Watch data.
 - **Ready for LLM-assisted review.** The vault is plain markdown (one note per paper plus summaries), designed to import cleanly into Obsidian or NotebookLM.
-- **Local and open.** Runs on your machine or in Docker; your Zotero library and PDFs (parsed with GROBID) never need to leave it.
+- **Local and open.** Runs on your machine or in Docker. Your PDFs are parsed by a local GROBID container and your data is stored locally; only paper lookups go to the OpenAlex API (and Zotero, if you use it).
 
 **Good fit:** scoping a field you are new to, bibliometric / scientometric studies, preparing a corpus for a systematic or LLM-assisted review, tracking how a topic or an author's focus evolves. **Not a fit:** quick "what's related to this one paper?" lookups — use the tools above.
 
-**Worked example:** a crawl of roughly 7,000 fertilizer-prediction papers answered a researcher's questions about venues, experts, openness, subfields and trustworthiness (see [Media & Supporting Assets](#media--supporting-assets)).
+**Worked example:** an earlier crawl of roughly 7,000 fertilizer-prediction papers answered a researcher's questions about venues, experts, openness, subfields and trustworthiness (see [Media & Supporting Assets](#media--supporting-assets)).
 
 ## How it works
 
@@ -30,7 +32,7 @@ Tools like ResearchRabbit, Connected Papers, Litmaps and Inciteful are excellent
 
 | Area | State |
 |---|---|
-| Crawler core, backend API | Unit-tested: crawler 630 passed / 5 skipped, backend 57 passed (Python 3.12; 3.11 is the documented target) |
+| Crawler core, backend API | Unit-tested: crawler 630 passed / 5 skipped, backend 57 passed (tested on Python 3.11 and 3.12) |
 | Data source | **OpenAlex only.** Semantic Scholar (the original source) is retired — see the [decision record](docs/decisions/semantic-scholar-to-openalex.md) |
 | OpenAlex access | **Needs a free API key** (`OPENALEX_API_KEY`, from <https://openalex.org/settings/api>). OpenAlex now meters usage by key; email-only access is very limited. Support was added recently and is **not yet verified against the live API** |
 | Frontend, Docker build, GROBID/PDF ingestion, Playwright e2e | Present, but **not re-verified end to end** recently — run the smoke test in the decision record before relying on them |
@@ -41,13 +43,49 @@ If you are picking this project up, read the [decision record](docs/decisions/se
 
 ## Quick start
 
+**Prerequisites**
+
+- Python **3.11** (3.12 also works; avoid 3.13+ for now)
+- Node.js 18+ (only for the web UI)
+- `libmagic`, a system library used for file-type detection: `brew install libmagic` on macOS, `sudo apt install libmagic1` on Debian/Ubuntu
+- A free OpenAlex API key from <https://openalex.org/settings/api>
+- Optional: Docker, only for PDF import (GROBID)
+
+**Install**
+
 ```bash
-python install.py            # creates .venv, installs dependencies, writes .env files
-# add your key to .env:  OPENALEX_API_KEY=...
-python run_tests.py          # optional sanity check
+python install.py
 ```
 
-Docker: `cp .env.docker.example .env`, fill in `OPENALEX_EMAIL` / `OPENALEX_API_KEY`, then `docker compose up --build`. The heavy ML packages (torch, sentence-transformers) are **not** installed by default; add `--with-ml` (or `INSTALL_ML=true` for Docker) only if you want the experimental recommender. Full details: [Installation guide](Installation%20guide.md).
+The installer creates `.venv`, installs the dependencies, downloads the NLTK data and writes the `.env` files. It asks for your OpenAlex email and API key. If you use conda, create an environment with Python 3.11 first and check `which python` points inside it.
+
+**Check it**
+
+```bash
+.venv/bin/python run_tests.py
+```
+
+Use the `.venv` interpreter explicitly: plain `python` runs whatever environment is active, which is the most common cause of mass import errors. Expect about 630 crawler tests and 57 backend tests to pass (5 PyS2 tests are skipped).
+
+**Run it**
+
+```bash
+source .venv/bin/activate
+cd article-crawler-backend
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+In a second terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The UI is at <http://localhost:5173> and the API docs at <http://localhost:8000/api/v1/docs>. For PDF import, also start GROBID: `docker run --rm -p 8070:8070 lfoppiano/grobid:0.8.2`.
+
+**Docker instead:** copy `.env.docker.example` to `.env`, fill in `OPENALEX_EMAIL` and `OPENALEX_API_KEY`, then run `docker compose up --build`. The heavy ML packages (torch, sentence-transformers) are not installed by default; add `--with-ml` to `install.py`, or set `INSTALL_ML=true` for Docker, only if you want the experimental recommender. Full details are in the [Installation guide](Installation%20guide.md).
 
 ## Where the name comes from
 
@@ -60,7 +98,7 @@ The project started as a tool for mapping research on misinformation and fake ne
 - `frontend/` – Vite + React UI for operating the crawler and browsing vaults.
 - `docker/`, `docker-compose.yml` – Container workflow (includes optional GROBID PDF parsing).
 - `install.py` – Automated installer that provisions `.venv`, dependencies, and `.env` files.
-- `docs/` – New documentation hub described below.
+- `docs/` – Documentation hub described below.
 
 ## Documentation Map
 
