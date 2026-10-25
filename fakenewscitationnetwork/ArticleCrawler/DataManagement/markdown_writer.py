@@ -607,7 +607,7 @@ class MarkdownFileGenerator:
         self.generate_markdown_files(df_abstract, df_meta, df_paper_references, df_paper_author, df_author, df_abstract, df_venue_features)
 
         
-        if self.open_vault_folder:
+        if self.open_vault_folder and hasattr(os, 'startfile'):  # startfile is Windows-only
             os.startfile(self.vault_folder)
 
         print(f'Vault stored at {self.vault_folder}')

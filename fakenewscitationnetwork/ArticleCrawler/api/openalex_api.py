@@ -185,6 +185,9 @@ class OpenAlexAPIProvider(BaseAPIProvider):
         return papers, paper_ids, total
 
     def _clean_id(self, full_id: str) -> str:
+        # OpenAlex sometimes returns null ids (e.g. unresolved authors)
+        if not full_id:
+            return ''
         return full_id.split('/')[-1] if '/' in full_id else full_id
 
     def get_paper(self, paper_id: str):
