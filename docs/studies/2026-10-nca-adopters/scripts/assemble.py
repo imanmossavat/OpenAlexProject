@@ -41,7 +41,7 @@ for name,ids in DOM:
 def tot(k): s=score[k]; return f'{s["ok"]} yes · {s["part"]} partly'+(f' · {s["given"]} given' if s["given"] else "")
 drows+='<tr><td><b>Total (of 14)</b></td>'+"".join(f"<td><b>{tot(k)}</b></td>" for k in ["claude","gpt"]+K)+"</tr>"
 drows+='<tr><td>Time</td><td>~3 min</td><td>not recorded</td><td>~5 min</td><td>~18 min</td><td>~17 min after the search</td></tr>'
-drows+='<tr><td>Cost</td><td>within the Claude session</td><td>ChatGPT subscription</td><td>~$0.04 OpenAlex</td><td>~$0.09 OpenAlex</td><td>≤ $0.09 OpenAlex</td></tr>'
+drows+='<tr><td>Cost</td><td>within the Claude session</td><td>ChatGPT subscription</td><td>free key, ~4% of daily allowance</td><td>free key, ~9%</td><td>free key, ≤ 9%</td></tr>'
 drows+='<tr><td>Factual errors found</td><td>not checked claim by claim; all 14 papers it named resolve in OpenAlex</td><td>at least 4</td><td colspan="3">n/a: the crawls only collect OpenAlex records</td></tr>'
 print({k:tot(k) for k in score})
 t=open("part_css.html").read()+open("part_body.html").read()+open("part_js.js").read()

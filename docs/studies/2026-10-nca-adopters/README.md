@@ -25,10 +25,10 @@ The test field is neural cellular automata (NCA): which fields, labs and compani
 | Keywords | cellular automata, morphogenesis, self-organizing, regeneration, reaction-diffusion | same | neural cellular automata/automaton, NCA |
 | Rounds | 3 × 25 | 6 × 50 | 6 × 50 |
 | Code | `5a44791` plus the change committed as `85d5779` (crawl code identical to `85d5779`) | same | `85d5779` |
-| Time, OpenAlex spend | ~5 min, ~$0.04 | ~18 min, ~$0.09 | ~17 min, ≤ $0.09 |
+| Time, share of free daily OpenAlex allowance | ~5 min, ~4% | ~18 min, ~9% | ~17 min, ≤ 9% |
 | Papers | 2,997 | 5,688 | 2,760 |
 
-All three crawls ran against the live OpenAlex API through the Python API, using a free API key. The whole study used $0.27 of the $1 daily budget. Institution names and abstracts for the crawlers' papers were looked up in OpenAlex.
+All three crawls ran against the live OpenAlex API through the Python API, using a free API key, so nothing was paid. The whole study used 27% of the key's free daily allowance (10,000 credits). Retraction Watch flagged no retracted papers in the small crawl and one off-topic paper in each of the other two; OpenAlex also marks both as retracted. Institution names and abstracts for the crawlers' papers were looked up in OpenAlex.
 
 ## Reproducing
 
