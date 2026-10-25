@@ -1,0 +1,96 @@
+{
+ "n": 1130,
+ "fields": [
+  [
+   "Artificial intelligence",
+   219
+  ],
+  [
+   "Environmental resource management",
+   130
+  ],
+  [
+   "Data mining",
+   64
+  ],
+  [
+   "Environmental planning",
+   63
+  ],
+  [
+   "Remote sensing",
+   61
+  ],
+  [
+   "Physical geography",
+   57
+  ],
+  [
+   "Algorithm",
+   34
+  ],
+  [
+   "Cartography",
+   27
+  ]
+ ],
+ "nca": 5,
+ "ca": 245,
+ "acr": 0,
+ "acr_titles": [],
+ "land": 526,
+ "via_ref": 255,
+ "via_cit": 871,
+ "top": [
+  [
+   "Neural-network-based cellular automata for simulating multiple land use changes using GIS",
+   2002,
+   862
+  ],
+  [
+   "Breast tumor segmentation using neural cellular automata and shape guided segmentation in ",
+   2024,
+   69
+  ],
+  [
+   "Sensor movement drives emergent attention and scalability in active neural cellular automa",
+   2026,
+   38
+  ],
+  [
+   "Regenerating Soft Robots Through Neural Cellular Automata",
+   2021,
+   29
+  ],
+  [
+   "Neural Cellular Automata Manifold",
+   2021,
+   21
+  ],
+  [
+   "Physical Neural Cellular Automata for 2D Shape Classification",
+   2022,
+   19
+  ],
+  [
+   "An Organism Starts with a Single Pix-Cell: A Neural Cellular Diffusion for High-Resolution",
+   2024,
+   18
+  ],
+  [
+   "Equitable Federated Learning with NCA",
+   2025,
+   16
+  ],
+  [
+   "Growing 3D Artefacts and Functional Machines with Neural Cellular Automata",
+   2021,
+   15
+  ],
+  [
+   "Evolving Hierarchical Neural Cellular Automata",
+   2024,
+   11
+  ]
+ ]
+}

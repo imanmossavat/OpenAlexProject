@@ -1,0 +1,228 @@
+<div class="wrap">
+
+<header style="display:grid;gap:12px">
+  <div class="eyebrow">Field test · ArticleCrawler on live OpenAlex · 25 October 2026</div>
+  <h1>Does a citation crawler beat agentic search? A test on neural cellular automata</h1>
+  <p class="meta prose">Prepared for the Fontys ICT Interaction Design lectorate and for readers of this repository. The test question is which fields, labs and companies use neural cellular automata (NCA). The real question is how well ArticleCrawler gathers a field's literature compared with agentic search: ChatGPT deep research, and Claude's own short web search. Put simply: if you add all this machinery, is it any better than asking Claude to search?</p>
+</header>
+
+<div class="notice" role="note">
+  <p><strong>Authorship and provenance.</strong> This study was carried out and written by <strong>Claude (Opus 5.5), an AI agent from Anthropic</strong>, working in a Claude Code session. Claude is <strong>not part of the ArticleCrawler repository</strong> and is not one of its authors. It used the repository as a tool, the way any user would. Each figure carries a label saying who produced it.</p>
+  <div class="who">
+    <div class="repo"><span class="chip repo">Repo output</span><p>Produced by ArticleCrawler itself: the three citation crawls, the NMF topic model and its top-words figure, and the Retraction Watch check.</p></div>
+    <div class="agent"><span class="chip agent">Agentic Analysis of Crawler data</span><p>Scripts Claude wrote on top of the crawl output: the analysis of the seed papers' citers, the institution counts, the network, the coverage and crawl comparisons, the embedding topic model, and all interpretation.</p></div>
+    <div class="search"><span class="chip search">Claude web search</span><p>Claude's own six web searches at the start of the study. This is one of the agentic search modes being compared, and it supplied the seeds for one crawl.</p></div>
+    <div class="gpt"><span class="chip gpt">ChatGPT deep research</span><p>A separate report supplied by the user and used only as a comparison. Its claims were checked against OpenAlex.</p></div>
+  </div>
+</div>
+
+<section>
+  <h2>Bottom line</h2>
+  <ul class="prose">
+    <li><strong>Yes, the crawler finds more, but not the newest work. The best results came from using search and the crawler together.</strong> The test used a checklist of 14 NCA application domains. Claude's 3-minute web search and ChatGPT deep research each covered 5 domains fully and 2 partly, plus games, which was already in the brief. ChatGPT also made at least 4 factual errors. Each crawl's data covered 10 or 11 domains fully and 2 or 3 partly. All three crawls missed only one domain: language models.</li>
+    <li><strong>Seeding the crawler from search worked best.</strong> One crawl was seeded with the 14 papers Claude's search had named, on top of the 4 brief seeds. That crawl reached <strong>96 of the 210</strong> OpenAlex works with "neural cellular automata" in the title. The crawls from the 4 brief seeds alone reached 87 (small) and 92 (big). It did this with half as many papers as the big crawl: 2,760 against 5,688. The search and that crawl together took about 20 minutes and under $0.10 in OpenAlex fees.</li>
+    <li><strong>The crawler has a structural blind spot.</strong> OpenAlex has no reference list for 123 of the 210 NCA-titled works (59%). For 2026 papers the share is 51 of 71 (72%). A citation crawl reaches such a paper only if a paper it has already found cites it, or if the paper is a seed. The crawls reached 86% of the NCA works that have references, but at most 17% of those that don't. That is why every crawl missed the 2026 language-model paper, which only ChatGPT found.</li>
+    <li><strong>More papers does not mean more NCA.</strong> Doubling the brief-seeded crawl added 3,169 papers but only 5 NCA papers. Broad keywords pulled in regeneration biology and classic cellular automata (CA) from metallurgy. The NCA-only keywords of the search-seeded crawl drifted too: they pulled in about 500 papers on neural-network CA for land-use simulation, which is an older and unrelated field.</li>
+    <li><strong>Data in a crawl still has to be found by someone.</strong> A crawl "covers" a domain here if the domain's evidence paper is somewhere in its data. Getting from 2,760 papers to the findings below took analysis on top: counts of the seed citers and their institutions, a network, and topic models. Reading the crawler's own output would not have produced this report.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Setup</h2>
+  <p class="prose">Three crawls ran against the live OpenAlex API through the repository's Python API, using a free API key. Two started from the four seed papers in the brief. The third used the seeds that Claude's web search had found. This is a legitimate way to use the tool: search finds the seeds, and the crawler expands them.</p>
+  <div class="tbl"><table>
+    <thead><tr><th></th><th>Small crawl</th><th>Big crawl</th><th>Search-seeded crawl</th></tr></thead>
+    <tbody>
+      <tr><td>Seeds</td><td>4 brief seeds: <span class="mono">W3006201994</span> Growing NCA, <span class="mono">W3130408838</span> Self-Organising Textures, <span class="mono">W3199753215</span> Earle et al. (level generation), <span class="mono">W3180899834</span> Differentiable reaction-diffusion</td><td>Same 4</td><td>18: the 4 brief seeds plus the 14 papers named by Claude's web search (surveys, BraiNCA, Med-NCA, soft robots, the ARC paper, MeshNCA, DyNCA, Cells2Pixels, metamaterials, microstructure, solidification and others)</td></tr>
+      <tr><td>Title keywords</td><td>cellular automata/automaton, morphogenesis, self-organizing/organising, regeneration, reaction-diffusion</td><td>Same</td><td>neural AND cellular AND automata/automaton, NCA, NCAs</td></tr>
+      <tr><td>Rounds</td><td class="num">3 iterations × 25 papers</td><td class="num">6 × 50</td><td class="num">6 × 50</td></tr>
+      <tr><td>Code</td><td>Commit <span class="mono">5a44791</span> plus the change later committed as <span class="mono">85d5779</span>. The crawl code is identical to <span class="mono">85d5779</span>.</td><td>Same</td><td><span class="mono">85d5779</span></td></tr>
+      <tr><td>Time</td><td class="num">~5 min</td><td class="num">~18 min</td><td class="num">~17 min, plus ~3 min of search</td></tr>
+      <tr><td>OpenAlex spend</td><td class="num">~$0.04</td><td class="num">~$0.09</td><td class="num">≤ $0.09</td></tr>
+      <tr><td>Papers in the crawl</td><td class="num">2,997</td><td class="num">5,688</td><td class="num">2,760</td></tr>
+    </tbody>
+  </table></div>
+  <p class="cap prose">All three crawls used the same remaining settings: a 0.3 chance of sampling a paper whose title does not match the keywords, sampling weights of 0.3 for year and 1 for centrality, NMF with 12 topics, and the Retraction Watch check enabled. None of the 2,944 DOIs in the small crawl matched Retraction Watch. Each crawl ran with 0 API errors. The search-seeded crawl's cost is an upper bound: OpenAlex's daily counter rose from $0.18 to $0.27 across that crawl and the checks that followed it. The whole study used $0.27 of the free key's $1 daily budget.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Search mode</th><th>What was done</th></tr></thead>
+    <tbody>
+      <tr><td><span class="chip search">Claude web search</span></td><td>Six web searches in about 3 minutes, looking for surveys, labs, startups and less obvious domains such as materials, hardware and art. The brief made this a short first step to steer the crawl, so it was deliberately not exhaustive.</td></tr>
+      <tr><td><span class="chip gpt">ChatGPT deep research</span></td><td>Run by the user before the study, on the same question. The output was supplied in the session. Its run time was not recorded.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="cap prose"><strong>Method notes.</strong> The crawler records papers and citation links, but not every field this study needed. Institution names and abstracts for the crawler's papers were therefore looked up in OpenAlex. The "seed citers" are the 239 papers that cite at least one brief seed. All 239 were already in the small crawl, and its data holds 592 citation links among them. OpenAlex under-indexes citations of Distill and arXiv papers, so read counts as relative, not absolute. Its institution matching sometimes drops affiliations; for example, Google is missing from the normalised record of the 2026 reasoning paper. Nothing was checked against Google Scholar.</p>
+</section>
+
+<section>
+  <h2>Findings on NCA</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Group</th><th>Field</th><th>Evidence</th><th class="num">Citing papers</th></tr></thead>
+    <tbody>
+      <tr><td>TU Darmstadt (Mukhopadhyay, Kalkhof)</td><td>Medical imaging</td><td>Med-NCA segments medical images about as well as a UNet with ~500× fewer parameters, and runs on a Raspberry Pi (<em>Medical Image Analysis</em> 2025). The group also led the 2026 applications survey.</td><td class="num">11</td></tr>
+      <tr><td>Levin lab, Tufts / Wyss (Levin, Hartl, Pio-Lopez)</td><td>Developmental biology</td><td>NCAs as models of morphogenesis and regeneration. Review in <em>Physics of Life Reviews</em> 2025, and BraiNCA (2026).</td><td class="num">13</td></tr>
+      <tr><td>ITU Copenhagen (Risi), Trieste, OsloMet</td><td>Robotics, artificial life</td><td>Regenerating soft robots, and growing functional 3D machines in Minecraft</td><td class="num">15</td></tr>
+      <tr><td>EPFL (Süsstrunk, Pajouheshgar) with Google</td><td>Graphics, textures</td><td>MeshNCA (real-time textures on 3D meshes in WebGL), and "From Cells to Pixels" (2026)</td><td class="num">9</td></tr>
+      <tr><td>NYU (Togelius, Earle), USC, Malta</td><td>Games, procedural content</td><td>Level generation, and a survey of deep learning for procedural content (161 citations)</td><td class="num">13</td></tr>
+      <tr><td>Caltech (Marandi) with NTT</td><td>Photonic hardware</td><td>Photonic NCA (<em>Light: Science &amp; Applications</em> 2024)</td><td class="num">7</td></tr>
+      <tr><td>Seoul National University</td><td>Materials science</td><td>Chiral growth of gold nanoparticles modelled with generative CA (<em>Nature Materials</em> 2024)</td><td class="num">3</td></tr>
+    </tbody>
+  </table></div>
+  <p class="cap">The citing-papers column counts the institution's papers among the 239 seed citers. The Levin row shows the Tufts count. The Caltech row includes Qian's DNA-computing papers.</p>
+  <ul class="prose">
+    <li><strong>Smaller and newer directions:</strong> edge and real-time vision on embedded devices (UT Dallas), white-blood-cell classification (Helmholtz Munich / TUM), metal-microstructure and metamaterial design, physics-informed and spatio-temporal simulation, and DNA computing (Caltech, Qian lab), which is adjacent to NCA rather than a direct use.</li>
+    <li><strong>Very recent work that only search found:</strong> NCAs on reasoning tasks such as Sudoku, mazes and ARC (Google, 2026), and NCA data for pretraining language models (MIT, 2026).</li>
+    <li><strong>Industry is thin.</strong> Google research teams are the only industrial lab with sustained work. The only startup found was Brain-CA Technologies, and the only evidence for it is a CB Insights profile. No shipping NCA products were found.</li>
+  </ul>
+
+  <div class="grid2">
+    <figure class="fig" style="margin:0">
+      <div class="fig-head"><h3>Who cites the seeds, by field</h3><span class="chip agent">Agentic Analysis of Crawler data</span></div>
+      <div class="legend" id="lg-field"></div>
+      <div class="chart" id="ch-field"></div>
+      <figcaption>The 239 seed citers by year, grouped by their OpenAlex primary field. Computer science dominates. Citers from the life sciences, engineering and physics grow after 2023. The 2026 bar covers part of the year only.</figcaption>
+    </figure>
+    <figure class="fig" style="margin:0">
+      <div class="fig-head"><h3>Most active institutions</h3><span class="chip agent">Agentic Analysis of Crawler data</span></div>
+      <div class="chart" id="ch-inst"></div>
+      <figcaption>Citing papers per institution, and how many of the four seeds the institution cites. An institution that cites three seeds works across several NCA strands.</figcaption>
+    </figure>
+  </div>
+
+  <figure class="fig" style="margin:0">
+    <div class="fig-head"><h3>Citation network of the seed citers</h3><span class="chip agent">Agentic Analysis of Crawler data</span></div>
+    <div class="legend" id="lg-net"></div>
+    <div class="chart" id="ch-net"></div>
+    <figcaption>Each dot is a paper that cites at least one seed, and lines are citations within this set. Larger dots have more citations, and the four seeds are ringed. Hover over a dot to see its title, authors and institution. Distinct regions are visible: games and procedural content around Earle et al., biology and robotics near Growing NCA, and graphics near Textures. Layout: force-directed (networkx spring layout with a fixed seed).</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2>Topics in the NCA literature</h2>
+  <p class="prose">The topic model below uses the best text signal available. The corpus is <strong>361 papers</strong>: the 239 seed citers plus the 210 NCA-titled works, with duplicates removed. Of these, 268 are in at least one crawl's data. The other 93 came only from an OpenAlex title search, and the map shows them as hollow dots, so it also shows where the crawls have gaps. Titles and abstracts were embedded with SPECTER, a model trained on scientific papers. The embeddings were reduced with UMAP to 8 dimensions and clustered with k-means. Keywords come from class-based TF-IDF. k=12 was used because its silhouette score (0.468) was almost the same as the best one (k=6, 0.470) and it gives more readable topics. The agent named the topics from their keywords and the papers nearest each cluster centre.</p>
+
+  <figure class="fig" style="margin:0">
+    <div class="fig-head"><h3>Topic map of the NCA literature</h3><span class="chip agent">Agentic Analysis of Crawler data</span></div>
+    <div class="legend" id="lg-map" role="group" aria-label="Highlight a topic"></div>
+    <div class="legend" id="lg-map2"></div>
+    <div class="chart" id="ch-map"></div>
+    <figcaption>Each dot is one of the 361 papers, placed by how similar its title and abstract are to the others (a 2D UMAP of the SPECTER embeddings). Numbers mark cluster centres. Select a topic above to highlight its papers, and hover over a dot to see its title. Neighbouring clusters share vocabulary: medical segmentation sits next to image classification, and robotics next to artificial life.</figcaption>
+  </figure>
+
+  <div class="tbl"><table id="tbl-topics">
+    <thead><tr><th>#</th><th>Topic (agent's name)</th><th class="num">Papers</th><th class="num">In crawler data</th><th>Keywords (c-TF-IDF)</th><th>Most active institutions</th><th>Typical paper</th></tr></thead>
+    <tbody></tbody>
+  </table></div>
+
+  <figure class="fig" style="margin:0">
+    <div class="fig-head"><h3>Topics over time</h3><span class="chip agent">Agentic Analysis of Crawler data</span></div>
+    <div class="chart" id="ch-heat"></div>
+    <figcaption>Papers per topic and year; darker cells mean more papers. Medical segmentation, the deep-learning and language cluster, and simulation are mostly from 2023 onward. Games peaked in 2021–2023. The 2026 column covers part of the year only.</figcaption>
+  </figure>
+  <p class="cap prose"><strong>How to read it.</strong> The crawls cover games, quality-diversity, graphics and developmental biology almost completely. They cover only about half of <em>NCA dynamics and theory</em>, <em>physical simulation</em> and <em>NCA meets deep learning and language</em>. Those are the newest topics, where papers without reference lists are most common. Clusters 3 and 5 partly act as catch-alls that mix foundational NCA papers with applications. The topic names are the agent's judgement, and a different k moves the boundaries. Treat the model as a map for exploring the field, not as a classification.</p>
+
+  <h3>The crawler's own topic words</h3>
+  <p class="prose">ArticleCrawler's NMF model runs on the abstracts of the papers each crawl processed. That was 39 abstracts in the small crawl, 82 in the big one and 54 in the search-seeded one. Its top words are still useful leads. The agent labelled the small crawl's 12 topics below, and three of them pointed to domains that the web search had not mentioned: materials (2), edge vision (6) and photonic hardware (9).</p>
+  <div class="tbl"><table>
+    <thead><tr><th>#</th><th>Top words (repo)</th><th>Agent's label</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td class="mono">textur, automaton, neural cellular, procedur</td><td>Core NCA texture and procedural generation</td></tr>
+      <tr><td class="num">2</td><td class="mono">ca, microstructur, solidif, metal, materi</td><td><strong>Materials:</strong> metal solidification microstructure</td></tr>
+      <tr><td class="num">3</td><td class="mono">regener, planarian, wnt, polar, wound</td><td>Regeneration biology. These are papers that NCA work cites, not NCA papers.</td></tr>
+      <tr><td class="num">4</td><td class="mono">medic imag, segment, health, ncadapt</td><td><strong>Medical imaging</strong> (TU Darmstadt)</td></tr>
+      <tr><td class="num">5</td><td class="mono">nca model, dynam, rule, pde</td><td>NCA as learned PDE and dynamical-system models</td></tr>
+      <tr><td class="num">6</td><td class="mono">comput vision, realtim, latenc, edg, cnn</td><td><strong>Edge and real-time vision</strong> (UT Dallas)</td></tr>
+      <tr><td class="num">7</td><td class="mono">environ, robot, divers, level, qd</td><td>Games, robots, quality-diversity search</td></tr>
+      <tr><td class="num">8</td><td class="mono">textur, meshnca, synthes, video, motion</td><td>Graphics: MeshNCA and dynamic textures</td></tr>
+      <tr><td class="num">9</td><td class="mono">photon, rd system, architectur, pnca</td><td><strong>Photonic NCA hardware</strong> (Caltech)</td></tr>
+      <tr><td class="num">10</td><td class="mono">collect, damag, protocol, intern state</td><td>Robustness and collective behaviour</td></tr>
+      <tr><td class="num">11</td><td class="mono">waxmorph, tissu, spatial organ, reconstruct</td><td>Tissue reconstruction from spatial data</td></tr>
+      <tr><td class="num">12</td><td class="mono">bioelectr, pattern, anatom, emerg</td><td>Bioelectric patterning (Levin lab)</td></tr>
+    </tbody>
+  </table></div>
+  <p class="cap prose">The other crawls' topic words added more leads. In the big crawl they were wildfire simulation, silicon photonics and graph NCAs. In the search-seeded crawl they were active sensing with decentralised sensors, empowerment and sensorimotor control, depth estimation, and land-use simulation. Land-use simulation is off-target; the next section explains where it comes from.</p>
+  <figure class="fig" style="margin:0">
+    <div class="fig-head"><h3>Top words per topic, small crawl</h3><span class="chip repo">Repo output</span></div>
+    <img src="__IMG_TOPWORDS__" alt="ArticleCrawler NMF top-words chart: twelve panels of horizontal bars showing stemmed words per topic">
+    <figcaption>The figure as the repository writes it to <span class="mono">vault/figures/</span>.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2>Data coverage: what the crawler gathers and misses</h2>
+  <div class="tbl"><table>
+    <thead><tr><th></th><th class="num">Small crawl</th><th class="num">Big crawl</th><th class="num">Search-seeded crawl</th></tr></thead>
+    <tbody>__CRAWL_ROWS__</tbody>
+  </table></div>
+  <p class="cap prose">The reference sets are the 210 OpenAlex works with "neural cellular automata" (or "automaton") in the title; the 361-paper topic-model corpus; and the 239 seed citers. Every crawl reached all 239 seed citers.</p>
+
+  <figure class="fig" style="margin:0">
+    <div class="fig-head"><h3>How much NCA literature a citation crawl can see</h3><span class="chip agent">Agentic Analysis of Crawler data</span></div>
+    <div class="legend" id="lg-cov"></div>
+    <div class="chart" id="ch-cov"></div>
+    <figcaption>Bars show all NCA-titled works from 2020 on, split by whether OpenAlex has their reference list. The markers show how many each crawl reached. In 2026, 51 of 71 works have no references. The small crawl reached 14 of them and the search-seeded crawl 19, several of which were its own seeds. The 2023 spike may include duplicate records of preprints.</figcaption>
+    <details><summary>Show as table</summary><div class="tbl" id="tbl-cov"></div></details>
+  </figure>
+
+  <div class="grid2">
+    <div class="verdict"><h3>What the big crawl added, and why</h3>
+      <p>Same seeds and keywords as the small crawl, with 6 × 50 instead of 3 × 25 papers. It added <strong>3,169 papers but only 5 NCA papers</strong>. 83% of the new papers came in as <em>references</em> of a few sampled papers. These were mainly Levin-lab reviews on regeneration and bioelectricity, each with 200–300 references, and classic (non-neural) CA in metallurgy and corrosion. The most common new fields were cell biology (478), artificial intelligence (373), neuroscience (185) and metallurgy (155).</p>
+      <p><strong>Why:</strong> broad keywords such as "regeneration" and "cellular automata" also match work that is not NCA. The big crawl shows which fields NCA draws on. It does not find more NCA work.</p>
+    </div>
+    <div class="verdict" style="border-left-color:var(--s3)"><h3>What search seeding changed</h3>
+      <p>The search-seeded crawl reached the most NCA-titled works (96) with the fewest papers (2,760). It reached 5 that neither brief-seeded crawl had, but 4 of those were its own seeds. So most of the gain comes from seeding, not from the expansion around the seeds. It lost 1 NCA paper that the brief-seeded crawls had.</p>
+      <p>It drifted too, in a different way. Of its 1,130 papers that neither brief-seeded crawl had, 526 are about land-use or urban change. Most came in as <em>citers</em> of a single 2002 paper on "neural-network-based cellular automata for simulating land use", which matches the NCA keywords and brought in 862 papers on its own. That paper belongs to an older geography field that shares the name but not the method.</p>
+    </div>
+  </div>
+  <div class="verdict" style="border-left-color:var(--s2)">
+    <h3>What all three crawls miss</h3>
+    <ul>
+      <li><strong>Work with no reference list in OpenAlex.</strong> This covers most of 2026. Examples are the 2026 language-model paper (<span class="mono">W7135075179</span>) and the 2026 Google reasoning paper (<span class="mono">W7214964112</span>). Neither can be reached through citations. They get into a crawl only as seeds.</li>
+      <li><strong>Work in other "neural CA" lines that has no citation link to the Mordvintsev lineage.</strong> Examples are traffic simulation (<span class="mono">W7220892747</span>) and protein folding (<span class="mono">W2809252620</span>).</li>
+      <li><strong>Things that are not papers,</strong> such as demos, code, startups and student groups.</li>
+    </ul>
+    <p>Only search finds these. Search and the crawler complement each other: search for recency and for seeds, and the crawler to expand them into a full, checkable map.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Comparison of the methods</h2>
+  <p class="prose">Each of the 14 domains below has one or more evidence papers. A crawl covers a domain if the evidence papers are in its data. A search covers it if its text names the paper or the group. "Partly" means some of the domain's evidence papers, or only a vague mention of the domain.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Domain (evidence papers)</th><th>Claude web search</th><th>ChatGPT deep research</th><th>Small crawl</th><th>Big crawl</th><th>Search-seeded crawl</th></tr></thead>
+    <tbody>__DOMAIN_ROWS__</tbody>
+  </table></div>
+  <p class="cap prose"><strong>Biases to keep in mind.</strong> The Claude web search was deliberately short: it was step 1 of the brief, meant to steer the crawl. The search-seeded crawl contains everything that search named, so it scores at least as well by construction. Its own contribution is everything else it reached, including photonic hardware, gold nanoparticles, edge vision, blood cells and DNA computing. The crawls get credit for having a paper in their data, which is not the same as surfacing it. The agent chose the evidence papers after seeing all the results. The ChatGPT column is based on the claims checked below: a domain counts as missed when the report named no paper or group in it. Games was part of the brief, so it is marked as given for the two searches.</p>
+
+  <h3>Checking the ChatGPT report</h3>
+  <p class="prose">Each specific claim in the ChatGPT report was looked up in OpenAlex. "Confirmed" means the paper and the attribution match the record. A claim is marked "Contradicted" only when the OpenAlex record says otherwise.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>ChatGPT claim</th><th>Verdict</th><th>What OpenAlex shows</th></tr></thead>
+    <tbody>
+      <tr><td>"Surveys ontbreken" (there are no surveys)</td><td><span class="v bad">Contradicted</span></td><td>There are at least three: Hartl, Levin &amp; Pio-Lopez, <em>Physics of Life Reviews</em> 2025 (<span class="mono">W4416818787</span>, in every crawl); Spitznagel &amp; Keuper, TMLR 2026 (<span class="mono">W7157701221</span>); and Lemke et al., 2026 (<span class="mono">W7214021387</span>, arXiv 2609.24595).</td></tr>
+      <tr><td>Sudhakaran et al. 2021 (3D artefacts in Minecraft) is from "UT Dallas / Runway"</td><td><span class="v bad">Contradicted</span></td><td>The authors are at ITU Copenhagen (including Risi), Shanghai University and the University of York (<span class="mono">W3138886030</span>). The record has no Runway or UT Dallas affiliation.</td></tr>
+      <tr><td>"Evolving Hierarchical NCA (Celikyilmaz et al., ACM 2019)"</td><td><span class="v bad">Not found</span></td><td>The paper with that title is by Bielawski et al., GECCO 2024, University of Vermont (<span class="mono">W4400412679</span>). The author and year in the claim appear to be invented.</td></tr>
+      <tr><td>Lee et al. 2026: NCA trajectories as pretraining data for language models (MIT / "Improbable", called a company that funds NCA work)</td><td><span class="v part">Partly</span></td><td>The paper exists (<span class="mono">W7135075179</span>, MIT). The Improbable AI Lab is Pulkit Agrawal's academic lab at MIT, not a company. OpenAlex lists the venue as arXiv, so the ICML venue is unverified.</td></tr>
+      <tr><td>Etcheverry et al. 2026: NCAs solve Sudoku, mazes and ARC (Google Paradigms of Intelligence)</td><td><span class="v ok">Confirmed</span></td><td><span class="mono">W7214964112</span>. The raw affiliations name the Google Paradigms of Intelligence team, with Niklasson as co-supervisor.</td></tr>
+      <tr><td>Cells2Pixels (EPFL/Google, SIGGRAPH 2026)</td><td><span class="v part">Partly</span></td><td>Indexed as "Neural Cellular Automata: From Cells to Pixels" (<span class="mono">W7168679437</span>, 2026), and it is in the crawls. The SIGGRAPH venue is not visible in OpenAlex.</td></tr>
+      <tr><td>TU Darmstadt's medical work is a "proof-of-concept"</td><td><span class="v part">Understated</span></td><td>There are 11 citing papers from TU Darmstadt, including journal papers (<em>Medical Image Analysis</em> 2025) and WACV 2025, and the group leads the 2026 applications survey.</td></tr>
+      <tr><td>Practical use in biology and materials science "is limited"</td><td><span class="v part">Disputed</span></td><td><em>Nature Materials</em> 2024 (gold chirality, SNU), 13 citing papers from Tufts, metal-microstructure NCAs, and photonic NCA hardware.</td></tr>
+      <tr><td>Monash DeepNeuron, described as an "Asian initiative" in Australia</td><td><span class="v na">Not checked</span></td><td>This is a student group with no papers in OpenAlex. Australia is also not in Asia.</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="verdict">
+    <h3>Answer: is all this machinery better than Claude's search?</h3>
+    <p><strong>For coverage, yes, by a wide margin. For the newest work, no.</strong> In about 3 minutes, Claude's web search named 14 good papers and covered 5 of the 14 domains fully. A crawl seeded from those papers took about 17 more minutes and under $0.10. It turned them into 2,760 papers: 96 NCA-titled works, every seed citer, and evidence for 11 domains fully and 2 partly. The search-only modes missed photonic hardware, gold nanoparticles, edge vision, blood-cell classification and DNA computing, and the crawl reached all five. The crawl also gives every claim an OpenAlex ID, which is how the four ChatGPT errors were caught.</p>
+    <p>The crawl cannot see papers without reference lists, and those are most of the last year's work. Only search found the 2026 language-model paper. The crawl also drifts into fields that share NCA's keywords. And it does not interpret anything: the findings above came from analysis on top of its data.</p>
+    <p><strong>Recommended workflow:</strong> use agentic search to find seeds and recent work, use the crawler to expand the seeds and check claims, and run an analysis pass on the crawl data. Use focused keywords, and check the largest sources of new papers for drift.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Reproducing this study</h2>
+  <p class="prose">The scripts are in <span class="mono">docs/studies/2026-10-nca-adopters/scripts/</span>, next to this report in the repository, and <span class="mono">data/</span> holds the numbers behind the figures. The run order is in the folder's <span class="mono">README.md</span>. The scripts need <span class="mono">OPENALEX_API_KEY</span> in <span class="mono">fakenewscitationnetwork/.env</span>. OpenAlex data changes daily, so later runs will give slightly different counts. The 33 papers used as evidence are also in a Zotero collection, exported with the repository's own Zotero export.</p>
+  <p class="cap">Sources from the web search: <a href="https://arxiv.org/abs/2609.24595">Lemke et al. 2026 (applications survey)</a> · <a href="https://arxiv.org/abs/2509.11131v1">Hartl, Levin &amp; Pio-Lopez 2025 (review)</a> · <a href="https://arxiv.org/pdf/2302.03473">Med-NCA</a> · <a href="https://arxiv.org/html/2311.02820v2">MeshNCA</a> · <a href="https://arxiv.org/pdf/2607.14475">NCA metamaterials</a> · <a href="https://arxiv.org/pdf/2304.02354">NCA solidification</a> · <a href="https://www.cbinsights.com/compare/brain-ca-technologies-vs-neutonai">Brain-CA (CB Insights)</a> · <a href="https://www.quantamagazine.org/self-assembly-gets-automated-in-reverse-of-game-of-life-20250910/">Quanta Magazine</a></p>
+</section>
+
+</div>
+<div id="tip" hidden></div>

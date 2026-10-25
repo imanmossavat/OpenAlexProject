@@ -1,0 +1,478 @@
+{
+ "Sudhakaran 3D artefacts": [
+  {
+   "id": "W3138886030",
+   "year": 2021,
+   "title": "Growing 3D Artefacts and Functional Machines with Neural Cellular Automata",
+   "venue": "Conference on Artificial Life (ALIFE)",
+   "authors": [
+    "Shyam Sudhakaran",
+    "Djordje Grbic",
+    "Siyan Li",
+    "\u00c1d\u00e1m Katona",
+    "Elias Najarro",
+    "Claire Glanois"
+   ],
+   "inst": [
+    "IT University of Copenhagen",
+    "Shanghai University",
+    "University of York"
+   ],
+   "n_refs": 19,
+   "cites_seed": true,
+   "in_citers": true,
+   "in_crawl": true,
+   "cited_by": 39
+  },
+  {
+   "id": "W7165511327",
+   "year": 2026,
+   "title": "3D Neural Cellular Automata",
+   "venue": "Brno University of Technology Digital Library (Brno University of Technology)",
+   "authors": [
+    "Michal Rep\u010d\u00edk"
+   ],
+   "inst": [],
+   "n_refs": 0,
+   "cites_seed": false,
+   "in_citers": false,
+   "in_crawl": false,
+   "cited_by": 0
+  },
+  {
+   "id": "W4386882226",
+   "year": 2023,
+   "title": "Growing Steerable Neural Cellular Automata",
+   "venue": "Conference on Artificial Life (ALIFE)",
+   "authors": [
+    "Ettore Randazzo",
+    "Alexander Mordvintsev",
+    "Craig Fouts"
+   ],
+   "inst": [],
+   "n_refs": 0,
+   "cites_seed": false,
+   "in_citers": false,
+   "in_crawl": false,
+   "cited_by": 4
+  },
+  {
+   "id": "W4393241284",
+   "year": 2024,
+   "title": "Learning About Growing Neural Cellular Automata",
+   "venue": "IEEE Access",
+   "authors": [
+    "Sorana Catrina",
+    "Mirela-Magdalena Catrina",
+    "Alexandra B\u0103icoianu",
+    "Ioana Cristina Plajer"
+   ],
+   "inst": [
+    "Transilvania University of Bra\u0219ov"
+   ],
+   "n_refs": 19,
+   "cites_seed": true,
+   "in_citers": true,
+   "in_crawl": true,
+   "cited_by": 5
+  }
+ ],
+ "Cells2Pixels": [],
+ "Etcheverry reasoning NCA": [
+  {
+   "id": "W7214964112",
+   "year": 2026,
+   "title": "Reasoning with Neural Cellular Automata",
+   "venue": "arXiv (Cornell University)",
+   "authors": [
+    "Mayalen Etcheverry",
+    "Pietro Miotti",
+    "Aidan Sirbu",
+    "Konstantin Sch\u00fcrholt",
+    "Mariia Drozdova",
+    "Arna Ghosh"
+   ],
+   "inst": [
+    "University of Geneva"
+   ],
+   "n_refs": 0,
+   "cites_seed": false,
+   "in_citers": false,
+   "in_crawl": false,
+   "cited_by": 0
+  },
+  {
+   "id": "W7116783405",
+   "year": 2025,
+   "title": "Tri-Paradigm analysis of computational complexity in NP-Hard Sudoku solvers using explainable AI",
+   "venue": "Research Square",
+   "authors": [
+    "Rajan Thangamani",
+    "Pallavi R"
+   ],
+   "inst": [
+    "Presidency University"
+   ],
+   "n_refs": 45,
+   "cites_seed": false,
+   "in_citers": false,
+   "in_crawl": false,
+   "cited_by": 0
+  },
+  {
+   "id": "W4415018933",
+   "year": 2025,
+   "title": "A Computational Complexity-Based Framework for Predicting the Difficulty of Sudoku Puzzles Using CSP-Based Symbolic Modeling and Constraint Metrics",
+   "venue": "Journal of Computational and Cognitive Engineering",
+   "authors": [
+    "Rajan Thangamani",
+    "Pallavi R"
+   ],
+   "inst": [
+    "Presidency University"
+   ],
+   "n_refs": 0,
+   "cites_seed": false,
+   "in_citers": false,
+   "in_crawl": false,
+   "cited_by": 1
+  },
+  {
+   "id": "W7214802035",
+   "year": 2026,
+   "title": "Structured Sparse Memory for Recurrent Reasoning",
+   "venue": "arXiv (Cornell University)",
+   "authors": [
+    "Zixuan Zhao",
+    "Samuel Wheeler",
+    "Neil Getty",
+    "Xiaotian Duan",
+    "Rick L. Stevens",
+    "Fangfang Xia"
+   ],
+   "inst": [
+    "Argonne National Laboratory",
+    "University of Chicago"
+   ],
+   "n_refs": 0,
+   "cites_seed": false,
+   "in_citers": false,
+   "in_crawl": false,
+   "cited_by": 0
+  }
+ ],
+ "Lee NCA LM pretraining": [
+  {
+   "id": "W7135075179",
+   "year": 2026,
+   "title": "Training Language Models via Neural Cellular Automata",
+   "venue": "arXiv (Cornell University)",
+   "authors": [
+    "Lee, Dan",
+    "Seungwook Han",
+    "Akarsh Kumar",
+    "Pulkit Agrawal"
+   ],
+   "inst": [
+    "Massachusetts Institute of Technology"
+   ],
+   "n_refs": 0,
+   "cites_seed": false,
+   "in_citers": false,
+   "in_crawl": false,
+   "cited_by": 0
+  },
+  {
+   "id": "W7135168452",
+   "year": 2026,
+   "title": "PREreview of \"Training Language Models via Neural Cellular Automata\"",
+   "venue": "Zenodo (CERN European Organization for Nuclear Research)",
+   "authors": [
+    "Shireesh Apte"
+   ],
+   "inst": [],
+   "n_refs": 0,
+   "cites_seed": false,
+   "in_citers": false,
+   "in_crawl": false,
+   "cited_by": 0
+  },
+  {
+   "id": "W7172384256",
+   "year": 2026,
+   "title": "TextNCA: Neural Cellular Automata for Language Modeling via Hierarchical Local Attention",
+   "venue": "arXiv (Cornell University)",
+   "authors": [
+    "Avni Mittal",
+    "Avinash Anand",
+    "Ashutosh Kumar",
+    "Dikshant Kukreja",
+    "Kritarth Prasad",
+    "Sushane Dulloo"
+   ],
+   "inst": [
+    "Indraprastha Institute of Information Technology Delhi",
+    "Nanyang Technological University",
+    "Nvidia (United Kingdom)",
+    "Singapore Institute of Technology"
+   ],
+   "n_refs": 0,
+   "cites_seed": false,
+   "in_citers": false,
+   "in_crawl": false,
+   "cited_by": 0
+  },
+  {
+   "id": "W7165511327",
+   "year": 2026,
+   "title": "3D Neural Cellular Automata",
+   "venue": "Brno University of Technology Digital Library (Brno University of Technology)",
+   "authors": [
+    "Michal Rep\u010d\u00edk"
+   ],
+   "inst": [],
+   "n_refs": 0,
+   "cites_seed": false,
+   "in_citers": false,
+   "in_crawl": false,
+   "cited_by": 0
+  }
+ ],
+ "Celikyilmaz hierarchical NCA": [
+  {
+   "id": "W4400412679",
+   "year": 2024,
+   "title": "Evolving Hierarchical Neural Cellular Automata",
+   "venue": "Genetic and Evolutionary Computation Conference (GECCO)",
+   "authors": [
+    "Kameron Bielawski",
+    "Nathan Gaylinn",
+    "Cameron Lunn",
+    "Kevin Motia",
+    "Josh Bongard"
+   ],
+   "inst": [
+    "University of Vermont"
+   ],
+   "n_refs": 22,
+   "cites_seed": false,
+   "in_citers": false,
+   "in_crawl": false,
+   "cited_by": 4
+  },
+  {
+   "id": "W4386882225",
+   "year": 2023,
+   "title": "Hierarchical Neural Cellular Automata",
+   "venue": "Conference on Artificial Life (ALIFE)",
+   "authors": [
+    "Ritu Pande",
+    "Daniele Grattarola"
+   ],
+   "inst": [],
+   "n_refs": 0,
+   "cites_seed": false,
+   "in_citers": false,
+   "in_crawl": false,
+   "cited_by": 4
+  },
+  {
+   "id": "W2617634260",
+   "year": 2018,
+   "title": "Hierarchical Cellular Automata for Visual Saliency",
+   "venue": "International Journal of Computer Vision",
+   "authors": [
+    "Yao Qin",
+    "Mengyang Feng",
+    "Huchuan Lu",
+    "Garrison W. Cottrell"
+   ],
+   "inst": [
+    "Dalian University of Technology",
+    "University of California San Diego"
+   ],
+   "n_refs": 87,
+   "cites_seed": false,
+   "in_citers": false,
+   "in_crawl": true,
+   "cited_by": 68
+  },
+  {
+   "id": "W4402158524",
+   "year": 2024,
+   "title": "Enabling Evolvability with Neutral Networks in Multiscale Neural Cellular Automata",
+   "venue": "Conference on Artificial Life (ALIFE)",
+   "authors": [
+    "Kameron Bielawski",
+    "Josh Bongard"
+   ],
+   "inst": [
+    "University of Vermont"
+   ],
+   "n_refs": 0,
+   "cites_seed": false,
+   "in_citers": false,
+   "in_crawl": false,
+   "cited_by": 1
+  }
+ ],
+ "Xu Miikkulainen ARC": [
+  {
+   "id": "W4417124902",
+   "year": 2025,
+   "title": "Neural Cellular Automata for ARC-AGI",
+   "venue": "ALIFE",
+   "authors": [
+    "Kevin Shuai Xu",
+    "Risto Miikkulainen"
+   ],
+   "inst": [
+    "The University of Texas at Austin"
+   ],
+   "n_refs": 0,
+   "cites_seed": false,
+   "in_citers": false,
+   "in_crawl": true,
+   "cited_by": 2
+  },
+  {
+   "id": "W7147575000",
+   "year": 2026,
+   "title": "SNN-Synthesis v10: Liquid Neural Cellular Automata for ARC-AGI \u2014 From Stochastic Resonance to Compositional Fluid Intelligence, from 2.8K to 7B Parameters",
+   "venue": "Zenodo (CERN European Organization for Nuclear Research)",
+   "authors": [
+    "Hiroto Funasaki"
+   ],
+   "inst": [],
+   "n_refs": 1,
+   "cites_seed": false,
+   "in_citers": false,
+   "in_crawl": false,
+   "cited_by": 0
+  },
+  {
+   "id": "W7214964112",
+   "year": 2026,
+   "title": "Reasoning with Neural Cellular Automata",
+   "venue": "arXiv (Cornell University)",
+   "authors": [
+    "Mayalen Etcheverry",
+    "Pietro Miotti",
+    "Aidan Sirbu",
+    "Konstantin Sch\u00fcrholt",
+    "Mariia Drozdova",
+    "Arna Ghosh"
+   ],
+   "inst": [
+    "University of Geneva"
+   ],
+   "n_refs": 0,
+   "cites_seed": false,
+   "in_citers": false,
+   "in_crawl": false,
+   "cited_by": 0
+  },
+  {
+   "id": "W4416818787",
+   "year": 2025,
+   "title": "Neural cellular automata: Applications to biology and beyond classical AI",
+   "venue": "Physics of Life Reviews",
+   "authors": [
+    "Benedikt Hartl",
+    "Michael Levin",
+    "L\u00e9o Pio\u2010Lopez"
+   ],
+   "inst": [
+    "Harvard University",
+    "Tufts University",
+    "Wyss Institute for Biologically Inspired Engineering"
+   ],
+   "n_refs": 72,
+   "cites_seed": true,
+   "in_citers": true,
+   "in_crawl": true,
+   "cited_by": 10
+  }
+ ],
+ "Med-NCA": [
+  {
+   "id": "W4379660320",
+   "year": 2023,
+   "title": "Med-NCA: Robust and Lightweight Segmentation with Neural Cellular Automata",
+   "venue": "Lecture notes in computer science",
+   "authors": [
+    "John Kalkhof",
+    "Camila Gonz\u00e1lez",
+    "Anirban Mukhopadhyay"
+   ],
+   "inst": [
+    "Technische Universit\u00e4t Darmstadt"
+   ],
+   "n_refs": 15,
+   "cites_seed": true,
+   "in_citers": true,
+   "in_crawl": true,
+   "cited_by": 19
+  },
+  {
+   "id": "W4402705850",
+   "year": 2024,
+   "title": "Generalization Capabilities of Neural Cellular Automata for Medical Image Segmentation: A Robust and Lightweight Approach",
+   "venue": "arXiv (Cornell University)",
+   "authors": [
+    "Steven Korevaar",
+    "Ruwan Tennakoon",
+    "Alireza Bab\u2010Hadiashar"
+   ],
+   "inst": [
+    "RMIT University"
+   ],
+   "n_refs": 0,
+   "cites_seed": false,
+   "in_citers": false,
+   "in_crawl": false,
+   "cited_by": 0
+  },
+  {
+   "id": "W4403071100",
+   "year": 2024,
+   "title": "Neural Cellular Automata for Lightweight, Robust and Explainable Classification of White Blood Cell Images",
+   "venue": "Lecture notes in computer science",
+   "authors": [
+    "Michael Deutges",
+    "Ario Sadafi",
+    "Nassir Navab",
+    "Carsten Marr"
+   ],
+   "inst": [
+    "Helmholtz Munich",
+    "Johns Hopkins University",
+    "Technical University of Munich"
+   ],
+   "n_refs": 21,
+   "cites_seed": false,
+   "in_citers": false,
+   "in_crawl": true,
+   "cited_by": 11
+  },
+  {
+   "id": "W4404341782",
+   "year": 2024,
+   "title": "NCA-Morph: Medical Image Registration with Neural Cellular Automata",
+   "venue": "arXiv (Cornell University)",
+   "authors": [
+    "Amin Ranem",
+    "John Kalkhof",
+    "Anirban Mukhopadhyay"
+   ],
+   "inst": [
+    "Technische Universit\u00e4t Darmstadt"
+   ],
+   "n_refs": 0,
+   "cites_seed": false,
+   "in_citers": false,
+   "in_crawl": false,
+   "cited_by": 0
+  }
+ ]
+}

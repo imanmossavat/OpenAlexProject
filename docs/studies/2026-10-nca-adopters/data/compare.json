@@ -1,0 +1,306 @@
+{
+ "runs": {
+  "small": {
+   "papers": 2997,
+   "abstracts": 39,
+   "authors": 10447,
+   "nca": 87,
+   "nca_refs": 71,
+   "nca_norefs": 16,
+   "citers": 239,
+   "corpus": 258,
+   "evid": 13,
+   "nca2026": 14,
+   "domains": {
+    "Surveys and reviews": [
+     "W4416818787"
+    ],
+    "Medical imaging": [
+     "W4379660320"
+    ],
+    "Microscopy / blood cells": [
+     "W4403071100"
+    ],
+    "Developmental biology": [
+     "W4416818787"
+    ],
+    "Robotics": [
+     "W3151337059"
+    ],
+    "Graphics and textures": [
+     "W4400820364"
+    ],
+    "Games": [
+     "W3199753215"
+    ],
+    "Photonic hardware": [
+     "W4403229727"
+    ],
+    "Gold nanoparticles / materials": [
+     "W4396553883",
+     "W4383032390"
+    ],
+    "Edge vision": [
+     "W7164000886"
+    ],
+    "Physical simulation": [
+     "W4408224315"
+    ],
+    "Reasoning": [
+     "W4417124902"
+    ],
+    "Language models": [],
+    "DNA computing": [
+     "W4413946390"
+    ]
+   }
+  },
+  "big": {
+   "papers": 5688,
+   "abstracts": 82,
+   "authors": 21393,
+   "nca": 92,
+   "nca_refs": 74,
+   "nca_norefs": 18,
+   "citers": 239,
+   "corpus": 263,
+   "evid": 13,
+   "nca2026": 14,
+   "domains": {
+    "Surveys and reviews": [
+     "W4416818787"
+    ],
+    "Medical imaging": [
+     "W4379660320"
+    ],
+    "Microscopy / blood cells": [
+     "W4403071100"
+    ],
+    "Developmental biology": [
+     "W4416818787"
+    ],
+    "Robotics": [
+     "W3151337059"
+    ],
+    "Graphics and textures": [
+     "W4400820364"
+    ],
+    "Games": [
+     "W3199753215"
+    ],
+    "Photonic hardware": [
+     "W4403229727"
+    ],
+    "Gold nanoparticles / materials": [
+     "W4396553883",
+     "W4383032390"
+    ],
+    "Edge vision": [
+     "W7164000886"
+    ],
+    "Physical simulation": [
+     "W4408224315"
+    ],
+    "Reasoning": [
+     "W4417124902"
+    ],
+    "Language models": [],
+    "DNA computing": [
+     "W4413946390"
+    ]
+   }
+  },
+  "agentic": {
+   "papers": 2760,
+   "abstracts": 54,
+   "authors": 14007,
+   "nca": 96,
+   "nca_refs": 75,
+   "nca_norefs": 21,
+   "citers": 239,
+   "corpus": 267,
+   "evid": 15,
+   "nca2026": 19,
+   "domains": {
+    "Surveys and reviews": [
+     "W4416818787",
+     "W7157701221",
+     "W7214021387"
+    ],
+    "Medical imaging": [
+     "W4379660320"
+    ],
+    "Microscopy / blood cells": [
+     "W4403071100"
+    ],
+    "Developmental biology": [
+     "W4416818787"
+    ],
+    "Robotics": [
+     "W3151337059"
+    ],
+    "Graphics and textures": [
+     "W4400820364"
+    ],
+    "Games": [
+     "W3199753215"
+    ],
+    "Photonic hardware": [
+     "W4403229727"
+    ],
+    "Gold nanoparticles / materials": [
+     "W4396553883",
+     "W4383032390"
+    ],
+    "Edge vision": [
+     "W7164000886"
+    ],
+    "Physical simulation": [
+     "W4408224315"
+    ],
+    "Reasoning": [
+     "W4417124902"
+    ],
+    "Language models": [],
+    "DNA computing": [
+     "W4413946390"
+    ]
+   }
+  }
+ },
+ "totals": {
+  "nca": 210,
+  "nca_refs": 87,
+  "nca_norefs": 123,
+  "corpus": 361,
+  "evid": 19
+ },
+ "dom": [
+  [
+   "Surveys and reviews",
+   [
+    "W4416818787",
+    "W7157701221",
+    "W7214021387"
+   ]
+  ],
+  [
+   "Medical imaging",
+   [
+    "W4379660320"
+   ]
+  ],
+  [
+   "Microscopy / blood cells",
+   [
+    "W4403071100"
+   ]
+  ],
+  [
+   "Developmental biology",
+   [
+    "W4416818787"
+   ]
+  ],
+  [
+   "Robotics",
+   [
+    "W3151337059"
+   ]
+  ],
+  [
+   "Graphics and textures",
+   [
+    "W4400820364"
+   ]
+  ],
+  [
+   "Games",
+   [
+    "W3199753215"
+   ]
+  ],
+  [
+   "Photonic hardware",
+   [
+    "W4403229727"
+   ]
+  ],
+  [
+   "Gold nanoparticles / materials",
+   [
+    "W4396553883",
+    "W4383032390"
+   ]
+  ],
+  [
+   "Edge vision",
+   [
+    "W7164000886"
+   ]
+  ],
+  [
+   "Physical simulation",
+   [
+    "W7220892747",
+    "W4408224315",
+    "W2809252620"
+   ]
+  ],
+  [
+   "Reasoning",
+   [
+    "W4417124902",
+    "W7214964112"
+   ]
+  ],
+  [
+   "Language models",
+   [
+    "W7135075179"
+   ]
+  ],
+  [
+   "DNA computing",
+   [
+    "W4413946390"
+   ]
+  ]
+ ],
+ "only_ag": [
+  [
+   "W7148826719",
+   "BraiNCA: brain-inspired neural cellular automata and applications to morphogenesis and motor control",
+   2026
+  ],
+  [
+   "W7157701221",
+   "A New Kind of Network? Review and Reference Implementation of Neural Cellular Automata",
+   2026
+  ],
+  [
+   "W7169558435",
+   "One-Shot Generative Design for Disordered Metamaterials via Self-Organizing Neural Cellular Automata",
+   2026
+  ],
+  [
+   "W7202390703",
+   "Evolving Neural Cellular Automata With Gradient Lexicase Selection",
+   2026
+  ],
+  [
+   "W7214021387",
+   "Applications of Neural Cellular Automata: State of the Art, Challenges and Opportunities",
+   2026
+  ]
+ ],
+ "only_bs": [
+  [
+   "W4386882241",
+   "Self-Replication, Spontaneous Mutations, and Exponential Genetic Drift in Neural Cellular Automata",
+   2023
+  ]
+ ],
+ "union": 97,
+ "overlap_ab": 1630
+}
