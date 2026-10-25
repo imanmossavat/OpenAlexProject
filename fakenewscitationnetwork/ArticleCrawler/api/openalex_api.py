@@ -387,7 +387,7 @@ class OpenAlexAPIProvider(BaseAPIProvider):
         authors = []
         for authorship in work.get('authorships', []):
             author = authorship.get('author', {})
-            author_id = author.get('id', '')
+            author_id = author.get('id') or ''
             if author_id.startswith('https://openalex.org/'):
                 author_id = author_id.split('/')[-1]
             author_name = author.get('display_name', '')
