@@ -1,0 +1,2019 @@
+{
+ "FACTR": [
+  {
+   "id": "W7135376562",
+   "title": "A survey on imitation learning for contact-rich tasks in robotics",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4415756055",
+   "title": "Embodied intelligence for robot manipulation: development and challenges",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7124914944",
+   "title": "PAPRLE: Plug-And-Play Robotic Limb Environment: A Modular Ecosystem for Robotic Limbs",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4416748841",
+   "title": "OpAC: An Optimization-Augmented Control Framework for Single and Coordinated Multi-Arm Robotic Manipulation",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4414753585",
+   "title": "Fast and smooth human motion imitation integrating deep predictive learning with model predictive control",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7131864999",
+   "title": "AIREC-Basic: Consistent Demonstration Data Collection for Imitation Learning with Redundant Robot Arms",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7164890032",
+   "title": "ESPADA: Execution Speedup via Semantics Aware Demonstration Data Downsampling for Imitation Learning",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7211929993",
+   "title": "Hardware Design of the 5 Degree of Freedom TinyARM5 Robot: Towards Open-Source Torque-Controlled Desktop Manipulation",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4416749855",
+   "title": "HACTS: a Human-As-Copilot Teleoperation System for Robot Learning",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7131117410",
+   "title": "UniBiDex: A Unified Teleoperation Framework for Robotic Bimanual Dexterous Manipulation",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7131824395",
+   "title": "Data Augmentation for Continual Learning of Fast and Smooth Imitation Motions Using Model Predictive Control",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7131876720",
+   "title": "Multi-Object Loco-Manipulation Using Body Holding Primitives for Humanoids",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7163910781",
+   "title": "Structure-Aware Diffusion Policy for Bimanual Cooperative Manipulation",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7165541637",
+   "title": "IFT: Interaction Force Transformer for Sensorless Vision-Free Interaction Force Estimation",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7204170419",
+   "title": "Input-gated Bilateral Teleoperation: A Force Feedback Method via Dynamic Control-Input limiting for Low-Cost Hardware",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7211967399",
+   "title": "Comparing Different Teleoperation Input Devices for Collecting and Evaluating Robotic Imitation Learning Policies",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7213421317",
+   "title": "A Fuzzy-Curriculum Reinforcement Learning Approach for Peg-in-Hole Assembly",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  }
+ ],
+ "RDP": [
+  {
+   "id": "W4414559264",
+   "title": "Embodied AI: A Survey on the Evolution from Perceptive to Behavioral Intelligence",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7117457333",
+   "title": "Embodied AI: From LLMs to World Models [Feature]",
+   "year": 2025,
+   "in": [
+    "search"
+   ]
+  },
+  {
+   "id": "W7135376562",
+   "title": "A survey on imitation learning for contact-rich tasks in robotics",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7171640749",
+   "title": "Bridging language and action: A survey of language-conditioned robot manipulation",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7116681012",
+   "title": "A mixed reality-assisted human-to-robot skill transfer approach for contact-rich assembly via visuomotor primitives",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7160832405",
+   "title": "VLA-Touch: Enhancing Vision-Language-Action Model With Dual-Level Tactile Feedback",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4415756055",
+   "title": "Embodied intelligence for robot manipulation: development and challenges",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7167224584",
+   "title": "OmniVTLA: Vision-Tactile-Language-Action Models With Semantic-Aligned Tactile Sensing",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7131821616",
+   "title": "Learning Diffusion Policies from Demonstrations For Compliant Contact-rich Manipulation",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4417438718",
+   "title": "A Control Framework With Tactile Diffusion Policy and Variable Impedance for Unknown Surface Tracking",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7131128685",
+   "title": "Force Sensing Control for Physical Human\u2013Robot Interaction: A Transformer-Based Action Chunking Approach",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7132843572",
+   "title": "Establishing the tactile ability of dexterous hands: a review of research on tactile acquisition, feedback, and perception",
+   "year": 2026,
+   "in": [
+    "search"
+   ]
+  },
+  {
+   "id": "W7133327296",
+   "title": "Feeding, grooming, dressing, and body repositioning: categorizing four pillars of learning-based manipulation for robotic caregiving",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7160131370",
+   "title": "Dense Policy: Bidirectional Autoregressive Learning of Actions",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4411739103",
+   "title": "A Novel Clustered Distributed Federated Learning Architecture for Tactile Internet of Things Applications in 6G Environment",
+   "year": 2025,
+   "in": [
+    "search"
+   ]
+  },
+  {
+   "id": "W7118899399",
+   "title": "A TPU-Based 3D Printed Robotic Hand: Design and Its Impact on Human\u2013Robot Interaction",
+   "year": 2026,
+   "in": [
+    "search"
+   ]
+  },
+  {
+   "id": "W7123336214",
+   "title": "PoCoDP3: Pose- and Contact-Aware Visual-Tactile Policy for Contact-Rich 3D Manipulation",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7140311487",
+   "title": "On the Importance of Tactile Sensing for Imitation Learning: A Case Study on Robotic Match Lighting",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7150864703",
+   "title": "Adaptive Visual-Tactile Fusion for Contact-Rich Dexterous Manipulation",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7162393635",
+   "title": "Canonical Policy: Learning Canonical 3-D Representation for $\\text{SE}(3)$-Equivariant Policy",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7171661906",
+   "title": "Reverse Playback Motion: A Simple Way for Anyone to Obtain High-Quality Demonstration Data",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4417251915",
+   "title": "Gentle Object Retraction in Dense Clutter Using Multimodal Force Sensing and Imitation Learning",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4417438662",
+   "title": "DexFruit: Dexterous Manipulation and Gaussian Splatting Inspection of Fruit",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7118188856",
+   "title": "DP2PNet: Diffusion-Based Point-to-Polygon Conversion for Single-Point Supervised Oriented Object Detection",
+   "year": 2026,
+   "in": [
+    "search"
+   ]
+  },
+  {
+   "id": "W7130721488",
+   "title": "The Dual-System Hierarchical Architecture: A Future Paradigm for Vision-Language-Action Models",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7147476187",
+   "title": "Tac2Real: Reliable and GPU Visuotactile Simulation for Online Reinforcement Learning and Zero-Shot Real-World Deployment",
+   "year": 2026,
+   "in": [
+    "search"
+   ]
+  },
+  {
+   "id": "W7151957433",
+   "title": "HiPolicy: Hierarchical Multi-frequency Action Chunking for Policy Learning",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7155191789",
+   "title": "Object-centric task representation and transfer using diffused orientation fields",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7160530662",
+   "title": "A vision-language conditioned physics-aware imitation learning approach for bimanual robotic dexterous assembly",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7162535739",
+   "title": "Tight-clearance peg-in-hole for delicate components under non-rigid suction grasping via hierarchical imitation learning",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7162772769",
+   "title": "Residual Rotation Correction Using Tactile Equivariance",
+   "year": 2026,
+   "in": [
+    "search"
+   ]
+  },
+  {
+   "id": "W7162990252",
+   "title": "Diffusion Models in Robotics: A Survey",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7163880292",
+   "title": "PGDP: Physics-Guided Diffusion Policy for Multi-Rate Control in Contact-Rich Manipulation",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7163990578",
+   "title": "A Hard Real-Time Bilateral Teleoperation System for High-Fidelity Robot Learning Data Collection",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7164167848",
+   "title": "DPTG: diffusion policy with tactile feasibility guidance",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7165648373",
+   "title": "Learning Variable Impedance Skills for Contact-rich Tasks with Passivity Guarantees",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7167070736",
+   "title": "DexGraspDiffuser: Target-Coupled Grasp and Action Diffusion for Dexterous Grasping",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7202159309",
+   "title": "Constraint-Manifold-Guided Diffusion and Mode-Aware Compliance for Bimanual Assembly",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7203503827",
+   "title": "Diffusion Policies for Embodied Robotic Intelligence: A Survey on Geometric Generalization, Real-Time Interaction, and Generalist Policies",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7203617962",
+   "title": "Force-Guided Contact-Aware Imitation Learning for Robotic Ultrasound Scanning",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7203624417",
+   "title": "PAAM: Phase-Aware Action Modulation for Force-Guided Policy Augmentation in Contact-Rich Manipulation",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7204103747",
+   "title": "Bimanual Tactile-Augmented Teleoperation for Contact-Rich Robotic Manipulation: A Pilot Evaluation",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7204919159",
+   "title": "Tactile-Reactive Surface Following Control on Rapidly Changing or Discontinuous Geometries",
+   "year": 2026,
+   "in": [
+    "search"
+   ]
+  },
+  {
+   "id": "W7213413682",
+   "title": "Tactile-Guided In-Contact Robotic Insertion via Physically Consistent Force-Array Representation Learning",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7215053177",
+   "title": "CC-VLA: Learning Control-Aware Compliance VLA Model for Robust Contact-Rich Robotic Manipulation",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7222958375",
+   "title": "Robust Hybrid Diffusion: Unifying Task Space and Joint Space for Robot Manipulation",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7222982312",
+   "title": "REACT: Responsive Execution-aware Action Coordination And Tuning For Moving Object Manipulation",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7223556742",
+   "title": "Preserve or Repair? Selective Boundary Policy for a World Action Model",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  }
+ ],
+ "ACP": [
+  {
+   "id": "W4409426912",
+   "title": "FoAR: Force-Aware Reactive Policy for Contact-Rich Robotic Manipulation",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7135376562",
+   "title": "A survey on imitation learning for contact-rich tasks in robotics",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4407449452",
+   "title": "ALPHA- \u03b1 and Bi-ACT Are All You Need: Importance of Position and Force Information/ Control for Imitation Learning of Unimanual and Bimanual Robotic Manipulation With Low-Cost System",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4410204269",
+   "title": "DexForce: Extracting Force-Informed Actions From Kinesthetic Demonstrations for Dexterous Manipulation",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7131821616",
+   "title": "Learning Diffusion Policies from Demonstrations For Compliant Contact-rich Manipulation",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4416749835",
+   "title": "UltraDP: Generalizable Carotid Ultrasound Scanning with Force-Aware Diffusion Policy",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4416750008",
+   "title": "IDAGC: Adaptive Generalized Human-Robot Collaboration via Human Intent Estimation and Multimodal Policy Learning",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4416748841",
+   "title": "OpAC: An Optimization-Augmented Control Framework for Single and Coordinated Multi-Arm Robotic Manipulation",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4409985617",
+   "title": "Admittance Visuomotor Policy Learning for General-Purpose Contact-Rich Manipulations",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4413206552",
+   "title": "Verbal C2 for Underwater In-Contact Manipulation: A Semantic Approach to Somatic Task Guidance",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4414431976",
+   "title": "Task-Context-Aware Diffusion Policy with Language Guidance for Multi-task Disassembly",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4416749283",
+   "title": "CLAP: A Closed-Loop Diffusion Transformer Action Foundation Model for Robotic Manipulation",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4416750173",
+   "title": "PACR: Point-Axis Constraint Reasoning for Enhanced Robotic Manipulation with Dexterity and Compliance",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7125223372",
+   "title": "Learning Non-Prehensile Manipulation With Force and Vision Feedback Using Optimization-Based Demonstrations",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7155191789",
+   "title": "Object-centric task representation and transfer using diffused orientation fields",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7162990252",
+   "title": "Diffusion Models in Robotics: A Survey",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7163026814",
+   "title": "A Visual\u2013Force\u2013Pose Demonstration and Phase-Aware Learning Framework for Physical Intelligence in Contact-Rich Manufacturing",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7163134784",
+   "title": "Shaft-Integrated Force Sensing With Transformer-Based Dynamics Compensation for Telesurgery",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7163880292",
+   "title": "PGDP: Physics-Guided Diffusion Policy for Multi-Rate Control in Contact-Rich Manipulation",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7163910781",
+   "title": "Structure-Aware Diffusion Policy for Bimanual Cooperative Manipulation",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7164808150",
+   "title": "Surface Constraint Policy for Learning Surface-Constrained and Dynamically Feasible Robot Skills",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7170035307",
+   "title": "An Empirical Study of Action and Observation Spaces for Imitation Learning in Contact-Rich Pushing",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7204195086",
+   "title": "Residual QP-based Imitation Learning for Cooperative Bimanual Manipulation",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7215053177",
+   "title": "CC-VLA: Learning Control-Aware Compliance VLA Model for Robust Contact-Rich Robotic Manipulation",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  }
+ ],
+ "MatchLight": [
+  {
+   "id": "W7160832405",
+   "title": "VLA-Touch: Enhancing Vision-Language-Action Model With Dual-Level Tactile Feedback",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  }
+ ],
+ "DexForce": [
+  {
+   "id": "W7117474416",
+   "title": "The Developments and Challenges Toward Dexterous and Embodied Robotic Manipulation: A Survey",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4416748841",
+   "title": "OpAC: An Optimization-Augmented Control Framework for Single and Coordinated Multi-Arm Robotic Manipulation",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4416749367",
+   "title": "TacCap: A Wearable FBG-Based Tactile Sensor for Efficient Human-to-Robot Skill Transfer",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7160837583",
+   "title": "OSMO: Open-Source Tactile Glove for Human-to-Robot Skill Transfer",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4417052022",
+   "title": "Tracing Energy Flow: Learning Tactile-Based Grasping Force Control to Reduce Slippage in Dynamic Object Interaction",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4417251915",
+   "title": "Gentle Object Retraction in Dense Clutter Using Multimodal Force Sensing and Imitation Learning",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7125223372",
+   "title": "Learning Non-Prehensile Manipulation With Force and Vision Feedback Using Optimization-Based Demonstrations",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7131103482",
+   "title": "A Low-Cost Sensing Glove for Robust and Dexterous Human-Robot Interaction",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7164821077",
+   "title": "DexTac: Learning Contact-Aware Visuotactile Policies via Hand-by-Hand Teaching",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7165541637",
+   "title": "IFT: Interaction Force Transformer for Sensorless Vision-Free Interaction Force Estimation",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7211967399",
+   "title": "Comparing Different Teleoperation Input Devices for Collecting and Evaluating Robotic Imitation Learning Policies",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  }
+ ],
+ "robomimic": [
+  {
+   "id": "W4385430674",
+   "title": "Learning Fine-Grained Bimanual Manipulation with Low-Cost Hardware",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4385403811",
+   "title": "Diffusion Policy: Visuomotor Policy Learning via Action Diffusion",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4367016688",
+   "title": "Orbit: A Unified Simulation Framework for Interactive Robot Learning Environments",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4401415287",
+   "title": "Open X-Embodiment: Robotic Learning Datasets and RT-X Models : Open X-Embodiment Collaboration 0",
+   "year": 2024,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4386065350",
+   "title": "Affordances from Human Videos as a Versatile Representation for Robotics",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4400357656",
+   "title": "Transformer in reinforcement learning for decision-making: a survey",
+   "year": 2024,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4312707839",
+   "title": "Habitat-Web: Learning Embodied Object-Search Strategies from Human Demonstrations at Scale",
+   "year": 2022,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4379931844",
+   "title": "Human-in-the-Loop Embodied Intelligence With Interactive Simulation Environment for Surgical Robot Learning",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4385431288",
+   "title": "Language-Driven Representation Learning for Robotics",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4407837005",
+   "title": "From screens to scenes: A survey of embodied AI in healthcare",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4386076088",
+   "title": "NeRF in the Palm of Your Hand: Corrective Augmentation for Robotics via Novel-View Synthesis",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4401415154",
+   "title": "Orbit-Surgical: An Open-Simulation Framework for Learning Surgical Augmented Dexterity",
+   "year": 2024,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4411206891",
+   "title": "Empowering natural human\u2013robot collaboration through multimodal language models and spatial intelligence: Pathways and perspectives",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4385431139",
+   "title": "Robot Learning on the Job: Human-in-the-Loop Autonomy and Learning During Deployment",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4405426927",
+   "title": "A Survey of Embodied Learning for Object-centric Robotic Manipulation",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4401414844",
+   "title": "LOTUS: Continual Imitation Learning for Robot Manipulation Through Unsupervised Skill Discovery",
+   "year": 2024,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4412701539",
+   "title": "LLM-driven symbolic planning and hierarchical imitation learning for long-horizon deformable object assembly",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4412434583",
+   "title": "Offline reinforcement learning for learning to dispatch for job shop scheduling",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4385430559",
+   "title": "Robotic Skill Acquisition via Instruction Augmentation with Vision-Language Models",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4281887079",
+   "title": "Play it by Ear: Learning Skills amidst Occlusion through Audio-Visual Imitation Learning",
+   "year": 2022,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4385430535",
+   "title": "Behavior Retrieval: Few-Shot Imitation Learning by Querying Unlabeled Datasets",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4402702978",
+   "title": "GenH2R: Learning Generalizable Human-to-Robot Handover via Scalable Simulation, Demonstration, and Imitation",
+   "year": 2024,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4385430745",
+   "title": "Deep RL at Scale: Sorting Waste in Office Buildings with a Fleet of Mobile Manipulators",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4385403839",
+   "title": "PATO: Policy Assisted TeleOperation for Scalable Robot Data Collection",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4402704543",
+   "title": "CyberDemo: Augmenting Simulated Human Demonstration for Real-World Dexterous Manipulation",
+   "year": 2024,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4383066631",
+   "title": "Efficient Preference-Based Reinforcement Learning Using Learned Dynamics Models",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4389667622",
+   "title": "Hierarchical Decision Transformer",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4401416269",
+   "title": "Model-Based Runtime Monitoring with Interactive Imitation Learning",
+   "year": 2024,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4313010279",
+   "title": "Back to the Manifold: Recovering from Out-of-Distribution States",
+   "year": 2022,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4383066192",
+   "title": "Learning to Walk by Steering: Perceptive Quadrupedal Locomotion in Dynamic Environments",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4390747482",
+   "title": "What matters in reinforcement learning for tractography",
+   "year": 2024,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4411589372",
+   "title": "Memory-gated diffusion policy: Advancing robotic behaviour learning with memory-oriented architectures",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4383109369",
+   "title": "Real World Offline Reinforcement Learning with Realistic Data Source",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4386821556",
+   "title": "The Treachery of Images: Bayesian Scene Keypoints for Deep Policy Learning in Robotic Manipulation",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4312573894",
+   "title": "Resolving Copycat Problems in Visual Imitation Learning via Residual Action Prediction",
+   "year": 2022,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4401416867",
+   "title": "Learn to Navigate in Dynamic Environments with Normalized LiDAR Scans",
+   "year": 2024,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4405651847",
+   "title": "Launchpad: Learning to Schedule Using Offline and Online RL Methods",
+   "year": 2024,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4409994017",
+   "title": "Revolutionizing clean energy labs: Robotic imitation learning for efficient fabrication AI-powered electrical units assembly platform",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4383109249",
+   "title": "Active Predictive Coding: Brain-Inspired Reinforcement Learning for Sparse Reward Robotic Control Problems",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4310429478",
+   "title": "Autonomous Assessment of Demonstration Sufficiency via Bayesian Inverse Reinforcement Learning",
+   "year": 2024,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4401415366",
+   "title": "Guided Online Distillation: Promoting Safe Reinforcement Learning by Offline Demonstration",
+   "year": 2024,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4403978186",
+   "title": "Offline reward shaping with scaling human preference feedback for deep reinforcement learning",
+   "year": 2024,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4385236428",
+   "title": "An Open Tele-Impedance Framework to Generate Data for Contact-Rich Tasks in Robotic Manipulation",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4387455232",
+   "title": "Opportunities and challenges in applying reinforcement learning to robotic manipulation: An industrial case study",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4401415982",
+   "title": "Composing Pre-Trained Object-Centric Representations for Robotics From \"What\" and \"Where\" Foundation Models",
+   "year": 2024,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4226111946",
+   "title": "Batch Reinforcement Learning from Crowds",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4410497485",
+   "title": "DP4AuSu: Autonomous Surgical Framework for Suturing Manipulation Using Diffusion Policy With Dynamic Time Wrapping\u2010Based Locally Weighted Regression",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4387143497",
+   "title": "Learn from Robot: Transferring Skills for Diverse Manipulation via Cycle Generative Networks",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4401417218",
+   "title": "Geometric Fabrics: a Safe Guiding Medium for Policy Learning",
+   "year": 2024,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4399427224",
+   "title": "The impact of data distribution on Q-learning with function approximation",
+   "year": 2024,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4388374388",
+   "title": "From Temporal-Evolving to Spatial-Fixing: A Keypoints-Based Learning Paradigm for Visual Robotic Manipulation",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4401415271",
+   "title": "Evaluating Robustness of Visual Representations for Object Assembly Task Requiring Spatio-Geometrical Reasoning",
+   "year": 2024,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4392669896",
+   "title": "Improving Neural Machine Translation with Offline Evaluations",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4401345019",
+   "title": "Bootstrapping Robotic Skill Learning with Intuitive Teleoperation: Initial Feasibility Study",
+   "year": 2024,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4383097637",
+   "title": "Curriculum-Based Imitation of Versatile Skills",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4389667447",
+   "title": "Masked Imitation Learning: Discovering Environment-Invariant Modalities in Multimodal Demonstrations",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4412524043",
+   "title": "Learning viewpoint control from human-initiated transitions for teleoperation in construction",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4318618682",
+   "title": "After-Sales and Customer Loyalty Strategies for Fixed Internet Through the Implementation of Virtual Assistance in the Ecuadorian Context",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4382318297",
+   "title": "Behavior Estimation from Multi-Source Data for Offline Reinforcement Learning",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W3205291599",
+   "title": "Continuous Control with Action Quantization from Demonstrations",
+   "year": 2021,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W3205153845",
+   "title": "Showing Your Offline Reinforcement Learning Work: Online Evaluation Budget Matters",
+   "year": 2021,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4409084539",
+   "title": "Experimental Study on the Effect of Multi-Step Deep Reinforcement Learning in Pomdps",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4386065918",
+   "title": "EValueAction: a proposal for policy evaluation in simulation to support interactive imitation learning",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4411509391",
+   "title": "Causal Policy Learning from Self-play for Effective Non-prehensile Planar Manipulation",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4413211058",
+   "title": "Experimental Study on the Effect of Multi-Step Deep Reinforcement Learning in Pomdps",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7164512629",
+   "title": "ST-HONet: Spatio-Temporal Hierarchical Network for long-horizon bimanual visuomotor imitation",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  }
+ ],
+ "MILE": [
+  {
+   "id": "W7135376562",
+   "title": "A survey on imitation learning for contact-rich tasks in robotics",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4409348572",
+   "title": "Efficient Robot Learning via Interaction with Humans",
+   "year": 2025,
+   "in": []
+  },
+  {
+   "id": "W7119503831",
+   "title": "Training robots with natural and lightweight human feedback",
+   "year": 2026,
+   "in": []
+  },
+  {
+   "id": "W7222997194",
+   "title": "A Multimodal Intervention-Aware Reward Learning Method for Human-in-the-Loop Reinforcement Learning in Robotic Assembly",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  }
+ ],
+ "IntervenGen": [
+  {
+   "id": "W7116283786",
+   "title": "Dexterous Manipulation Through Imitation Learning: A Survey",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4413947061",
+   "title": "RACER: Rich Language-Guided Failure Recovery Policies for Imitation Learning",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4413926104",
+   "title": "MILE: Model-Based Intervention Learning",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4414203715",
+   "title": "L2D2: Robot Learning from 2D drawings",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7171661906",
+   "title": "Reverse Playback Motion: A Simple Way for Anyone to Obtain High-Quality Demonstration Data",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7154938700",
+   "title": "Safety-Aware Imitation Learning via MPC-Guided Disturbance Injection",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7165686697",
+   "title": "Ra C : Robot Learning for Long-Horizon Tasks by Scaling R ecovery a nd C orrection",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7213245261",
+   "title": "Twin-DAgger: Synergizing Digital Twins and Human Corrections for Efficient Robot Manipulation",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7221027984",
+   "title": "AOMGen: Photoreal, Physics-Consistent Demonstration Generation for Articulated Object Manipulation",
+   "year": 2026,
+   "in": [
+    "search"
+   ]
+  }
+ ],
+ "MTIL": [
+  {
+   "id": "W7161124523",
+   "title": "Resolving State Ambiguity in Robot Manipulation via Adaptive Working Memory Recoding",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7212300967",
+   "title": "TSF-IL: Multimodal imitation learning with temporal-stage fusion",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7223017232",
+   "title": "Mamba-Transformer Hybrid Imitation Learning for Robotic Assembly Tasks",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  }
+ ],
+ "RTC": [
+  {
+   "id": "W7204885537",
+   "title": "Large Language Models for UAV Autonomy from a Perception\u2013Cognition\u2013Action Perspective",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7168296642",
+   "title": "SegDiff: Segmented Trajectory Diffusion for Consistent and Adaptive Robot Manipulation",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7172265379",
+   "title": "IG-RFT: An Interaction-Guided RL Framework for VLA Models in Long-Horizon Robotic Manipulation",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7204471592",
+   "title": "Embodied AI in the operating room: a voice-interactive robotic scrub nurse for surgical instrument handoffs",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7213395257",
+   "title": "LiveVLN: Reducing Stop-and-Go Loops in Vision-Language Navigation",
+   "year": 2026,
+   "in": []
+  },
+  {
+   "id": "W7213406950",
+   "title": "VTP: A Task-Aware Transmission Protocol for Edge Vision-Language-Action Robotic Systems",
+   "year": 2026,
+   "in": []
+  },
+  {
+   "id": "W7213434854",
+   "title": "ECG-RTC: Executable-Cursor-Guided Local Real-Time Chunking for Smooth Execution-Side Handoff of Action-Chunking Flow Policies",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7213548003",
+   "title": "Adaptive Mean Flow for Responsive Closed-Loop Robot Control",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7213885278",
+   "title": "SMJ-ACT: Chunk-Aware Stable Minimum-Jerk Execution Refinement for ACT Policies",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7222982312",
+   "title": "REACT: Responsive Execution-aware Action Coordination And Tuning For Moving Object Manipulation",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7223556742",
+   "title": "Preserve or Repair? Selective Boundary Policy for a World Action Model",
+   "year": 2026,
+   "in": [
+    "brief",
+    "search"
+   ]
+  }
+ ],
+ "EquiDiff": [
+  {
+   "id": "W4413267418",
+   "title": "Motion Planning Diffusion: Learning and Adapting Robot Motion Planning With Diffusion Models",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4410375625",
+   "title": "SE(3)-equivariant Robot Learning and Control: A Tutorial Survey",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4406168923",
+   "title": "What\u2019s the Move? Hybrid Imitation Learning via Salient Points",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  }
+ ],
+ "Kim-M2R": [
+  {
+   "id": "W4406258377",
+   "title": "Human-in-the-Loop Robot Learning for Smart Manufacturing: A Human-Centric Perspective",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4392405809",
+   "title": "Goal-Conditioned Dual-Action Imitation Learning for Dexterous Dual-Arm Robot Manipulation",
+   "year": 2024,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4401415002",
+   "title": "AirExo: Low-Cost Exoskeletons for Learning Whole-Arm Manipulation in the Wild",
+   "year": 2024,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4413925274",
+   "title": "ForceMimic: Force-Centric Imitation Learning with Force-Motion Capture System for Contact-Rich Manipulation",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4413917780",
+   "title": "Adaptive Compliance Policy: Learning Approximate Compliance for Diffusion Guided Control",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7116283786",
+   "title": "Dexterous Manipulation Through Imitation Learning: A Survey",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4395070011",
+   "title": "Multi-Joint Adaptive Motion Imitation in Robot-Assisted Physiotherapy with Dynamic Time Warping and Recurrent Neural Networks",
+   "year": 2024,
+   "in": [
+    "search"
+   ]
+  },
+  {
+   "id": "W4313563108",
+   "title": "Accelerating Interactive Human-like Manipulation Learning with GPU-based Simulation and High-quality Demonstrations",
+   "year": 2022,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4393383247",
+   "title": "Towards practical robotic chef: Review of relevant work and future challenges",
+   "year": 2024,
+   "in": [
+    "search"
+   ]
+  },
+  {
+   "id": "W4406856990",
+   "title": "LEGATO: Cross-Embodiment Imitation Using a Grasping Tool",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4410204269",
+   "title": "DexForce: Extracting Force-Informed Actions From Kinesthetic Demonstrations for Dexterous Manipulation",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4400650199",
+   "title": "Guiding Attention in End-to-End Driving Models",
+   "year": 2024,
+   "in": [
+    "search"
+   ]
+  },
+  {
+   "id": "W4312905664",
+   "title": "Using human gaze in few-shot imitation learning for robot manipulation",
+   "year": 2022,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4400037757",
+   "title": "Adaptive Motion Imitation for Robot Assisted Physiotherapy Using Dynamic Time Warping and Recurrent Neural Network",
+   "year": 2024,
+   "in": [
+    "search"
+   ]
+  },
+  {
+   "id": "W4405785710",
+   "title": "Multi-task real-robot data with gaze attention for dual-arm fine manipulation",
+   "year": 2024,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4401638080",
+   "title": "MIRA: Multi-Joint Imitation with Recurrent Adaptation for Robot-Assisted Rehabilitation",
+   "year": 2024,
+   "in": [
+    "search"
+   ]
+  },
+  {
+   "id": "W4414603195",
+   "title": "Uncertainty-Guided Robotic Manipulation Through Variational Information Bottleneck in Imitation Learning",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4416750556",
+   "title": "Haptic-ACT: Bridging Human Intuition with Compliant Robotic Manipulation via Immersive VR",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4401414951",
+   "title": "Learning Motion Reconstruction from Demonstration via Multi-Modal Soft Tactile Sensing",
+   "year": 2024,
+   "in": [
+    "search"
+   ]
+  },
+  {
+   "id": "W4308872458",
+   "title": "Learning by Watching via Keypoint Extraction and Imitation Learning",
+   "year": 2022,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4386317712",
+   "title": "Parallax-based Imitation Learning for Insertion Tasks with Uncertainties of Hole Position and Wire Pose",
+   "year": 2023,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4412030269",
+   "title": "Iterative Action Generation-Based Task Planning for Space Macromicro Manipulator",
+   "year": 2025,
+   "in": [
+    "search"
+   ]
+  },
+  {
+   "id": "W4414433059",
+   "title": "Force Plates for Analyzing, Recording and Teaching Forces of Dis-/Assembly Processes for Robot Programming-by-Demonstration",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W4415883195",
+   "title": "MGAD-FMDM: A Modular Robotic Multitask Imitation Learning Method",
+   "year": 2025,
+   "in": [
+    "search"
+   ]
+  },
+  {
+   "id": "W4416965637",
+   "title": "eGAIT: Multi-Skilled Policy for Energy-Efficient Gait Transitions",
+   "year": 2025,
+   "in": [
+    "search"
+   ]
+  },
+  {
+   "id": "W4417052012",
+   "title": "STAGE: STyle-Controllable Action GEneration for Personalized Autonomous Driving",
+   "year": 2025,
+   "in": [
+    "brief",
+    "search"
+   ]
+  },
+  {
+   "id": "W7124423022",
+   "title": "Time Regulation and Stage Concatenation for Optimized Probabilistic Dynamic Movement Primitives",
+   "year": 2026,
+   "in": [
+    "search"
+   ]
+  },
+  {
+   "id": "W7164905071",
+   "title": "Haircutting robots: a mobile robotics perspective",
+   "year": 2026,
+   "in": [
+    "search"
+   ]
+  }
+ ]
+}

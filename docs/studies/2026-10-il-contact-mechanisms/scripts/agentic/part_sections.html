@@ -1,0 +1,76 @@
+<section>
+  <h2>Who works on contact-rich imitation learning</h2>
+  <p class="prose">Two populations, both from OpenAlex. The <strong>seed citers</strong> are the 1,450 works that cite at least one of crawl A's seeds. Most cite Diffusion Policy (1,127) or ACT (663), so they describe the wider imitation-learning community. The <strong>field set</strong> is narrower: the 217 works from 2023 onward whose titles pair an imitation-learning term with a contact term (force, tactile, insertion, assembly, compliance and similar). The exact query is in <span class="mono">scripts/agentic/fetch_all.py</span>.</p>
+  <div class="grid2">
+    <figure class="fig">
+      <div class="fig-head"><h3>Seed citers per year, by field</h3><span class="chip agent">Agentic analysis</span></div>
+      <div class="legend" id="lg-field"></div>
+      <div class="chart" id="ch-field"></div>
+      <figcaption class="cap">OpenAlex files most robotics papers under Engineering (control and systems engineering), so the split between engineering and computer science reflects OpenAlex's labels more than the research. Growth is steep: 36 citers in 2023, 631 in 2025. The 2026 bar covers part of the year only.</figcaption>
+    </figure>
+    <figure class="fig">
+      <div class="fig-head"><h3>Most active institutions, field set</h3><span class="chip agent">Agentic analysis</span></div>
+      <div class="chart" id="ch-inst"></div>
+      <figcaption class="cap">Field-set works per institution, counted once per paper. By country: China 69, United States 29, Japan 19, Germany 14, United Kingdom 11. Among the 1,450 seed citers the order is Shanghai Jiao Tong (67), Tsinghua (61), Chinese Academy of Sciences (59), Stanford (46) and CMU (46).</figcaption>
+    </figure>
+  </div>
+  <p class="prose">Authors who cite at least three of the four seeds that have citers (FACTR, robomimic, Diffusion Policy, ACT) include Cewu Lu (18 citing papers; FoAR and RDP come from his group), Hiroshi Ito and Tetsuya Ogata (12 and 10, the only ones in this list who cite FACTR), Yuke Zhu (11), Sergey Levine (10) and Chelsea Finn (10).</p>
+</section>
+
+<section>
+  <h2>Coverage by year: the blind spot on a larger set</h2>
+  <p class="prose">The 36 evidence papers are a small sample, so the same test was repeated on the 217-work field set, which was defined independently of the crawls. It shows the same pattern. <strong>95 of 217 works (44%) have neither references nor citations in OpenAlex</strong>, and in 2026 the share is 66 of 103 (64%). Of the 122 works with links, crawl A reached 83 (68%) and crawl B 87 (71%).</p>
+  <figure class="fig">
+    <div class="fig-head"><h3>Field-set works per year, by reference coverage</h3><span class="chip agent">Agentic analysis</span></div>
+    <div class="legend" id="lg-cov"></div>
+    <div class="chart" id="ch-cov"></div>
+    <div class="tbl" id="tbl-cov"></div>
+    <figcaption class="cap">"References indexed" means OpenAlex holds a reference list. A work without one can still be reached if a crawled paper cites it. "Dark" works have neither, and only seeding can bring them into a crawl.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2>Topics in the literature</h2>
+  <p class="prose">The corpus is <strong>1,622 works</strong>: the seed citers, the field set and the evidence papers, de-duplicated by title. 1,197 have an abstract in OpenAlex. Titles and abstracts were embedded with SPECTER, reduced with UMAP to 8 dimensions and clustered with k-means. The silhouette score was best at k=6 (0.389). k=11 (0.363) was used because it separates tactile policies, assembly, surgical robotics and teleoperation hardware, which k=6 merges. Keywords come from class-based TF-IDF. The topic names are Claude's, from the keywords and the papers nearest each cluster centre. The method is described in <span class="mono">docs/studies/agentic-analyses.md</span>.</p>
+  <figure class="fig">
+    <div class="fig-head"><h3>Topic map</h3><span class="chip agent">Agentic analysis</span></div>
+    <div class="legend" id="lg-map" role="group" aria-label="Highlight a topic"></div>
+    <div class="legend" id="lg-map2"></div>
+    <div class="chart" id="ch-map"></div>
+    <figcaption class="cap">Each dot is a work, placed by how similar its title and abstract are to the others (2D UMAP). Hollow dots are works in neither crawl's data; diamonds are evidence papers. Pick a topic to highlight it, and hover over a dot for its title. Almost every seed citer is in the crawl data, because the crawler fetches the citers of every seed. So hollow dots mostly mark field-set and evidence works the crawls missed.</figcaption>
+  </figure>
+  <div class="tbl"><table id="tbl-topics">
+    <thead><tr><th>Topic (Claude's name)</th><th class="num">Works</th><th class="num">Field set</th><th>Keywords (c-TF-IDF)</th><th>Evidence papers</th><th>Most active institutions</th></tr></thead>
+    <tbody></tbody>
+  </table></div>
+  <figure class="fig">
+    <div class="fig-head"><h3>Topics over time</h3><span class="chip agent">Agentic analysis</span></div>
+    <div class="tbl" id="tbl-heat" style="border:0"></div>
+    <figcaption class="cap">Works per topic and year; darker cells mean more works. Embodied-AI and VLA surveys jump in 2026 (120 works); assembly and tactile work grow steadily. 2026 covers part of the year only.</figcaption>
+  </figure>
+  <p class="cap prose"><strong>How to read it.</strong> The field set (contact-rich titles) sits mostly in three topics: assembly and insertion (64), tactile and force-aware policies (46), and contact-rich bimanual compliant policies (36). The mechanism evidence sits elsewhere. Most of it (robomimic, Diffusion Policy, <em>Much Ado About Noising</em>, the Pitfalls paper, MILE, IntervenGen, MinInter) falls in "IL theory, data and interventions", which contains only 4 field-set works. In other words, the papers that establish mechanisms are general imitation-learning papers, not contact-rich ones. A search restricted to contact-rich titles would miss them.</p>
+</section>
+
+<section>
+  <h2>Citation network of the field set</h2>
+  <figure class="fig">
+    <div class="fig-head"><h3>Citations among field-set works and evidence papers</h3><span class="chip agent">Agentic analysis</span></div>
+    <div class="legend" id="lg-net"></div>
+    <div class="chart" id="ch-net"></div>
+    <figcaption class="cap">246 works (the field set plus the evidence papers) and the 139 citation links among them, coloured by topic; evidence papers are ringed. <strong>159 works (65%) have no link to any other work in the set</strong>, mostly because OpenAlex holds no references for them. They are drawn faded. The largest connected group has 85 works. Its hubs are ACT (32 links), the 2026 survey on imitation learning for contact-rich tasks (16), RDP (12), ACP (11), ForceMimic (10), FoAR (9), TacDiffusion (8) and DexForce (7). Layout: networkx spring layout with a fixed seed; hover for title, authors and institution.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2>What the search-seeded crawl added</h2>
+  <div class="tbl"><table>
+    <thead><tr><th></th><th class="num">Papers</th><th class="num">Robotics titles</th><th>Main OpenAlex fields</th></tr></thead>
+    <tbody>
+      <tr><td>In both crawls</td><td class="num">9,160</td><td class="num">—</td><td>—</td></tr>
+      <tr><td>Only in crawl B</td><td class="num">4,395</td><td class="num">58%</td><td>Artificial intelligence 2,360; human–computer interaction 434; computer vision 201; control engineering 177</td></tr>
+      <tr><td>Only in crawl A</td><td class="num">1,913</td><td class="num">44%</td><td>Artificial intelligence 1,139; human–computer interaction 147; computer vision 80</td></tr>
+    </tbody>
+  </table></div>
+  <span class="chip agent" style="justify-self:start">Agentic analysis</span>
+  <p class="prose">Crawl B reached 7 field-set works that crawl A did not, and crawl A none that B missed. Two of the seven were search seeds (QDP, ContactDP); the others came through links, for example VIDP, rebar-cage assembly and DMP-based contact-rich teleoperation. Most of crawl B's extra papers entered as references of older learning-from-demonstration surveys: <em>Learning and generalization of motor skills by learning from demonstration</em> (2009) brought in 484, <em>Robot Learning from Demonstration</em> (2012) 461, and <em>Robot Learning from Demonstration in Robotic Assembly: A Survey</em> (2018) 227. That is volume, not relevance, and it matches the NCA finding that more papers does not mean more of the topic.</p>
+</section>

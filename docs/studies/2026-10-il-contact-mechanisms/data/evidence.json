@@ -1,0 +1,618 @@
+[
+ {
+  "key": "MAI",
+  "title": "Memorize, Adapt, Ignore: Diagnosing Robot Learning Mechanisms under Training Data Variation",
+  "arxiv": "2609.38401",
+  "cited_by": [
+   "G1"
+  ],
+  "versions": [
+   {
+    "id": "W7215044705",
+    "year": 2026,
+    "refs": 0,
+    "cites": 0
+   }
+  ]
+ },
+ {
+  "key": "FACTR",
+  "title": "FACTR: Force-Attending Curriculum Training for Contact-Rich Policy Learning",
+  "arxiv": "2502.17432",
+  "cited_by": [
+   "G1",
+   "CL"
+  ],
+  "versions": [
+   {
+    "id": "W4414050728",
+    "year": 2025,
+    "refs": 0,
+    "cites": 17
+   }
+  ]
+ },
+ {
+  "key": "robomimic",
+  "title": "What Matters in Learning from Offline Human Demonstrations for Robot Manipulation",
+  "arxiv": "2108.03298",
+  "cited_by": [
+   "G1",
+   "CL"
+  ],
+  "versions": [
+   {
+    "id": "W3187722890",
+    "year": 2021,
+    "refs": 84,
+    "cites": 66
+   }
+  ]
+ },
+ {
+  "key": "MINT",
+  "title": "Learning to Act under Visual Interruptions with Vision-Language-Action Models",
+  "arxiv": "2609.35003",
+  "cited_by": [
+   "G1"
+  ],
+  "versions": [
+   {
+    "id": "W7214787290",
+    "year": 2026,
+    "refs": 0,
+    "cites": 0
+   }
+  ]
+ },
+ {
+  "key": "UnpackDP",
+  "title": "Unpacking the Individual Components of Diffusion Policy",
+  "arxiv": "2412.00084",
+  "cited_by": [
+   "G1"
+  ],
+  "versions": [
+   {
+    "id": "W4405032504",
+    "year": 2024,
+    "refs": 0,
+    "cites": 0
+   }
+  ]
+ },
+ {
+  "key": "MiTaS",
+  "title": "Multi-Resolution Tactile Imitation Learning for Contact-Rich Robotic Manipulation",
+  "arxiv": "2606.06281",
+  "cited_by": [
+   "G2"
+  ],
+  "versions": [
+   {
+    "id": "W7163708012",
+    "year": 2026,
+    "refs": 0,
+    "cites": 0
+   }
+  ]
+ },
+ {
+  "key": "Kim-M2R",
+  "title": "Training Robots Without Robots: Deep Imitation Learning for Master-to-Robot Policy Transfer",
+  "arxiv": "2202.09574",
+  "cited_by": [
+   "G2"
+  ],
+  "versions": [
+   {
+    "id": "W4361029864",
+    "year": 2023,
+    "refs": 25,
+    "cites": 28
+   }
+  ]
+ },
+ {
+  "key": "RDP",
+  "title": "Reactive Diffusion Policy: Slow-Fast Visual-Tactile Policy Learning for Contact-Rich Manipulation",
+  "arxiv": "2503.02881",
+  "cited_by": [
+   "G2",
+   "CS",
+   "CL"
+  ],
+  "versions": [
+   {
+    "id": "W4414050525",
+    "year": 2025,
+    "refs": 0,
+    "cites": 48
+   }
+  ]
+ },
+ {
+  "key": "DP",
+  "title": "Diffusion Policy: Visuomotor Policy Learning via Action Diffusion",
+  "arxiv": "2303.04137",
+  "cited_by": [
+   "NB",
+   "CL"
+  ],
+  "versions": [
+   {
+    "id": "W4403337227",
+    "year": 2024,
+    "refs": 33,
+    "cites": 610
+   },
+   {
+    "id": "W4385403811",
+    "year": 2023,
+    "refs": 62,
+    "cites": 530
+   },
+   {
+    "id": "W4323651335",
+    "year": 2023,
+    "refs": 0,
+    "cites": 12
+   }
+  ]
+ },
+ {
+  "key": "MTIL",
+  "title": "MTIL: Encoding Full History with Mamba for Temporal Imitation Learning",
+  "arxiv": "2505.12410",
+  "cited_by": [
+   "NB"
+  ],
+  "versions": [
+   {
+    "id": "W4414603248",
+    "year": 2025,
+    "refs": 19,
+    "cites": 3
+   }
+  ]
+ },
+ {
+  "key": "Noising",
+  "title": "Much Ado About Noising: Dispelling the Myths of Generative Robotic Control",
+  "arxiv": "2512.01809",
+  "cited_by": [
+   "NB",
+   "CS",
+   "CL"
+  ],
+  "versions": [
+   {
+    "id": "W4416967357",
+    "year": 2025,
+    "refs": 0,
+    "cites": 0
+   }
+  ]
+ },
+ {
+  "key": "GPI",
+  "title": "Geometry-aware Policy Imitation",
+  "arxiv": "2510.08787",
+  "cited_by": [
+   "NB"
+  ],
+  "versions": [
+   {
+    "id": "W4415280729",
+    "year": 2025,
+    "refs": 0,
+    "cites": 0
+   }
+  ]
+ },
+ {
+  "key": "MatchLight",
+  "title": "On the Importance of Tactile Sensing for Imitation Learning: A Case Study on Robotic Match Lighting",
+  "arxiv": "2504.13618",
+  "cited_by": [
+   "NB"
+  ],
+  "versions": [
+   {
+    "id": "W7140311487",
+    "year": 2026,
+    "refs": 22,
+    "cites": 1
+   },
+   {
+    "id": "W6947858119",
+    "year": 2025,
+    "refs": 0,
+    "cites": 0
+   }
+  ]
+ },
+ {
+  "key": "MILE",
+  "title": "MILE: Model-based Intervention Learning",
+  "arxiv": "2502.13519",
+  "cited_by": [
+   "NB"
+  ],
+  "versions": [
+   {
+    "id": "W4413926104",
+    "year": 2025,
+    "refs": 25,
+    "cites": 4
+   }
+  ]
+ },
+ {
+  "key": "DiscoDemo",
+  "title": "DiscoDemo: Discovering Efficient and Diverse Robot Demonstrations for Imitation Learning",
+  "arxiv": "2610.32093",
+  "cited_by": [
+   "NB"
+  ],
+  "versions": [
+   {
+    "id": "W7223681030",
+    "year": 2026,
+    "refs": 0,
+    "cites": 0
+   }
+  ]
+ },
+ {
+  "key": "ForceFlow",
+  "title": "ForceFlow: Learning to Feel and Act via Contact-Driven Flow Matching",
+  "arxiv": "2605.11048",
+  "cited_by": [
+   "NB"
+  ],
+  "versions": [
+   {
+    "id": "W7161025723",
+    "year": 2026,
+    "refs": 0,
+    "cites": 0
+   }
+  ]
+ },
+ {
+  "key": "MinInter",
+  "title": "MinInter: Minimizing Trajectory Interpolation During Data Augmentation for Imitation Learning",
+  "arxiv": "2606.24078",
+  "cited_by": [
+   "NB"
+  ],
+  "versions": [
+   {
+    "id": "W7165780992",
+    "year": 2026,
+    "refs": 0,
+    "cites": 0
+   }
+  ]
+ },
+ {
+  "key": "H3DP",
+  "title": "Triply-Hierarchical Diffusion Policy for Visuomotor Learning",
+  "arxiv": null,
+  "cited_by": [
+   "NB"
+  ],
+  "versions": [
+   {
+    "id": "W4415310882",
+    "year": 2025,
+    "refs": 0,
+    "cites": 0
+   }
+  ]
+ },
+ {
+  "key": "IntervenGen",
+  "title": "IntervenGen: Interventional Data Generation for Robust and Data-Efficient Robot Imitation Learning",
+  "arxiv": null,
+  "cited_by": [
+   "NB"
+  ],
+  "versions": [
+   {
+    "id": "W4405787817",
+    "year": 2024,
+    "refs": 31,
+    "cites": 10
+   }
+  ]
+ },
+ {
+  "key": "EquiDiff",
+  "title": "Equivariant Diffusion Policy",
+  "arxiv": null,
+  "cited_by": [
+   "NB"
+  ],
+  "versions": [
+   {
+    "id": "W4400377647",
+    "year": 2024,
+    "refs": 0,
+    "cites": 3
+   }
+  ]
+ },
+ {
+  "key": "ACT",
+  "title": "Learning Fine-Grained Bimanual Manipulation with Low-Cost Hardware",
+  "arxiv": "2304.13705",
+  "cited_by": [
+   "NB",
+   "CL"
+  ],
+  "versions": [
+   {
+    "id": "W4385430674",
+    "year": 2023,
+    "refs": 66,
+    "cites": 673
+   }
+  ]
+ },
+ {
+  "key": "FTP1",
+  "title": "FTP-1: A Generalist Foundation Tactile Policy Across Tactile Sensors for Contact-Rich Manipulation",
+  "arxiv": null,
+  "cited_by": [
+   "NB"
+  ],
+  "versions": [
+   {
+    "id": "W7164573771",
+    "year": 2026,
+    "refs": 0,
+    "cites": 0
+   }
+  ]
+ },
+ {
+  "key": "DexTac",
+  "title": "DexTac: Learning Contact-aware Visuotactile Policies via Hand-by-hand Teaching",
+  "arxiv": "2601.21474",
+  "cited_by": [
+   "CS"
+  ],
+  "versions": [
+   {
+    "id": "W7126281669",
+    "year": 2026,
+    "refs": 0,
+    "cites": 0
+   },
+   {
+    "id": "W7126178018",
+    "year": 2026,
+    "refs": 0,
+    "cites": 0
+   },
+   {
+    "id": "W7164821077",
+    "year": 2026,
+    "refs": 24,
+    "cites": 0
+   }
+  ]
+ },
+ {
+  "key": "DexForce",
+  "title": "DexForce: Extracting Force-informed Actions from Kinesthetic Demonstrations for Dexterous Manipulation",
+  "arxiv": "2501.10356",
+  "cited_by": [
+   "CS"
+  ],
+  "versions": [
+   {
+    "id": "W4410204269",
+    "year": 2025,
+    "refs": 44,
+    "cites": 11
+   }
+  ]
+ },
+ {
+  "key": "TacForeSight",
+  "title": "TacForeSight: Force-Guided Tactile World Model for Contact-Rich Manipulation",
+  "arxiv": "2606.11184",
+  "cited_by": [
+   "CS"
+  ],
+  "versions": [
+   {
+    "id": "W7164186133",
+    "year": 2026,
+    "refs": 0,
+    "cites": 0
+   }
+  ]
+ },
+ {
+  "key": "QDP",
+  "title": "Query-Centric Diffusion Policy for Generalizable Robotic Assembly",
+  "arxiv": "2509.18686",
+  "cited_by": [
+   "CS"
+  ],
+  "versions": [
+   {
+    "id": "W4415251349",
+    "year": 2025,
+    "refs": 0,
+    "cites": 0
+   }
+  ]
+ },
+ {
+  "key": "ContactDP",
+  "title": "ContactDP: Contact-Guided Diffusion Policy for Tight Insertion Tasks",
+  "arxiv": "2609.23800",
+  "cited_by": [
+   "CS"
+  ],
+  "versions": [
+   {
+    "id": "W7213998348",
+    "year": 2026,
+    "refs": 0,
+    "cites": 0
+   }
+  ]
+ },
+ {
+  "key": "Gasket",
+  "title": "Automating Deformable Gasket Assembly",
+  "arxiv": "2408.12593",
+  "cited_by": [
+   "CS"
+  ],
+  "versions": [
+   {
+    "id": "W4403678559",
+    "year": 2024,
+    "refs": 52,
+    "cites": 2
+   }
+  ]
+ },
+ {
+  "key": "ACP",
+  "title": "Adaptive Compliance Policy: Learning Approximate Compliance for Diffusion Guided Control",
+  "arxiv": "2410.09309",
+  "cited_by": [
+   "CS",
+   "CL"
+  ],
+  "versions": [
+   {
+    "id": "W4413917780",
+    "year": 2025,
+    "refs": 38,
+    "cites": 24
+   }
+  ]
+ },
+ {
+  "key": "PTP",
+  "title": "Learning Long-Context Diffusion Policies via Past-Token Prediction",
+  "arxiv": "2505.09561",
+  "cited_by": [
+   "CS",
+   "CL"
+  ],
+  "versions": [
+   {
+    "id": "W4415016199",
+    "year": 2025,
+    "refs": 0,
+    "cites": 0
+   }
+  ]
+ },
+ {
+  "key": "BID",
+  "title": "Bidirectional Decoding: Improving Action Chunking via Guided Test-Time Sampling",
+  "arxiv": "2408.17355",
+  "cited_by": [
+   "CL"
+  ],
+  "versions": [
+   {
+    "id": "W4403525052",
+    "year": 2024,
+    "refs": 0,
+    "cites": 1
+   }
+  ]
+ },
+ {
+  "key": "RTC",
+  "title": "Real-Time Execution of Action Chunking Flow Policies",
+  "arxiv": "2506.07339",
+  "cited_by": [
+   "CL"
+  ],
+  "versions": [
+   {
+    "id": "W4417097926",
+    "year": 2025,
+    "refs": 0,
+    "cites": 11
+   }
+  ]
+ },
+ {
+  "key": "Shortcut",
+  "title": "Shortcut Learning in Generalist Robot Policies: The Role of Dataset Diversity and Fragmentation",
+  "arxiv": "2508.06426",
+  "cited_by": [
+   "CL"
+  ],
+  "versions": [
+   {
+    "id": "W4415193753",
+    "year": 2025,
+    "refs": 0,
+    "cites": 0
+   }
+  ]
+ },
+ {
+  "key": "Scaling",
+  "title": "Data Scaling Laws in Imitation Learning for Robotic Manipulation",
+  "arxiv": "2410.18647",
+  "cited_by": [
+   "CL"
+  ],
+  "versions": [
+   {
+    "id": "W4404307047",
+    "year": 2024,
+    "refs": 0,
+    "cites": 3
+   }
+  ]
+ },
+ {
+  "key": "Pitfalls",
+  "title": "The Pitfalls of Imitation Learning when Actions are Continuous",
+  "arxiv": "2503.09722",
+  "cited_by": [
+   "CL"
+  ],
+  "versions": [
+   {
+    "id": "W4414900345",
+    "year": 2025,
+    "refs": 0,
+    "cites": 0
+   }
+  ]
+ },
+ {
+  "key": "FoAR",
+  "title": "FoAR: Force-Aware Reactive Policy for Contact-Rich Robotic Manipulation",
+  "arxiv": "2411.15753",
+  "cited_by": [
+   "CR"
+  ],
+  "versions": [
+   {
+    "id": "W4409426912",
+    "year": 2025,
+    "refs": 52,
+    "cites": 17
+   }
+  ]
+ }
+]

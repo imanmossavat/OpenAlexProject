@@ -1,0 +1,321 @@
+[
+ {
+  "source": "gpt_structured",
+  "arxiv": "2609.38401",
+  "claimed": "Memorize, Adapt, Ignore: Diagnosing Robot Learning",
+  "status": "title ok",
+  "actual": "Memorize, Adapt, Ignore: Diagnosing Robot Learning Mechanisms under Training Data Variation",
+  "first_author": "Ke Zhang",
+  "date": "2026-09-29"
+ },
+ {
+  "source": "gpt_structured",
+  "arxiv": "2502.17432",
+  "claimed": "FACTR: Force-Attending Curriculum Training",
+  "status": "title ok",
+  "actual": "FACTR: Force-Attending Curriculum Training for Contact-Rich Policy Learning",
+  "first_author": "Jason Jingzhou Liu",
+  "date": "2025-02-24"
+ },
+ {
+  "source": "gpt_structured",
+  "arxiv": "2108.03298",
+  "claimed": "What Matters in Learning from Offline Human Demonstrations",
+  "status": "title ok",
+  "actual": "What Matters in Learning from Offline Human Demonstrations for Robot Manipulation",
+  "first_author": "Ajay Mandlekar",
+  "date": "2021-08-06"
+ },
+ {
+  "source": "gpt_structured",
+  "arxiv": "2609.35003",
+  "claimed": "Learning to Act under Visual Interruptions with VLA Models",
+  "status": "title ok",
+  "actual": "Learning to Act under Visual Interruptions with Vision-Language-Action Models",
+  "first_author": "Mingle Jiang",
+  "date": "2026-09-28"
+ },
+ {
+  "source": "gpt_structured",
+  "arxiv": "2412.00084",
+  "claimed": "Unpacking Individual Components of Diffusion Policy",
+  "status": "TITLE MISMATCH",
+  "actual": "Unpacking the Individual Components of Diffusion Policy",
+  "first_author": "Xiu Yuan",
+  "date": "2024-11-27"
+ },
+ {
+  "source": "gpt_gist",
+  "arxiv": null,
+  "claimed": "MiTaS tactile Krohn",
+  "status": "openalex top hit",
+  "actual": "CRPS (Complex Regional Pain Syndrome) \u2013 potilaan toimintaterapia. : Perehdytysopas Keski-Suomen keskussairaalan toimintaterapiaan.",
+  "first_author": "Lotta Jokela",
+  "date": 2011,
+  "openalex": "W170687509"
+ },
+ {
+  "source": "gpt_gist",
+  "arxiv": null,
+  "claimed": "Li Brock environmental constraints single demonstration insertion",
+  "status": "openalex top hit",
+  "actual": "Introducing Environmental Constraints to Grasping Strategies for Paper-Like Flexible Materials Using a Soft Gripper",
+  "first_author": "Yi Dong",
+  "date": 2026,
+  "openalex": "W7161203882"
+ },
+ {
+  "source": "gpt_gist",
+  "arxiv": null,
+  "claimed": "Kim force transformer bottle cap opening gaze imitation",
+  "status": "openalex top hit",
+  "actual": "Training Robots Without Robots: Deep Imitation Learning for Master-to-Robot Policy Transfer",
+  "first_author": "Heecheol Kim",
+  "date": 2023,
+  "openalex": "W4361029864"
+ },
+ {
+  "source": "gpt_gist",
+  "arxiv": null,
+  "claimed": "Shukla diffusion bimanual battery cover assembly force",
+  "status": "openalex top hit",
+  "actual": "A hierarchical approach to imitation learning for manipulation tasks requiring time varying forces",
+  "first_author": "Rishabh Shukla",
+  "date": 2026,
+  "openalex": "W7153896262"
+ },
+ {
+  "source": "gpt_gist",
+  "arxiv": "2503.02881",
+  "claimed": "Reactive Diffusion Policy",
+  "status": "title ok",
+  "actual": "Reactive Diffusion Policy: Slow-Fast Visual-Tactile Policy Learning for Contact-Rich Manipulation",
+  "first_author": "Han Xue",
+  "date": "2025-03-04"
+ },
+ {
+  "source": "notebooklm",
+  "arxiv": "2303.04137",
+  "claimed": "Diffusion Policy: Visuomotor Policy Learning via Action Diffusion",
+  "status": "title ok",
+  "actual": "Diffusion Policy: Visuomotor Policy Learning via Action Diffusion",
+  "first_author": "Cheng Chi",
+  "date": "2023-03-07"
+ },
+ {
+  "source": "notebooklm",
+  "arxiv": "2505.12410",
+  "claimed": "MTIL: Encoding Full History with Mamba for Temporal Imitation Learning",
+  "status": "title ok",
+  "actual": "MTIL: Encoding Full History with Mamba for Temporal Imitation Learning",
+  "first_author": "Yulin Zhou",
+  "date": "2025-05-18"
+ },
+ {
+  "source": "notebooklm",
+  "arxiv": "2512.01809",
+  "claimed": "Much Ado About Noising",
+  "status": "title ok",
+  "actual": "Much Ado About Noising: Dispelling the Myths of Generative Robotic Control",
+  "first_author": "Chaoyi Pan",
+  "date": "2025-12-01"
+ },
+ {
+  "source": "notebooklm",
+  "arxiv": "2510.08787",
+  "claimed": "Geometry-aware Policy Imitation",
+  "status": "title ok",
+  "actual": "Geometry-aware Policy Imitation",
+  "first_author": "Yiming Li",
+  "date": "2025-10-09"
+ },
+ {
+  "source": "notebooklm",
+  "arxiv": "2504.13618",
+  "claimed": "On the Importance of Tactile Sensing for Imitation Learning: A Case Study on Robotic Match Lighting",
+  "status": "title ok",
+  "actual": "On the Importance of Tactile Sensing for Imitation Learning: A Case Study on Robotic Match Lighting",
+  "first_author": "Niklas Funk",
+  "date": "2025-04-18"
+ },
+ {
+  "source": "notebooklm",
+  "arxiv": "2502.13519",
+  "claimed": "MILE: Model-based Intervention Learning",
+  "status": "title ok",
+  "actual": "MILE: Model-based Intervention Learning",
+  "first_author": "Yigit Korkmaz",
+  "date": "2025-02-19"
+ },
+ {
+  "source": "notebooklm",
+  "arxiv": "2610.32093",
+  "claimed": "DiscoDemo: Discovering Efficient and Diverse Robot Demonstrations for Imitation Learning",
+  "status": "title ok",
+  "actual": "DiscoDemo: Discovering Efficient and Diverse Robot Demonstrations for Imitation Learning",
+  "first_author": "Minho Park",
+  "date": "2026-10-23"
+ },
+ {
+  "source": "notebooklm",
+  "arxiv": "2610.32525",
+  "claimed": "From Freehand Demonstrations to Autonomous Robotic Ultrasound",
+  "status": "title ok",
+  "actual": "From Freehand Demonstrations to Autonomous Robotic Ultrasound: An Anatomy-Anchored Learning Framework",
+  "first_author": "Yuan Bi",
+  "date": "2026-10-23"
+ },
+ {
+  "source": "notebooklm",
+  "arxiv": "2409.07343",
+  "claimed": "Learning Robotic Manipulation Policies from Point Clouds with Conditional Flow Matching",
+  "status": "title ok",
+  "actual": "Learning Robotic Manipulation Policies from Point Clouds with Conditional Flow Matching",
+  "first_author": "Eugenio Chisari",
+  "date": "2024-09-11"
+ },
+ {
+  "source": "notebooklm",
+  "arxiv": "2410.14040",
+  "claimed": "Latent Weight Diffusion: Generating policies from trajectories",
+  "status": "TITLE MISMATCH",
+  "actual": "WARPD: World model Assisted Reactive Policy Diffusion",
+  "first_author": "Shashank Hegde",
+  "date": "2024-10-17"
+ },
+ {
+  "source": "notebooklm",
+  "arxiv": "2608.15938",
+  "claimed": "Revisiting Open-Loop Execution in Robotics",
+  "status": "title ok",
+  "actual": "Revisiting Open-Loop Execution in Robotics: Toward Reactive, Higher-Performing Policies",
+  "first_author": "Michael Zeng",
+  "date": "2026-08-16"
+ },
+ {
+  "source": "notebooklm",
+  "arxiv": "2609.21369",
+  "claimed": "ProTracer: Proprioception-Guided Failure Diagnosis in Robot Manipulation",
+  "status": "title ok",
+  "actual": "ProTracer: Proprioception-Guided Failure Diagnosis in Robot Manipulation",
+  "first_author": "Chang Dong",
+  "date": "2026-09-18"
+ },
+ {
+  "source": "notebooklm",
+  "arxiv": "2605.11048",
+  "claimed": "ForceFlow: Learning to Feel and Act via Contact-Driven Flow Matching",
+  "status": "title ok",
+  "actual": "ForceFlow: Learning to Feel and Act via Contact-Driven Flow Matching",
+  "first_author": "Shuoheng Zhang",
+  "date": "2026-05-11"
+ },
+ {
+  "source": "notebooklm",
+  "arxiv": "2606.13232",
+  "claimed": "WT-UMI: Tactile-based Whole-Body Manipulation",
+  "status": "title ok",
+  "actual": "WT-UMI: Tactile-based Whole-Body Manipulation via Force-Supervised Contact-Aware Planning",
+  "first_author": "Jaehwi Jang",
+  "date": "2026-06-11"
+ },
+ {
+  "source": "notebooklm",
+  "arxiv": "2606.24078",
+  "claimed": "MinInter: Minimizing Trajectory Interpolation During Data Augmentation",
+  "status": "title ok",
+  "actual": "MinInter: Minimizing Trajectory Interpolation During Data Augmentation for Imitation Learning",
+  "first_author": "Qingyang Wang",
+  "date": "2026-06-23"
+ },
+ {
+  "source": "notebooklm",
+  "arxiv": null,
+  "claimed": "Triply-Hierarchical Diffusion Policy for Visuomotor Learning",
+  "status": "openalex top hit",
+  "actual": "H$^3$DP: Triply-Hierarchical Diffusion Policy for Visuomotor Learning",
+  "first_author": "Yiyang Lu",
+  "date": 2025,
+  "openalex": "W4415310882"
+ },
+ {
+  "source": "notebooklm",
+  "arxiv": null,
+  "claimed": "Interventional Data Generation for Robust and Data-Efficient Robot Imitation Learning",
+  "status": "openalex top hit",
+  "actual": "IntervenGen: Interventional Data Generation for Robust and Data-Efficient Robot Imitation Learning",
+  "first_author": "Ryan Hoque",
+  "date": 2024,
+  "openalex": "W4405787817"
+ },
+ {
+  "source": "notebooklm",
+  "arxiv": null,
+  "claimed": "AgenticTactileVLA Contact-Guided Execution-Time Supervision",
+  "status": "openalex top hit",
+  "actual": "AgenticTactileVLA: Contact-Guided Execution-Time Supervision for Generalizable Dexterous Manipulation without VLA Retraining",
+  "first_author": "Elizaveta Semenyakina",
+  "date": 2026,
+  "openalex": "W7220701078"
+ },
+ {
+  "source": "notebooklm",
+  "arxiv": null,
+  "claimed": "FTP-1 Generalist Foundation Tactile Policy Across Tactile Sensors",
+  "status": "openalex top hit",
+  "actual": "FTP-1: A Generalist Foundation Tactile Policy Across Tactile Sensors for Contact-Rich Manipulation",
+  "first_author": "Chengbo Yuan",
+  "date": 2026,
+  "openalex": "W7164573771"
+ },
+ {
+  "source": "notebooklm",
+  "arxiv": null,
+  "claimed": "Equivariant Diffusion Policy",
+  "status": "openalex top hit",
+  "actual": "Equivariant Diffusion Policy",
+  "first_author": "Dian Wang",
+  "date": 2024,
+  "openalex": "W4400377647"
+ },
+ {
+  "source": "notebooklm",
+  "arxiv": null,
+  "claimed": "Spatially Conditioned Diffusion Policy single RGB camera",
+  "status": "openalex top hit",
+  "actual": "Spatially Conditioned Diffusion Policy: Learning Precise and Robust Manipulation with a Single RGB Camera",
+  "first_author": "Seoyoon Kim",
+  "date": 2026,
+  "openalex": "W7164813369"
+ },
+ {
+  "source": "notebooklm",
+  "arxiv": null,
+  "claimed": "ConceptACT Episode-Level Concepts",
+  "status": "openalex top hit",
+  "actual": "ConceptACT: episode-level concepts for sample-efficient robotic imitation learning",
+  "first_author": "Jakob Karalus",
+  "date": 2026,
+  "openalex": "W7125811366"
+ },
+ {
+  "source": "notebooklm",
+  "arxiv": null,
+  "claimed": "InterACT Inter-dependency Aware Action Chunking",
+  "status": "openalex top hit",
+  "actual": "InterACT: Inter-dependency Aware Action Chunking with Hierarchical Attention Transformers for Bimanual Manipulation",
+  "first_author": "Andrew Lee",
+  "date": 2024,
+  "openalex": "W4403666348"
+ },
+ {
+  "source": "notebooklm",
+  "arxiv": null,
+  "claimed": "ViTacFormer Cross-Modal Representation Visuo-Tactile",
+  "status": "openalex top hit",
+  "actual": "ViTacFormer: Learning Cross-Modal Representation for Visuo-Tactile Dexterous Manipulation",
+  "first_author": "Liang Heng",
+  "date": 2026,
+  "openalex": "W4417537399"
+ }
+]

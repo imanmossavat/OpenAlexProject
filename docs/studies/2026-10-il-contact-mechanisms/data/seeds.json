@@ -1,0 +1,390 @@
+[
+ {
+  "group": "brief",
+  "name": "FACTR",
+  "arxiv": null,
+  "how": "title-search",
+  "id": "W4414050728",
+  "title": "FACTR: Force-Attending Curriculum Training for Contact-Rich Policy Learning",
+  "year": 2025,
+  "n_refs": 0,
+  "cited_by": 17,
+  "versions": [
+   {
+    "id": "W4414050728",
+    "year": 2025,
+    "refs": 0,
+    "cites": 17,
+    "venue": "Robotics: Science and Systems"
+   }
+  ]
+ },
+ {
+  "group": "brief",
+  "name": "robomimic",
+  "arxiv": null,
+  "how": "title-search",
+  "id": "W3187722890",
+  "title": "What Matters in Learning from Offline Human Demonstrations for Robot Manipulation",
+  "year": 2021,
+  "n_refs": 84,
+  "cited_by": 66,
+  "versions": [
+   {
+    "id": "W3187722890",
+    "year": 2021,
+    "refs": 84,
+    "cites": 66,
+    "venue": "arXiv (Cornell University)"
+   }
+  ]
+ },
+ {
+  "group": "brief",
+  "name": "Much Ado About Noising",
+  "arxiv": "2512.01809",
+  "how": "arxiv-doi",
+  "id": "W4416967357",
+  "title": "Much Ado About Noising: Dispelling the Myths of Generative Robotic Control",
+  "year": 2025,
+  "n_refs": 0,
+  "cited_by": 0,
+  "versions": [
+   {
+    "id": "W4416967357",
+    "year": 2025,
+    "refs": 0,
+    "cites": 0,
+    "venue": "arXiv (Cornell University)"
+   }
+  ]
+ },
+ {
+  "group": "brief",
+  "name": "Diffusion Policy",
+  "arxiv": "2303.04137",
+  "how": "arxiv-doi",
+  "id": "W4323651335",
+  "title": "Diffusion Policy: Visuomotor Policy Learning via Action Diffusion",
+  "year": 2023,
+  "n_refs": 0,
+  "cited_by": 12,
+  "versions": [
+   {
+    "id": "W4403337227",
+    "year": 2024,
+    "refs": 33,
+    "cites": 610,
+    "venue": "The International Journal of Robotics Research"
+   },
+   {
+    "id": "W4385403811",
+    "year": 2023,
+    "refs": 62,
+    "cites": 530,
+    "venue": "Robotics: Science and Systems"
+   },
+   {
+    "id": "W4323651335",
+    "year": 2023,
+    "refs": 0,
+    "cites": 12,
+    "venue": "arXiv (Cornell University)"
+   }
+  ]
+ },
+ {
+  "group": "brief",
+  "name": "ACT",
+  "arxiv": "2304.13705",
+  "how": "arxiv-doi",
+  "id": "W4385430674",
+  "title": "Learning Fine-Grained Bimanual Manipulation with Low-Cost Hardware",
+  "year": 2023,
+  "n_refs": 66,
+  "cited_by": 673,
+  "versions": [
+   {
+    "id": "W4385430674",
+    "year": 2023,
+    "refs": 66,
+    "cites": 673,
+    "venue": "Robotics: Science and Systems"
+   }
+  ]
+ },
+ {
+  "group": "search",
+  "name": "DexTac",
+  "arxiv": "2601.21474",
+  "how": "arxiv-doi",
+  "id": "W7126178018",
+  "title": "DexTac: Learning Contact-aware Visuotactile Policies via Hand-by-hand Teaching",
+  "year": 2026,
+  "n_refs": 0,
+  "cited_by": 0,
+  "versions": [
+   {
+    "id": "W7126281669",
+    "year": 2026,
+    "refs": 0,
+    "cites": 0,
+    "venue": "arXiv (Cornell University)"
+   },
+   {
+    "id": "W7126178018",
+    "year": 2026,
+    "refs": 0,
+    "cites": 0,
+    "venue": "arXiv (Cornell University)"
+   },
+   {
+    "id": "W7164821077",
+    "year": 2026,
+    "refs": 24,
+    "cites": 0,
+    "venue": "IEEE Transactions on Automation Science and Engineering"
+   }
+  ]
+ },
+ {
+  "group": "search",
+  "name": "DexForce",
+  "arxiv": "2501.10356",
+  "how": "arxiv-doi",
+  "id": "W4410204269",
+  "title": "DexForce: Extracting Force-Informed Actions From Kinesthetic Demonstrations for Dexterous Manipulation",
+  "year": 2025,
+  "n_refs": 44,
+  "cited_by": 11,
+  "versions": [
+   {
+    "id": "W4410204269",
+    "year": 2025,
+    "refs": 44,
+    "cites": 11,
+    "venue": "IEEE Robotics and Automation Letters"
+   }
+  ]
+ },
+ {
+  "group": "search",
+  "name": "Reactive Diffusion Policy",
+  "arxiv": "2503.02881",
+  "how": "arxiv-doi",
+  "id": "W4414050525",
+  "title": "Reactive Diffusion Policy: Slow-Fast Visual-Tactile Policy Learning for Contact-Rich Manipulation",
+  "year": 2025,
+  "n_refs": 0,
+  "cited_by": 48,
+  "versions": [
+   {
+    "id": "W4414050525",
+    "year": 2025,
+    "refs": 0,
+    "cites": 48,
+    "venue": "Robotics: Science and Systems"
+   }
+  ]
+ },
+ {
+  "group": "search",
+  "name": "TacForeSight",
+  "arxiv": "2606.11184",
+  "how": "arxiv-doi",
+  "id": "W7164186133",
+  "title": "TacForeSight: Force-Guided Tactile World Model for Contact-Rich Manipulation",
+  "year": 2026,
+  "n_refs": 0,
+  "cited_by": 0,
+  "versions": [
+   {
+    "id": "W7164186133",
+    "year": 2026,
+    "refs": 0,
+    "cites": 0,
+    "venue": "arXiv (Cornell University)"
+   }
+  ]
+ },
+ {
+  "group": "search",
+  "name": "Query-Centric Diffusion Policy",
+  "arxiv": "2509.18686",
+  "how": "arxiv-doi",
+  "id": "W4415251349",
+  "title": "Query-Centric Diffusion Policy for Generalizable Robotic Assembly",
+  "year": 2025,
+  "n_refs": 0,
+  "cited_by": 0,
+  "versions": [
+   {
+    "id": "W4415251349",
+    "year": 2025,
+    "refs": 0,
+    "cites": 0,
+    "venue": "arXiv (Cornell University)"
+   }
+  ]
+ },
+ {
+  "group": "search",
+  "name": "ContactDP",
+  "arxiv": "2609.23800",
+  "how": "arxiv-doi",
+  "id": "W7213998348",
+  "title": "ContactDP: Contact-Guided Diffusion Policy for Tight Insertion Tasks",
+  "year": 2026,
+  "n_refs": 0,
+  "cited_by": 0,
+  "versions": [
+   {
+    "id": "W7213998348",
+    "year": 2026,
+    "refs": 0,
+    "cites": 0,
+    "venue": "arXiv (Cornell University)"
+   }
+  ]
+ },
+ {
+  "group": "search",
+  "name": "Deformable gasket assembly",
+  "arxiv": "2408.12593",
+  "how": "arxiv-doi",
+  "id": "W4403678559",
+  "title": "Automating Deformable Gasket Assembly",
+  "year": 2024,
+  "n_refs": 52,
+  "cited_by": 2,
+  "versions": [
+   {
+    "id": "W4403678559",
+    "year": 2024,
+    "refs": 52,
+    "cites": 2,
+    "venue": "IEEE International Conference on Automation Science and Engineering (CASE)"
+   }
+  ]
+ },
+ {
+  "group": "search",
+  "name": "Adaptive Compliance Policy",
+  "arxiv": "2410.09309",
+  "how": "arxiv-doi",
+  "id": "W4413917780",
+  "title": "Adaptive Compliance Policy: Learning Approximate Compliance for Diffusion Guided Control",
+  "year": 2025,
+  "n_refs": 38,
+  "cited_by": 24,
+  "versions": [
+   {
+    "id": "W4413917780",
+    "year": 2025,
+    "refs": 38,
+    "cites": 24,
+    "venue": "Proceedings - IEEE International Conference on Robotics and Automation/Proceedings"
+   }
+  ]
+ },
+ {
+  "group": "search",
+  "name": "Stiffness Copilot",
+  "arxiv": "2603.14068",
+  "how": "arxiv-doi",
+  "id": "W7138443527",
+  "title": "Stiffness Copilot: An Impedance Policy for Contact-Rich Teleoperation",
+  "year": 2026,
+  "n_refs": 0,
+  "cited_by": 0,
+  "versions": [
+   {
+    "id": "W7138443527",
+    "year": 2026,
+    "refs": 0,
+    "cites": 0,
+    "venue": "arXiv (Cornell University)"
+   }
+  ]
+ },
+ {
+  "group": "search",
+  "name": "VIDP",
+  "arxiv": "2608.06210",
+  "how": "arxiv-doi",
+  "id": "W7201840352",
+  "title": "VIDP: Variable Impedance Diffusion Policy for Compliant Robot Manipulation from Diverse Demonstrations",
+  "year": 2026,
+  "n_refs": 0,
+  "cited_by": 0,
+  "versions": [
+   {
+    "id": "W7201840352",
+    "year": 2026,
+    "refs": 0,
+    "cites": 0,
+    "venue": "arXiv (Cornell University)"
+   }
+  ]
+ },
+ {
+  "group": "search",
+  "name": "Direction Matters",
+  "arxiv": "2602.14174",
+  "how": "arxiv-doi",
+  "id": "W7129224951",
+  "title": "TDC: Sim-to-Real Transferable Directional Compliance for Contact-Rich Manipulation",
+  "year": 2026,
+  "n_refs": 0,
+  "cited_by": 0,
+  "versions": [
+   {
+    "id": "W7129224951",
+    "year": 2026,
+    "refs": 0,
+    "cites": 0,
+    "venue": "arXiv (Cornell University)"
+   }
+  ]
+ },
+ {
+  "group": "search",
+  "name": "Past-Token Prediction",
+  "arxiv": "2505.09561",
+  "how": "arxiv-doi",
+  "id": "W4415016199",
+  "title": "Learning Long-Context Diffusion Policies via Past-Token Prediction",
+  "year": 2025,
+  "n_refs": 0,
+  "cited_by": 0,
+  "versions": [
+   {
+    "id": "W4415016199",
+    "year": 2025,
+    "refs": 0,
+    "cites": 0,
+    "venue": "arXiv (Cornell University)"
+   }
+  ]
+ },
+ {
+  "group": "search",
+  "name": "Foresight for 3D Diffusion Policies",
+  "arxiv": "2609.20669",
+  "how": "arxiv-doi",
+  "id": "W7213603782",
+  "title": "Learning Foresight without Explicit Trajectories for 3D Diffusion Policies",
+  "year": 2026,
+  "n_refs": 0,
+  "cited_by": 0,
+  "versions": [
+   {
+    "id": "W7213603782",
+    "year": 2026,
+    "refs": 0,
+    "cites": 0,
+    "venue": "arXiv (Cornell University)"
+   }
+  ]
+ }
+]

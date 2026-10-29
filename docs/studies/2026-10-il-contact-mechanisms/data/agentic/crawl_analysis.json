@@ -1,0 +1,628 @@
+{
+ "coverage": [
+  {
+   "year": 2023,
+   "refs": 17,
+   "norefs": 15,
+   "A": 12,
+   "B": 12,
+   "dark": 12
+  },
+  {
+   "year": 2024,
+   "refs": 17,
+   "norefs": 5,
+   "A": 11,
+   "B": 12,
+   "dark": 5
+  },
+  {
+   "year": 2025,
+   "refs": 41,
+   "norefs": 19,
+   "A": 31,
+   "B": 35,
+   "dark": 12
+  },
+  {
+   "year": 2026,
+   "refs": 35,
+   "norefs": 68,
+   "A": 29,
+   "B": 31,
+   "dark": 66
+  }
+ ],
+ "field_total": {
+  "refs": 110,
+  "A": 83,
+  "B": 90,
+  "dark": 95,
+  "norefs": 107
+ },
+ "field_n": 217,
+ "field_linked": 122,
+ "field_linked_reached": {
+  "A": 83,
+  "B": 87
+ },
+ "citers_by_year": [
+  {
+   "year": 2021,
+   "cs": 2,
+   "eng": 0,
+   "phys": 0,
+   "life": 0,
+   "other": 0
+  },
+  {
+   "year": 2022,
+   "cs": 3,
+   "eng": 1,
+   "phys": 0,
+   "life": 0,
+   "other": 0
+  },
+  {
+   "year": 2023,
+   "cs": 20,
+   "eng": 15,
+   "phys": 0,
+   "life": 0,
+   "other": 1
+  },
+  {
+   "year": 2024,
+   "cs": 67,
+   "eng": 120,
+   "phys": 0,
+   "life": 4,
+   "other": 4
+  },
+  {
+   "year": 2025,
+   "cs": 221,
+   "eng": 394,
+   "phys": 3,
+   "life": 10,
+   "other": 13
+  },
+  {
+   "year": 2026,
+   "cs": 187,
+   "eng": 361,
+   "phys": 1,
+   "life": 8,
+   "other": 15
+  }
+ ],
+ "citers_n": 1450,
+ "citers_per_seed": {
+  "ACT": 663,
+  "Diffusion Policy": 1127,
+  "FACTR": 17,
+  "robomimic": 66
+ },
+ "inst_citers": [
+  {
+   "name": "Shanghai Jiao Tong University",
+   "n": 67,
+   "seeds": 3
+  },
+  {
+   "name": "Tsinghua University",
+   "n": 61,
+   "seeds": 3
+  },
+  {
+   "name": "Chinese Academy of Sciences",
+   "n": 59,
+   "seeds": 3
+  },
+  {
+   "name": "Stanford University",
+   "n": 46,
+   "seeds": 3
+  },
+  {
+   "name": "Carnegie Mellon University",
+   "n": 46,
+   "seeds": 3
+  },
+  {
+   "name": "Zhejiang University",
+   "n": 40,
+   "seeds": 3
+  },
+  {
+   "name": "University of California, Berkeley",
+   "n": 38,
+   "seeds": 3
+  },
+  {
+   "name": "Massachusetts Institute of Technology",
+   "n": 34,
+   "seeds": 3
+  },
+  {
+   "name": "Harbin Institute of Technology",
+   "n": 34,
+   "seeds": 3
+  },
+  {
+   "name": "Institute of Automation",
+   "n": 31,
+   "seeds": 2
+  },
+  {
+   "name": "Peking University",
+   "n": 30,
+   "seeds": 2
+  },
+  {
+   "name": "Chinese University of Hong Kong",
+   "n": 28,
+   "seeds": 3
+  },
+  {
+   "name": "University of Hong Kong",
+   "n": 25,
+   "seeds": 3
+  },
+  {
+   "name": "Beijing Institute of Technology",
+   "n": 24,
+   "seeds": 3
+  }
+ ],
+ "inst_field": [
+  {
+   "name": "Shanghai Jiao Tong University",
+   "n": 13,
+   "seeds": 0
+  },
+  {
+   "name": "Chinese Academy of Sciences",
+   "n": 9,
+   "seeds": 0
+  },
+  {
+   "name": "Tsinghua University",
+   "n": 7,
+   "seeds": 0
+  },
+  {
+   "name": "Institute of Automation",
+   "n": 7,
+   "seeds": 0
+  },
+  {
+   "name": "Harbin Institute of Technology",
+   "n": 5,
+   "seeds": 0
+  },
+  {
+   "name": "Carnegie Mellon University",
+   "n": 5,
+   "seeds": 0
+  },
+  {
+   "name": "The University of Tokyo",
+   "n": 5,
+   "seeds": 0
+  },
+  {
+   "name": "Southeast University",
+   "n": 4,
+   "seeds": 0
+  },
+  {
+   "name": "South China University of Technology",
+   "n": 4,
+   "seeds": 0
+  },
+  {
+   "name": "University of Chinese Academy of Sciences",
+   "n": 4,
+   "seeds": 0
+  },
+  {
+   "name": "Huazhong University of Science and Technology",
+   "n": 4,
+   "seeds": 0
+  },
+  {
+   "name": "Shanghai Innovation Institute",
+   "n": 3,
+   "seeds": 0
+  },
+  {
+   "name": "Technical University of Munich",
+   "n": 3,
+   "seeds": 0
+  },
+  {
+   "name": "University of Southern California",
+   "n": 3,
+   "seeds": 0
+  }
+ ],
+ "cty_citers": [
+  [
+   "CN",
+   656
+  ],
+  [
+   "US",
+   383
+  ],
+  [
+   "JP",
+   111
+  ],
+  [
+   "GB",
+   88
+  ],
+  [
+   "HK",
+   78
+  ],
+  [
+   "DE",
+   74
+  ],
+  [
+   "KR",
+   65
+  ],
+  [
+   "SG",
+   42
+  ],
+  [
+   "CA",
+   41
+  ],
+  [
+   "SE",
+   30
+  ]
+ ],
+ "cty_field": [
+  [
+   "CN",
+   69
+  ],
+  [
+   "US",
+   29
+  ],
+  [
+   "JP",
+   19
+  ],
+  [
+   "DE",
+   14
+  ],
+  [
+   "GB",
+   11
+  ],
+  [
+   "HK",
+   9
+  ],
+  [
+   "KR",
+   8
+  ],
+  [
+   "CA",
+   6
+  ],
+  [
+   "IT",
+   3
+  ],
+  [
+   "AU",
+   2
+  ]
+ ],
+ "multi_seed_authors": [
+  [
+   "Cewu Lu",
+   18,
+   [
+    "ACT",
+    "Diffusion Policy",
+    "robomimic"
+   ]
+  ],
+  [
+   "Hiroshi Ito",
+   12,
+   [
+    "ACT",
+    "Diffusion Policy",
+    "FACTR"
+   ]
+  ],
+  [
+   "Hongjie Fang",
+   11,
+   [
+    "ACT",
+    "Diffusion Policy",
+    "robomimic"
+   ]
+  ],
+  [
+   "Yuke Zhu",
+   11,
+   [
+    "ACT",
+    "Diffusion Policy",
+    "robomimic"
+   ]
+  ],
+  [
+   "Tetsuya Ogata",
+   10,
+   [
+    "ACT",
+    "Diffusion Policy",
+    "FACTR"
+   ]
+  ],
+  [
+   "Sergey Levine",
+   10,
+   [
+    "ACT",
+    "Diffusion Policy",
+    "robomimic"
+   ]
+  ],
+  [
+   "Chelsea Finn",
+   10,
+   [
+    "ACT",
+    "Diffusion Policy",
+    "robomimic"
+   ]
+  ],
+  [
+   "Danfei Xu",
+   9,
+   [
+    "ACT",
+    "Diffusion Policy",
+    "robomimic"
+   ]
+  ],
+  [
+   "Dorsa Sadigh",
+   9,
+   [
+    "ACT",
+    "Diffusion Policy",
+    "robomimic"
+   ]
+  ],
+  [
+   "Hao-Shu Fang",
+   9,
+   [
+    "ACT",
+    "Diffusion Policy",
+    "robomimic"
+   ]
+  ],
+  [
+   "Jan Peters",
+   9,
+   [
+    "ACT",
+    "Diffusion Policy",
+    "robomimic"
+   ]
+  ],
+  [
+   "Danica Kragi\u0107",
+   9,
+   [
+    "ACT",
+    "Diffusion Policy",
+    "robomimic"
+   ]
+  ],
+  [
+   "Duidi Wu",
+   8,
+   [
+    "ACT",
+    "Diffusion Policy",
+    "robomimic"
+   ]
+  ],
+  [
+   "Yilun Du",
+   7,
+   [
+    "ACT",
+    "Diffusion Policy",
+    "robomimic"
+   ]
+  ],
+  [
+   "Pai Zheng",
+   7,
+   [
+    "ACT",
+    "Diffusion Policy",
+    "robomimic"
+   ]
+  ]
+ ],
+ "diff": {
+  "overlap": 9160,
+  "onlyB": {
+   "n": 4395,
+   "robot_share": 0.581,
+   "fields": [
+    [
+     "Artificial intelligence",
+     2360
+    ],
+    [
+     "Human\u2013computer interaction",
+     434
+    ],
+    [
+     "Computer vision",
+     201
+    ],
+    [
+     "Control engineering",
+     177
+    ],
+    [
+     "Simulation",
+     149
+    ],
+    [
+     "Mathematical optimization",
+     96
+    ]
+   ],
+   "top_sources": [
+    [
+     "Learning and generalization of motor skills by learning from demonstration",
+     2009,
+     484
+    ],
+    [
+     "Robot Learning from Demonstration",
+     2012,
+     461
+    ],
+    [
+     "Robot Learning from Demonstration in Robotic Assembly: A Survey",
+     2018,
+     227
+    ],
+    [
+     "InfoGAIL: Interpretable Imitation Learning from Visual Demonstrations",
+     2017,
+     139
+    ],
+    [
+     "Learning robot in-hand manipulation with tactile features",
+     2015,
+     137
+    ],
+    [
+     "Learning and generalization of complex tasks from unstructured demonstrations",
+     2012,
+     136
+    ],
+    [
+     "Flexible Sensors for Robotics Tactile Perception: A Review",
+     2026,
+     133
+    ],
+    [
+     "Leveraging imitation learning in agricultural robotics: a comprehensive survey and comparative analy",
+     2024,
+     126
+    ]
+   ]
+  },
+  "onlyA": {
+   "n": 1913,
+   "robot_share": 0.44,
+   "fields": [
+    [
+     "Artificial intelligence",
+     1139
+    ],
+    [
+     "Human\u2013computer interaction",
+     147
+    ],
+    [
+     "Computer vision",
+     80
+    ],
+    [
+     "Control engineering",
+     63
+    ],
+    [
+     "Mathematical optimization",
+     47
+    ],
+    [
+     "Simulation",
+     46
+    ]
+   ],
+   "top_sources": [
+    [
+     "Deep spatial autoencoders for visuomotor learning",
+     2016,
+     236
+    ],
+    [
+     "Transferring End-to-End Visuomotor Control from Simulation to Real World for a Multi-Stage Task",
+     2017,
+     127
+    ],
+    [
+     "Learning Collaborative Impedance-Based Robot Behaviors",
+     2013,
+     110
+    ],
+    [
+     "Deep Imitation Learning for Humanoid Loco-manipulation Through Human Teleoperation",
+     2023,
+     47
+    ],
+    [
+     "Self-Supervised Correspondence in Visuomotor Policy Learning",
+     2019,
+     45
+    ],
+    [
+     "Diffusion Policies as an Expressive Policy Class for Offline Reinforcement Learning",
+     2022,
+     44
+    ],
+    [
+     "What Matters in Language Conditioned Robotic Imitation Learning Over Unstructured Data",
+     2022,
+     41
+    ],
+    [
+     "GTI: Learning to Generalize across Long-Horizon Tasks from Human Demonstrations",
+     2020,
+     36
+    ]
+   ]
+  },
+  "field_onlyB": [
+   "DMP with affordance templates: teleoperation-based learning from demonstration framework for contact-rich task",
+   "VIDP: Variable Impedance Diffusion Policy for Compliant Robot Manipulation from Diverse Demonstrations",
+   "Query-Centric Diffusion Policy for Generalizable Robotic Assembly",
+   "ContactDP: Contact-Guided Diffusion Policy for Tight Insertion Tasks",
+   "Master-slave dual-arm learning from demonstration assembly based on modified triple reversible dynamic motion primitives",
+   "Mobile robotic rebar cage assembly via imitation learning",
+   "Imitation Learning and Generation of Motion Based on Transformer Model Using Force-based Two-channel Bilateral Control"
+  ],
+  "field_onlyA": []
+ }
+}
