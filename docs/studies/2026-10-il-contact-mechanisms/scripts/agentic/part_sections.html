@@ -57,7 +57,9 @@
     <div class="fig-head"><h3>Citations among field-set works and evidence papers</h3><span class="chip agent">Agentic analysis</span></div>
     <div class="legend" id="lg-net"></div>
     <div class="chart" id="ch-net"></div>
-    <figcaption class="cap">246 works (the field set plus the evidence papers) and the 139 citation links among them, coloured by topic; evidence papers are ringed. <strong>159 works (65%) have no link to any other work in the set</strong>, mostly because OpenAlex holds no references for them. They are drawn faded. The largest connected group has 85 works. Its hubs are ACT (32 links), the 2026 survey on imitation learning for contact-rich tasks (16), RDP (12), ACP (11), ForceMimic (10), FoAR (9), TacDiffusion (8) and DexForce (7). Layout: networkx spring layout with a fixed seed; hover for title, authors and institution.</figcaption>
+    <figcaption class="cap">The field set plus the evidence papers is 246 works with 139 citation links among them. <strong>Only the 87 works that have at least one link are drawn.</strong> The other 159 (65%) have no link to any other work in the set. For 122 of them, OpenAlex holds no reference list at all. They are listed under the figure. Colours show topics; evidence papers are ringed; dot size grows with citations. The largest connected group has 85 works. Its hubs are ACT (32 links), the 2026 survey on imitation learning for contact-rich tasks (16), RDP (12), ACP (11), ForceMimic (10), FoAR (9), TacDiffusion (8) and DexForce (7). Hover for title, authors and institution.</figcaption>
+    <p class="cap"><strong>Layout note.</strong> A spring layout of all 246 works failed: the unlinked works formed a wide ring and squeezed the linked ones into the centre. The figure therefore lays out only linked works. It uses a Kamada–Kawai layout per connected group, with a mild fisheye that maps the radius from the centre r → r<sup>0.6</sup> to open the dense hub around ACT. Distances are not to scale, but neighbourhoods are.</p>
+    <details id="net-iso-wrap"><summary>The 159 works with no link in this set, by topic</summary><div id="net-iso"></div></details>
   </figure>
 </section>
 

@@ -92,11 +92,15 @@ document.querySelector("#tbl-topics tbody").innerHTML = TC.map((c, i) => `<tr><t
   E.forEach(([a, b]) => { const u = idx[a], v = idx[b]; el("line", { x1: X(u.x), y1: Y(u.y), x2: X(v.x), y2: Y(v.y), stroke: "var(--ink-3)", "stroke-opacity": .45, "stroke-width": .8 }, ge); });
   N.slice().sort((a, b) => a.deg - b.deg).forEach(n => {
     const r = 2.5 + Math.min(8, Math.sqrt(n.c || 0) / 2.2);
-    const c = el("circle", { cx: X(n.x), cy: Y(n.y), r, fill: n.tc >= 0 ? tcol(n.tc) : "var(--ink-3)", "fill-opacity": n.deg ? .9 : .3,
+    const c = el("circle", { cx: X(n.x), cy: Y(n.y), r, fill: n.tc >= 0 ? tcol(n.tc) : "var(--ink-3)", "fill-opacity": .9,
       stroke: n.ev ? "var(--ink)" : "var(--panel)", "stroke-width": n.ev ? 2 : 1 }, svg);
     c.addEventListener("mousemove", ev => showTip(ev, `<b>${esc(n.t)}</b><br>${esc(n.a)}${n.yr ? " · " + n.yr : ""}${n.i ? "<br>" + esc(n.i) : ""}<br>${n.c} citations · ${n.deg} links in this set${n.ev ? "<br>Evidence paper: " + esc(n.ev) : ""}`));
     c.addEventListener("mouseleave", hideTip);
   });
+  const ISO = RD.network.isolated_list, byT = {};
+  ISO.forEach(n => (byT[n.tc] ||= []).push(n));
+  document.getElementById("net-iso").innerHTML = TC.filter(c => byT[c.c]).map(c => `<h4 style="margin:12px 0 4px;font-size:.9rem"><i class="sw" style="background:${tcol(c.c)}"></i> ${esc(c.label)} (${byT[c.c].length})</h4><ul style="font-size:.85rem">${byT[c.c].sort((a, b) => (b.yr || 0) - (a.yr || 0)).map(n => `<li>${esc(n.t)} <span class="mono" style="color:var(--ink-3)">${n.yr || ""}${n.norefs ? " · no references in OpenAlex" : ""}${n.ev ? " · evidence: " + esc(n.ev) : ""}</span></li>`).join("")}</ul>`).join("")
+    + (byT[-1] ? `<h4 style="margin:12px 0 4px;font-size:.9rem">No topic assigned (${byT[-1].length})</h4><ul style="font-size:.85rem">${byT[-1].map(n => `<li>${esc(n.t)} <span class="mono" style="color:var(--ink-3)">${n.yr || ""}${n.norefs ? " · no references in OpenAlex" : ""}</span></li>`).join("")}</ul>` : "");
   const used = [...new Set(N.map(n => n.tc).filter(x => x >= 0))];
   document.getElementById("lg-net").innerHTML = TC.filter(c => used.includes(c.c)).map(c => sw("--t" + c.c, c.label)).join("") + `<span><i class="sw" style="border:2px solid var(--ink);border-radius:50%;background:transparent"></i>evidence paper</span>`;
 })();

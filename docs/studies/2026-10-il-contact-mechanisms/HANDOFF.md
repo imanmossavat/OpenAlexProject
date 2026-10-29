@@ -1,7 +1,7 @@
 # Session handoff: IL contact-mechanisms study
 
 From a Claude Code session (Claude Opus 5.5) with Iman Mossavat, 29 October 2026, ending about 09:30 UTC.
-The study is complete, committed and pushed (`db8da77` on `main`). Read this file, then `README.md`.
+The study is complete, committed and pushed to `main`. The files exist only on `main`; on `fix/crawl-state-flags` they are absent from the working folder. Read this file, then `README.md`.
 
 ## What the study is
 
@@ -19,7 +19,7 @@ and a short Claude web search gather the evidence, and how accurate is what they
 
 | File | What |
 |---|---|
-| `index.html` | The report. Published privately as https://claude.ai/artifact/Pv1stVDZ1xTeFWQaCTcuUa (version 2). The user shares it via the Share menu |
+| `index.html` | The report. Published privately as https://claude.ai/artifact/Pv1stVDZ1xTeFWQaCTcuUa (version 3). The user shares it via the Share menu |
 | `survey.md` | Plain-language survey of the question: methodology with trial-count maths, mechanisms with verified numbers, grasp vs insertion, open experiments, and a chapter comparing the search methods |
 | `external-outputs.md` | The ChatGPT (both prompts) and NotebookLM outputs, readable and translated, with a verdict on every claim. Cited from `index.html` and `survey.md` |
 | `preregistration.md` | Rules, checklist M1–M12 and hypotheses, fixed before any results, plus amendments 1–3 (hashed) |
@@ -52,7 +52,9 @@ than one.
 - 95 (44%) are dark; in 2026, 66 of 103.
 - The crawls reached 83 (A) and 87 (B) of the 122 linked works.
 
-**Citation network:** 246 nodes, 139 edges; 65% of nodes isolated.
+**Citation network:** 246 nodes, 139 edges; 65% of nodes isolated. The figure draws only the 87 linked works (Kamada–Kawai plus a fisheye) and lists the
+159 isolated works underneath. A spring layout of all nodes failed: the isolated works formed a ring and
+squeezed the rest into the centre. The issue and the fix are recorded in `../agentic-analyses.md`, section 3.
 
 **Topic model:** k=11 (silhouette 0.363; best was k=6 at 0.389). Most mechanism evidence sits in a general
 "IL theory, data and interventions" cluster that holds only 4 field-set works.

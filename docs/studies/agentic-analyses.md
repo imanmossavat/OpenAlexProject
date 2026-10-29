@@ -104,6 +104,18 @@ robotics near Growing NCA, graphics near Textures.
 **Caveats.** A spring layout is not unique; the fixed seed makes it reproducible, not canonical. Missing
 OpenAlex references remove edges, so recent papers often show up as isolated dots.
 
+**Known issue (IL study, 29 Oct 2026).** When most nodes are isolated, a spring layout of the whole graph
+fails. In the IL field set, 159 of 246 works had no link in the set: they formed a wide ring around the
+drawing and squeezed the linked works into the centre. Fix used in `2026-10-il-contact-mechanisms/scripts/agentic/build_report_data.py`:
+1. Draw only nodes with at least one link.
+2. Lay out each connected component with Kamada–Kawai, placing components side by side, largest first.
+3. Apply a mild fisheye around the centroid ($r \to r^{0.6}$) to open a dense hub.
+4. List the isolated works under the figure, grouped by topic and flagged when OpenAlex holds no reference list.
+
+A spring pass started from the Kamada–Kawai positions was tried and rejected: it kept the hub dense and
+stretched one branch into a long tail. Report the share of isolated nodes; it is a finding in itself (missing
+references), not only a drawing problem.
+
 ---
 
 ## 4. Embedding topic model (topic map, topic table, topics over time)
